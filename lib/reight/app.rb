@@ -15,4 +15,13 @@ class App
     sprites.each {|sp| removeSprite sp}
   end
 
+  def draw()
+  end
+
+  def resized()
+  end
+
+  def keyPressed()
+  end
+
 end# App

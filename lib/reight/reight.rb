@@ -10,6 +10,10 @@ class Reight
     self.current = apps.first
   end
 
+  def version()
+    '0.1'
+  end
+
   def project()
     @project ||= Project.new File.expand_path '../..', __dir__
   end
@@ -24,7 +28,9 @@ class Reight
 
   def setup()
     size 256, 224
-    setTitle 'R8 Retro Game Engine'
+    setTitle "Reight v#{version}"
+
+    textFont @font, 8
   end
 
   def draw()
@@ -33,6 +39,10 @@ class Reight
 
   def resized()
     @apps.each {_1.resized}
+  end
+
+  def keyPressed(key)
+    current.keyPressed key
   end
 
   private
