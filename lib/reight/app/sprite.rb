@@ -38,7 +38,7 @@ end# Button
 class Message
 
   def initialize()
-    @text = "Hello!"
+    @text = "Sprite Editor"
   end
 
   attr_accessor :text
