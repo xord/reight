@@ -1,83 +1,125 @@
-require 'rubysketch'
 using RubySketch
 
 
 class Canvas
-  def initialize(width, height)
-    @w, @h = width, height
-    @color = [255, 255, 255]
-    @tool  = nil
-    attach nil, 0, 0, 0, 0
+
+  def initialize(image, path)
+    @image, @path, @tool, @color = image, path, nil, [255, 255, 255]
+    setFrame 0, 0, 32, 32
   end
 
-  attr_accessor :color, :tool
+  attr_accessor :tool, :color
 
-  def attach(image, x, y, w, h)
-    @image, @ix, @iy, @iw, @ih = image, x, y, w, h
+  attr_reader :image, :x, :y, :w, :h
+
+  def setFrame(x, y, w, h)
+    @x, @y, @w, @h = [x, y, w, h].map &:floor
   end
 
   def paint(&block)
-    @image.beginDraw do |g|
-      g.clip @ix, @iy, @iw, @ih
+    image.beginDraw do |g|
+      g.clip x, y, w, h
       g.push do
-        g.translate @ix, @iy
+        g.translate x, y
         block.call g
       end
     end
+    save
   end
 
   def updatePixels(&block)
-    image = createGraphics @iw, @ih
+    tmp = createGraphics w, h
+    tmp.beginDraw do |g|
+      g.copy image, x, y, w, h, 0, 0, w, h
+    end
+    tmp.updatePixels {|pixels| block.call pixels}
     image.beginDraw do |g|
-      g.copy @image, @ix, @iy, @iw, @ih, 0, 0, @iw, @ih
+      g.copy tmp, 0, 0, w, h, x, y, w, h
     end
-    image.updatePixels {|pixels| block.call pixels, @iw, @ih}
-    @image.beginDraw do |g|
-      g.copy image, 0, 0, @iw, @ih, @ix, @iy, @iw, @ih
-    end
+    save
   end
 
   def sprite()
-    @sprite ||= Sprite.new(0, 0, @w, @h).tap do |sp|
-      sp.draw do |&draw|
-        next unless @image && @ix && @iy && @iw && @ih
-        copy @image, @ix, @iy, @iw, @ih, 0, 0, sp.w, sp.h
-      end
-      mousePos = -> {toImage sp.mouseX, sp.mouseY}
-      sp.mousePressed  {tool.mousePressed  self, *mousePos.call}
-      sp.mouseReleased {tool.mouseReleased self, *mousePos.call}
-      sp.mouseMoved    {tool.mouseMoved    self, *mousePos.call}
-      sp.mouseDragged  {tool.mouseDragged  self, *mousePos.call}
+    @sprite ||= Sprite.new.tap do |sp|
+      pos = -> {toImage sp.mouseX, sp.mouseY}
+      sp.draw          {draw}
+      sp.mousePressed  {tool&.mousePressed( *pos.call)}
+      sp.mouseReleased {tool&.mouseReleased(*pos.call)}
+      sp.mouseMoved    {tool&.mouseMoved(   *pos.call)}
+      sp.mouseDragged  {tool&.mouseDragged( *pos.call)}
     end
   end
 
   private
 
   def toImage(x, y)
-    return x, y unless @iw && @ih
+    return x, y unless @w && @h
     sp = sprite
-    return x * (@iw.to_f / sp.w), y * (@ih.to_f / sp.h)
+    return x * (@w.to_f / sp.w), y * (@h.to_f / sp.h)
   end
+
+  def save()
+    image.save path
+  end
+
+  def draw()
+    sp = sprite
+    clip sp.x, sp.y, sp.w, sp.h
+    copy image, x, y, w, h, 0, 0, sp.w, sp.h if image && x && y && w && h
+
+    scale sp.w / w, sp.h / h
+    translate -x, -y
+    noFill
+    strokeWeight 0
+    stroke 50, 50, 50
+    shape grid 8
+    stroke 100, 100, 100
+    shape grid 16
+    stroke 150, 150, 150
+    shape grid 32
+  end
+
+  def grid(interval)
+    (@grids ||= [])[interval] ||= createShape.tap do |sh|
+      w, h = image.width, image.height
+      sh.beginShape LINES
+      (0..w).step(interval).each do |x|
+        sh.vertex x, 0
+        sh.vertex x, h
+      end
+      (0..h).step(interval).each do |y|
+        sh.vertex 0, y
+        sh.vertex w, y
+      end
+      sh.endShape
+    end
+  end
+
 end# Canvas
 
 
 class Tool
-  def initialize(label = nil, &clicked)
-    @label, @clicked = label, clicked
+
+  def initialize(app, label = nil, &clicked)
+    @app, @label, @clicked = app, label, clicked
   end
 
   attr_accessor :active
 
-  def mousePressed(canvas, x, y)
+  attr_reader :app
+
+  def canvas = app.canvas
+
+  def mousePressed(x, y)
   end
 
-  def mouseReleased(canvas, x, y)
+  def mouseReleased(x, y)
   end
 
-  def mouseMoved(canvas, x, y)
+  def mouseMoved(x, y)
   end
 
-  def mouseDragged(canvas, x, y)
+  def mouseDragged(x, y)
   end
 
   def sprite()
@@ -98,15 +140,36 @@ class Tool
 end# ToolButton
 
 
+class Hand < Tool
+
+  def initialize(app, &block)
+    super app, 'H', &block
+  end
+
+  def mousePressed(x, y)
+    @canvasPos = createVector canvas.x, canvas.y
+    @pressPos  = createVector x, y
+  end
+
+  def mouseDragged(x, y)
+    xx = (@canvasPos.x - (x - @pressPos.x)).clamp 0, canvas.image.width  - 1
+    yy = (@canvasPos.y - (y - @pressPos.y)).clamp 0, canvas.image.height - 1
+    canvas.setFrame xx, yy, canvas.w, canvas.h
+  end
+
+end# Hand
+
+
 class Brush < Tool
-  def initialize(&block)
-    super 'B', &block
+
+  def initialize(app, &block)
+    super app, 'B', &block
     @size = 1
   end
 
   attr_reader :size
 
-  def brush(canvas, x, y)
+  def brush(x, y)
     canvas.paint do |g|
       g.noFill
       g.stroke *canvas.color
@@ -122,17 +185,20 @@ class Brush < Tool
   def mouseDragged(...)
     brush(...)
   end
-end# BrushButton
+
+end# Brush
 
 
 class Fill < Tool
-  def initialize(&block)
-    super 'F', &block
+
+  def initialize(app, &block)
+    super app, 'F', &block
   end
 
-  def mousePressed(canvas, x, y)
+  def mousePressed(x, y)
     x, y = [x, y].map &:to_i
-    canvas.updatePixels do |pixels, w, h|
+    canvas.updatePixels do |pixels|
+      w, h = canvas.w, canvas.h
       from = pixels[y * w + x]
       to   = color canvas.color
       rest = [[x, y]]
@@ -149,10 +215,12 @@ class Fill < Tool
       end
     end
   end
-end# BrushButton
+
+end# Fill
 
 
 class Color
+
   def initialize(color, &clicked)
     @color, @clicked = color, clicked
   end
@@ -178,10 +246,20 @@ class Color
       sp.mouseClicked &@clicked
     end
   end
+
 end# Color
 
 
-class SpriteEditor
+class SpriteEditor < App
+
+  def canvas()
+    @canvas ||= Canvas.new r8.project.spriteImage, r8.project.spriteImagePath
+  end
+
+  def history()
+    @history ||= History.new
+  end
+
   def useTool(tool)
     canvas.tool = tool
     tools.each {_1.active = _1 == tool}
@@ -193,13 +271,9 @@ class SpriteEditor
   end
 
   def activate()
-    sprites.each {|sp| addSprite sp}
-    useTool  tools.first
-    useColor colors.first.color
-  end
-
-  def deactivate()
-    sprites.each {|sp| removeSprite sp}
+    super
+    useTool  tools[0]
+    useColor colors[7].color
   end
 
   def draw()
@@ -208,19 +282,19 @@ class SpriteEditor
   end
 
   def resized()
-    space, buttonSize = 4, 12
-    tools.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = space
-      sp.y = space + sp.h * index
-    end
+    space, buttonSize = 8, 12
     colors.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
-      sp.x = tools.first.sprite.right + space + sp.w * index
-      sp.y = height - space - sp.h
+      sp.x = space + sp.w * (index % 8)
+      sp.y = height - space - sp.h * (2 - index / 8)
+    end
+    tools.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = colors.last.sprite.right + space + sp.w * index
+      sp.y = colors.first.sprite.top
     end
     canvas.sprite.tap do |sp|
-      sp.left   = tools.first.sprite.right + space
+      sp.left   = space
       sp.top    = space
       sp.bottom = colors.first.sprite.top - space
       sp.w      = sp.h
@@ -233,42 +307,18 @@ class SpriteEditor
     [canvas, *tools, *colors].map {_1.sprite}
   end
 
-  def image()
-    @image ||= createGraphics(1024, 1024).tap do |img|
-      img.beginDraw {|g| g.background 0, 0, 0}
-    end
-  end
-
-  def canvas()
-    @canvas ||= Canvas.new(80, 80).tap do |c|
-      c.attach image, 0, 0, 16, 16
-    end
-  end
-
   def tools()
     @tools ||= [
-      Brush.new {|self_| useTool self_},
-      Fill.new  {|self_| useTool self_},
+      Hand.new(self)  {|self_| useTool self_},
+      Brush.new(self) {|self_| useTool self_},
+      Fill.new(self)  {|self_| useTool self_},
     ]
   end
 
   def colors()
-    @colors ||= %w[
-      #000000 #1D2B53 #7E2553 #008751 #AB5236 #5F574F #C2C3C7 #FFF1E8
-      #FF004D #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
-    ].map do |color|
+    @colors ||= r8.project.paletteColors.map do |color|
       Color.new(color) {useColor color}
     end
   end
+
 end# SpriteEditor
-
-
-setup do
-  $editor = SpriteEditor.new
-  $editor.activate
-  size 256, 224
-  setTitle 'Sprite Editor'
-end
-
-draw          {$editor.draw}
-windowResized {$editor.resized}
