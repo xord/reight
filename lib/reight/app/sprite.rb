@@ -30,16 +30,16 @@ class Button
     text @label, 0, 0, sp.w, sp.h
   end
 
-  def mouseClicked()
+  def buttonClicked()
     @clickeds.each {_1.call self}
   end
 
-  alias click mouseClicked
+  alias click buttonClicked
 
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
       sp.draw         {draw}
-      sp.mouseClicked {mouseClicked}
+      sp.mouseClicked {buttonClicked}
     end
   end
 
@@ -147,6 +147,7 @@ class Canvas
       sp.mouseReleased {tool&.mouseReleased(*pos.call)}
       sp.mouseMoved    {tool&.mouseMoved(   *pos.call)}
       sp.mouseDragged  {tool&.mouseDragged( *pos.call)}
+      sp.mouseClicked  {tool&.mouseClicked}
     end
   end
 
@@ -317,7 +318,10 @@ class Tool < Button
   def mouseDragged(x, y)
   end
 
-end# ToolButton
+  def mouseClicked()
+  end
+
+end# Tool
 
 
 class Hand < Tool
