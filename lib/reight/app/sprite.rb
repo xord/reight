@@ -4,30 +4,41 @@ using RubySketch
 class Button
 
   def initialize(label, &clicked)
-    @label, @clicked = label, clicked
+    @label, @clickeds = label, []
+    on_click &clicked
   end
 
   attr_accessor :active
 
-  def mouseClicked()
-    @clicked.call self if @clicked
+  def on_click(&block)
+    @clickeds.push block if block
   end
+
+  def draw()
+    sp = sprite
+
+    noStroke
+    fill 50, 50, 50
+    rect 0, 1, sp.w, sp.h, 2
+    fill(*(active ? [200, 200, 200] : [150, 150, 150]))
+    rect 0, 0, sp.w, sp.h, 2
+
+    textAlign CENTER, CENTER
+    fill 100, 100, 100
+    text @label, 0, 1, sp.w, sp.h
+    fill 255, 255, 255
+    text @label, 0, 0, sp.w, sp.h
+  end
+
+  def mouseClicked()
+    @clickeds.each {_1.call self}
+  end
+
+  alias click mouseClicked
 
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
-      sp.draw do
-        noStroke
-        fill 50, 50, 50
-        rect 0, 1, sp.w, sp.h, 2
-        fill(*(active ? [200, 200, 200] : [150, 150, 150]))
-        rect 0, 0, sp.w, sp.h, 2
-
-        textAlign CENTER, CENTER
-        fill 100, 100, 100
-        text @label, 0, 1, sp.w, sp.h
-        fill 255, 255, 255
-        text @label, 0, 0, sp.w, sp.h
-      end
+      sp.draw         {draw}
       sp.mouseClicked {mouseClicked}
     end
   end
@@ -255,6 +266,7 @@ class Tool < Button
   def initialize(app, label = nil, &clicked)
     super label, &clicked
     @app = app
+    on_click {app.flash self.class.name}
   end
 
   attr_reader :app
@@ -271,11 +283,6 @@ class Tool < Button
   end
 
   def mouseDragged(x, y)
-  end
-
-  def mouseClicked()
-    super
-    app.flash self.class.name
   end
 
 end# ToolButton
@@ -360,31 +367,29 @@ class Fill < Tool
 end# Fill
 
 
-class Color
+class Color < Button
 
   def initialize(color, &clicked)
-    @color, @clicked = color, clicked
+    super '', &clicked
+    @color = color
   end
-
-  attr_accessor :active
 
   attr_reader :color
 
-  def sprite()
-    @sprite ||= Sprite.new.tap do |sp|
-      sp.draw do
-        fill *color
-        noStroke
-        rect 0, 0, sp.w, sp.h
-        if active
-          noFill
-          stroke '#ffffff'
-          rect 0, 0, sp.w, sp.h
-          stroke '#000000'
-          rect 1, 1, sp.w - 1, sp.h - 1
-        end
-      end
-      sp.mouseClicked &@clicked
+  def draw()
+    sp = sprite
+
+    fill *color
+    noStroke
+    rect 0, 0, sp.w, sp.h
+
+    if active
+      noFill
+      strokeWeight 1
+      stroke '#000000'
+      rect 2, 2, sp.w - 4, sp.h - 4
+      stroke '#ffffff'
+      rect 1, 1, sp.w - 2, sp.h - 2
     end
   end
 
@@ -405,20 +410,12 @@ class SpriteEditor < App
     message.flash text
   end
 
-  def useTool(tool)
-    canvas.tool = tool
-    tools.each {_1.active = _1 == tool}
-  end
-
-  def useColor(color)
-    canvas.color = color
-    colors.each {_1.active = _1.color == color}
-  end
-
   def activate()
     super
-    useTool  tools[0]
-    useColor colors[7].color
+    spriteSizes[0].click
+    colors[7].click
+    tools[2].click
+    brushSizes[0].click
   end
 
   def draw()
@@ -488,11 +485,11 @@ class SpriteEditor < App
   end
 
   def spriteSizes()
-    @spriteSizes ||= [
+    @spriteSizes ||= group(
       Button.new(8)  {navigator.size = 8},
       Button.new(16) {navigator.size = 16},
       Button.new(32) {navigator.size = 32}
-    ]
+    )
   end
 
   def navigator()
@@ -502,31 +499,42 @@ class SpriteEditor < App
   end
 
   def tools()
-    @tools ||= [
-      Hand.new(self)  {|self_| useTool self_},
+    @tools ||= group(
+      Button.new('UD') {history.undo},
+      Button.new('RD') {history.redo},
+      Hand.new(self)   {|hand| canvas.tool = hand},
       brush,
-      Fill.new(self)  {|self_| useTool self_}
-    ]
+      Fill.new(self)   {|fill| canvas.tool = fill}
+    )
   end
 
   def brush()
-    @brush ||= Brush.new(self) {|self_| useTool self_}
+    @brush ||= Brush.new(self) {|brush| canvas.tool = brush}
   end
 
   def brushSizes()
-    @btushSizes ||= [
+    @btushSizes ||= group(
       Button.new(1)  {brush.size = 1},
       Button.new(2)  {brush.size = 2},
       Button.new(3)  {brush.size = 3},
       Button.new(5)  {brush.size = 5},
       Button.new(10) {brush.size = 10}
-    ]
+    )
   end
 
   def colors()
     @colors ||= r8.project.paletteColors.map do |color|
-      Color.new(color) {useColor color}
+      Color.new(color) {canvas.color = color}
+    end.then {|buttons| group *buttons}
+  end
+
+  def group(*buttons)
+    buttons.each.with_index do |button, index|
+      button.on_click do
+        buttons.each.with_index {|b, i| b.active = i == index}
+      end
     end
+    buttons
   end
 
 end# SpriteEditor
