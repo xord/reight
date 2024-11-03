@@ -76,9 +76,12 @@ end# Message
 
 class Canvas
 
-  def initialize(image, path)
-    @image, @path, @tool, @color = image, path, nil, [255, 255, 255]
-    setFrame 0, 0, 16, 16
+  def initialize(app, image, path)
+    @app, @image, @path, @tool, @color = app, image, path, nil, [255, 255, 255]
+
+    @app.history.disable do
+      setFrame 0, 0, 16, 16
+    end
   end
 
   attr_accessor :tool, :color
@@ -89,8 +92,15 @@ class Canvas
 
   def height = @image.height
 
-  def setFrame(x, y, w, h)
+  def save()
+    @image.save @path
+  end
+
+  def setFrame(x, y, w, h, force: false)
+    old            = [@x, @y, @w, @h]
     @x, @y, @w, @h = [x, y, w, h].map &:floor
+    new            = [@x, @y, @w, @h]
+    @app.history.push [:frame, old, new] if new != old || force
   end
 
   def paint(&block)
@@ -101,7 +111,6 @@ class Canvas
         block.call g
       end
     end
-    save
   end
 
   def updatePixels(&block)
@@ -113,7 +122,21 @@ class Canvas
     @image.beginDraw do |g|
       g.copy tmp, 0, 0, w, h, x, y, w, h
     end
-    save
+  end
+
+  def captureFrame()
+    createGraphics(w, h).tap do |g|
+      g.beginDraw do
+        g.copy @image, x, y, w, h, 0, 0, w, h
+      end
+    end
+  end
+
+  def applyFrame(image, x, y)
+    @image.beginDraw do |g|
+      w, h = image.width, image.height
+      g.copy image, 0, 0, w, h, x, y, w, h
+    end
   end
 
   def sprite()
@@ -133,10 +156,6 @@ class Canvas
     return x, y unless @w && @h
     sp = sprite
     return x * (@w.to_f / sp.w), y * (@h.to_f / sp.h)
-  end
-
-  def save()
-    @image.save @path
   end
 
   def draw()
@@ -177,26 +196,22 @@ end# Canvas
 
 class Navigator
 
-  def initialize(image, size = 8, &selected)
-    @image, @size, @selected = image, size, selected
-    @x = @y = 0
+  def initialize(app, image, size = 8, &selected)
+    @app, @image, @selected = app, image, selected
     @offset = createVector
+
+    @app.history.disable do
+      setFrame 0, 0, size, size
+    end
   end
 
   attr_reader :x, :y, :size
 
-  def x=(x)
-    @x = alignToGrid(x).clamp(0..@image.width)
-    selected
-  end
-
-  def y=(y)
-    @y = alignToGrid(y).clamp(0..@image.height)
-    selected
-  end
-
-  def size=(size)
-    @size = size
+  def setFrame(x, y, w, h)
+    raise 'Navigator: width != height' if w != h
+    @x    = alignToGrid(x).clamp(0..@image.width)
+    @y    = alignToGrid(y).clamp(0..@image.height)
+    @size = w
     selected
   end
 
@@ -227,8 +242,11 @@ class Navigator
   end
 
   def mouseClicked(x, y)
-    self.x = -@offset.x + alignToGrid(x)
-    self.y = -@offset.y + alignToGrid(y)
+    setFrame(
+      -@offset.x + alignToGrid(x),
+      -@offset.y + alignToGrid(y),
+      size,
+      size)
   end
 
   def sprite()
@@ -271,7 +289,19 @@ class Tool < Button
 
   attr_reader :app
 
-  def canvas = app.canvas
+  def canvas  = app.canvas
+
+  def history = app.history
+
+  def beginEditing()
+    @before = canvas.captureFrame
+  end
+
+  def endEditing()
+    canvas.save
+    c = canvas
+    history.push [:capture, @before, c.captureFrame, c.x, c.y] if @before
+  end
 
   def mousePressed(x, y)
   end
@@ -294,15 +324,25 @@ class Hand < Tool
     super app, 'H', &block
   end
 
-  def mousePressed(x, y)
-    @canvasPos = createVector canvas.x, canvas.y
-    @pressPos  = createVector x, y
-  end
-
-  def mouseDragged(x, y)
+  def updateFrame(x, y)
     xx = (@canvasPos.x - (x - @pressPos.x)).clamp 0, canvas.width  - 1
     yy = (@canvasPos.y - (y - @pressPos.y)).clamp 0, canvas.height - 1
     canvas.setFrame xx, yy, canvas.w, canvas.h
+  end
+
+  def mousePressed(x, y)
+    @canvasPos = createVector canvas.x, canvas.y
+    @pressPos  = createVector x, y
+    history.disable
+  end
+
+  def mouseReleased(x, y)
+    history.enable
+    updateFrame force: true
+  end
+
+  def mouseDragged(x, y)
+    updateFrame
   end
 
 end# Hand
@@ -327,7 +367,12 @@ class Brush < Tool
   end
 
   def mousePressed(...)
+    beginEditing
     brush(...)
+  end
+
+  def mouseReleased(...)
+    endEditing
   end
 
   def mouseDragged(...)
@@ -344,6 +389,7 @@ class Fill < Tool
   end
 
   def mousePressed(x, y)
+    beginEditing
     x, y = [x, y].map &:to_i
     canvas.updatePixels do |pixels|
       w, h = canvas.w, canvas.h
@@ -362,6 +408,7 @@ class Fill < Tool
         rest << [xx, _y] if _y >= 0 && pixels[_y * w + xx] == from
       end
     end
+    endEditing
   end
 
 end# Fill
@@ -399,7 +446,7 @@ end# Color
 class SpriteEditor < App
 
   def canvas()
-    @canvas ||= Canvas.new r8.project.spriteImage, r8.project.spriteImagePath
+    @canvas ||= Canvas.new self, r8.project.spriteImage, r8.project.spriteImagePath
   end
 
   def history()
@@ -412,10 +459,12 @@ class SpriteEditor < App
 
   def activate()
     super
-    spriteSizes[0].click
-    colors[7].click
-    tools[2].click
-    brushSizes[0].click
+    history.disable do
+      spriteSizes[0].click
+      colors[7].click
+      tools[1].click
+      brushSizes[0].click
+    end
   end
 
   def draw()
@@ -430,10 +479,15 @@ class SpriteEditor < App
       sp.x = space + sp.w * (index % 8)
       sp.y = height - (space + sp.h * (2 - index / 8))
     end
-    tools.map {_1.sprite}.each.with_index do |sp, index|
+    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
       sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
       sp.y = colors.first.sprite.top
+    end
+    tools.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = historyButtons.last.sprite.right + space + (sp.w + 1) * index
+      sp.y = historyButtons.first.sprite.top
     end
     brushSizes.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
@@ -474,10 +528,39 @@ class SpriteEditor < App
     end
   end
 
+  def undo()
+    history.undo do |action|
+      case action
+      in [:frame, [x, y, w, h], _]       then navigator.setFrame x, y, w, h
+      in [:capture, before, after, x, y] then canvas.applyFrame before, x, y
+      end
+    end
+    flash "Undo!"
+  end
+
+  def redo()
+    history.redo do |action|
+      case action
+      in [:frame, _, [x, y, w, h]]       then navigator.setFrame x, y, w, h
+      in [:capture, before, after, x, y] then canvas.applyFrame after, x, y
+      end
+    end
+    flash "Redo!"
+  end
+
   private
 
   def sprites()
-    [message, *spriteSizes, canvas, navigator, *colors, *tools, *brushSizes].map {_1.sprite}
+    [
+      message,
+      *spriteSizes,
+      canvas,
+      navigator,
+      *colors,
+      *historyButtons,
+      *tools,
+      *brushSizes
+    ].map {_1.sprite}
   end
 
   def message()
@@ -486,22 +569,27 @@ class SpriteEditor < App
 
   def spriteSizes()
     @spriteSizes ||= group(
-      Button.new(8)  {navigator.size = 8},
-      Button.new(16) {navigator.size = 16},
-      Button.new(32) {navigator.size = 32}
+      Button.new(8)  {navigator.setFrame navigator.x, navigator.y, 8,  8},
+      Button.new(16) {navigator.setFrame navigator.x, navigator.y, 16, 16},
+      Button.new(32) {navigator.setFrame navigator.x, navigator.y, 32, 32}
     )
   end
 
   def navigator()
-    @navigator ||= Navigator.new r8.project.spriteImage do |x, y, w, h|
+    @navigator ||= Navigator.new self, r8.project.spriteImage do |x, y, w, h|
       canvas.setFrame x, y, w, h
     end
   end
 
+  def historyButtons()
+    @historyButtons ||= [
+      Button.new('Un') {undo},
+      Button.new('Re') {self.redo},
+    ]
+  end
+
   def tools()
     @tools ||= group(
-      Button.new('UD') {history.undo},
-      Button.new('RD') {history.redo},
       Hand.new(self)   {|hand| canvas.tool = hand},
       brush,
       Fill.new(self)   {|fill| canvas.tool = fill}

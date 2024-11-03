@@ -2,8 +2,8 @@ class History
 
   def initialize(undos = [], redos = [])
     super()
-    @undos, @redos = undos, redos
-    @group         = nil
+    @undos, @redos   = undos, redos
+    @group, @enabled = nil, true
   end
 
   def push(*actions)
@@ -29,16 +29,38 @@ class History
 
   def undo(&block)
     actions = @undos.pop || return
-    actions.reverse.each {|action| block.call action}
+    disable do
+      actions.reverse.each {|action| block.call action}
+    end
     @redos.push actions
     update
   end
 
   def redo(&block)
     actions = @redos.pop || return
-    actions.each {|action| block.call action}
+    disable do
+      actions.each {|action| block.call action}
+    end
     @undos.push actions
     update
+  end
+
+  def enable(state = true)
+    return if state == @enabled
+    @enabled = state
+    @enabled ? enabled : disabled
+  end
+
+  def disable(&block)
+    old = enabled?
+    enable false
+    if block
+      begin
+        block.call
+      ensure
+        enable old
+      end
+    end
   end
 
   def canUndo?()
@@ -51,6 +73,20 @@ class History
 
   def updated(&block)
     @updated = block
+  end
+
+  def enabled?()
+    @enabled
+  end
+
+  def disabled?()
+    !enabled?
+  end
+
+  def enabled()
+  end
+
+  def disabled()
   end
 
   def to_h(&dumpObject)
