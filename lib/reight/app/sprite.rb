@@ -284,10 +284,12 @@ class Tool < Button
   def initialize(app, label = nil, &clicked)
     super label, &clicked
     @app = app
-    on_click {app.flash self.class.name}
+    on_click {app.flash name}
   end
 
   attr_reader :app
+
+  def name    = self.class.name
 
   def canvas  = app.canvas
 
@@ -412,6 +414,40 @@ class Fill < Tool
   end
 
 end# Fill
+
+
+class Shape < Tool
+
+  def initialize(app, fun, fill, &block)
+    super app, "#{fun[0].capitalize}#{fill ? :f : :s}", &block
+    @fun, @fill = fun, fill
+  end
+
+  def name = "#{@fill ? :Fill : :Stroke} #{@fun.capitalize}"
+
+  def drawRect(x, y)
+    beginEditing
+    canvas.paint do |g|
+      @fill ? g.fill(*canvas.color) : g.noFill
+      g.stroke(*canvas.color)
+      g.rectMode    CORNER
+      g.ellipseMode CORNER
+      g.send @fun, @x, @y, x - @x, y - @y
+    end
+    endEditing
+  end
+
+  def mousePressed(x, y)
+    @x, @y = x, y
+    drawRect x, y
+  end
+
+  def mouseDragged(x, y)
+    app.undo
+    drawRect x, y
+  end
+
+end# Shape
 
 
 class Color < Button
@@ -590,15 +626,17 @@ class SpriteEditor < App
 
   def tools()
     @tools ||= group(
-      Hand.new(self)   {|hand| canvas.tool = hand},
-      brush,
-      Fill.new(self)   {|fill| canvas.tool = fill}
+      Hand.new(self)                   {|hand|    canvas.tool = hand},
+      Brush.new(self)                  {|brush|   canvas.tool = brush},
+      Fill.new(self)                   {|fill|    canvas.tool = fill},
+      Shape.new(self, :rect,    false) {|rect|    canvas.tool = rect},
+      Shape.new(self, :rect,    true)  {|rect|    canvas.tool = rect},
+      Shape.new(self, :ellipse, false) {|ellipse| canvas.tool = ellipse},
+      Shape.new(self, :ellipse, true)  {|ellipse| canvas.tool = ellipse},
     )
   end
 
-  def brush()
-    @brush ||= Brush.new(self) {|brush| canvas.tool = brush}
-  end
+  def brush = tools[1]
 
   def brushSizes()
     @btushSizes ||= group(
