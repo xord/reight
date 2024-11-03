@@ -28,7 +28,7 @@ class Reight
 
   def setup()
     size 256, 224
-    setTitle "Reight v#{version}"
+    setTitle "Reight #{version}"
 
     textFont @font, 8
   end
