@@ -115,6 +115,15 @@ class Canvas
     @app.history.push [:select, old, new]
   end
 
+  def selection()
+    xrange, yrange = x..(x + w), y..(y + h)
+    sx, sy, sw, sh = @selection
+    return nil unless
+      xrange.include?(sx) && xrange.include?(sx + sw) &&
+      yrange.include?(sy) && yrange.include?(sy + sh)
+    @selection
+  end
+
   def deselect()
     return if @selection == nil
     old, @selection = @selection, nil
@@ -123,7 +132,7 @@ class Canvas
 
   def paint(&block)
     @image.beginDraw do |g|
-      g.clip(*(@selection || frame))
+      g.clip(*(selection || frame))
       g.push do
         g.translate x, y
         block.call g
