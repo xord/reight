@@ -148,6 +148,14 @@ class Canvas
     end
   end
 
+  def clear(frame, color: [0, 0, 0])
+    paint do |g|
+      g.fill(*color)
+      g.noStroke
+      g.rect(*frame)
+    end
+  end
+
   def beginEditing(&block)
     @before = captureFrame
     block.call if block
@@ -720,11 +728,7 @@ class SpriteEditor < App
     return unless @copy
     image, x, y = @copy
     canvas.beginEditing do
-      canvas.paint do |g|
-        g.fill(*colors.first.color)
-        g.noStroke
-        g.rect x, y, image.width, image.height
-      end
+      clearCanvas x, y, image.width, image.height
     end
     self.flash 'Cut!' if flash
   end
@@ -766,6 +770,10 @@ class SpriteEditor < App
       end
       self.flash 'Redo!' if flash
     end
+  end
+
+  def clearCanvas(x, y, w, h)
+    canvas.clear [x, y, w, h], color: colors.first.color
   end
 
   def setBrushSize(size)
