@@ -716,8 +716,7 @@ class SpriteEditor < App
 
   def copy(flash: true)
     sel   = canvas.selection || canvas.frame
-    image = canvas.captureFrame sel
-    return unless image
+    image = canvas.captureFrame(sel) || return
     x, y, = sel
     @copy = [image, x - canvas.x, y - canvas.y]
     self.flash 'Copy!' if flash
@@ -725,8 +724,7 @@ class SpriteEditor < App
 
   def cut(flash: true)
     copy flash: false
-    return unless @copy
-    image, x, y = @copy
+    image, x, y = @copy || return
     canvas.beginEditing do
       clearCanvas x, y, image.width, image.height
     end
@@ -734,8 +732,7 @@ class SpriteEditor < App
   end
 
   def paste(flash: true)
-    return unless @copy
-    image, x, y = @copy
+    image, x, y = @copy || return
     w, h        = image.width, image.height
     history.group do
       canvas.beginEditing do
