@@ -655,6 +655,10 @@ class SpriteEditor < App
     end
   end
 
+  def inspect()
+    "#<#{self.class.name}:#{object_id}>"
+  end
+
   private
 
   def sprites()
