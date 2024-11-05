@@ -6,4 +6,5 @@ def r8 = $reight
 setup         {Reight.new.setup}
 draw          {r8.draw}
 windowResized {r8.resized}
-keyPressed    {r8.keyPressed keyCode}
+keyPressed    {r8.keyPressed  keyCode}
+keyReleased   {r8.keyReleased keyCode}

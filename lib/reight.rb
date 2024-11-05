@@ -1,5 +1,4 @@
 require 'rubysketch'
-using RubySketch
 
 require 'reight/project'
 require 'reight/history'

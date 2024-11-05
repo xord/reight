@@ -3,6 +3,10 @@ using RubySketch
 
 class App
 
+  def name()
+    self.class.name
+  end
+
   def sprites()
     []
   end

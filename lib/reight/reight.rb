@@ -24,12 +24,11 @@ class Reight
     @current&.deactivate
     @current = app
     @current.activate
+    setTitle "#{self.class.name} #{version} | #{current.name}"
   end
 
   def setup()
     size 256, 224
-    setTitle "Reight #{version}"
-
     textFont @font, 8
   end
 
@@ -43,6 +42,10 @@ class Reight
 
   def keyPressed(key)
     current.keyPressed key
+  end
+
+  def keyReleased(key)
+    current.keyReleased key
   end
 
   private

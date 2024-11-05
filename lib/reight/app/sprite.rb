@@ -48,10 +48,6 @@ end# Button
 
 class Message
 
-  def initialize()
-    @text = "Sprite Editor"
-  end
-
   attr_accessor :text
 
   def flash(str)
@@ -64,6 +60,7 @@ class Message
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
       sp.draw do
+        next unless @text
         fill 255, 255, 255
         textAlign LEFT, CENTER
         drawText @text, 0, 0, sp.w, sp.h
@@ -151,7 +148,21 @@ class Canvas
     end
   end
 
-  def captureFrame()
+  def beginEditing(&block)
+    @before = captureFrame
+    block.call if block
+  ensure
+    endEditing if block
+  end
+
+  def endEditing()
+    return unless @before
+    save
+    @app.history.push [:capture, @before, captureFrame, x, y]
+  end
+
+  def captureFrame(frame = self.frame)
+    x, y, w, h = frame
     createGraphics(w, h).tap do |g|
       g.beginDraw do
         g.copy @image, x, y, w, h, 0, 0, w, h
@@ -381,16 +392,6 @@ class Tool < Button
 
   def history = app.history
 
-  def beginEditing()
-    @before = canvas.captureFrame
-  end
-
-  def endEditing()
-    canvas.save
-    c = canvas
-    history.push [:capture, @before, c.captureFrame, c.x, c.y] if @before
-  end
-
   def mousePressed(x, y)
   end
 
@@ -425,12 +426,12 @@ class Select < Tool
   end
 
   def mouseDragged(x, y)
-    app.undo
+    app.undo flash: false
     select x, y
   end
 
   def mouseClicked()
-    app.undo
+    app.undo flash: false
     canvas.deselect
   end
 
@@ -456,12 +457,12 @@ class Brush < Tool
   end
 
   def mousePressed(...)
-    beginEditing
+    canvas.beginEditing
     brush(...)
   end
 
   def mouseReleased(...)
-    endEditing
+    canvas.endEditing
   end
 
   def mouseDragged(...)
@@ -484,7 +485,7 @@ class Fill < Tool
     sx -= fx
     sy -= fy
     return unless (sx...(sx + sw)).include?(x) && (sy...(sy + sh)).include?(y)
-    beginEditing
+    canvas.beginEditing
     count = 0
     canvas.updatePixels do |pixels|
       from = pixels[y * fw + x]
@@ -503,7 +504,7 @@ class Fill < Tool
         rest << [xx, y_] if y_ <  sy + sh && pixels[y_ * fw + xx] == from
       end
     end
-    endEditing if count > 0
+    canvas.endEditing if count > 0
   end
 
 end# Fill
@@ -519,15 +520,15 @@ class Shape < Tool
   def name = "#{@fill ? :Fill : :Stroke} #{@fun.capitalize}"
 
   def drawRect(x, y)
-    beginEditing
-    canvas.paint do |g|
-      @fill ? g.fill(*canvas.color) : g.noFill
-      g.stroke(*canvas.color)
-      g.rectMode    CORNER
-      g.ellipseMode CORNER
-      g.send @fun, @x, @y, x - @x, y - @y
+    canvas.beginEditing do
+      canvas.paint do |g|
+        @fill ? g.fill(*canvas.color) : g.noFill
+        g.stroke(*canvas.color)
+        g.rectMode    CORNER
+        g.ellipseMode CORNER
+        g.send @fun, @x, @y, x - @x, y - @y
+      end
     end
-    endEditing
   end
 
   def mousePressed(x, y)
@@ -536,7 +537,7 @@ class Shape < Tool
   end
 
   def mouseDragged(x, y)
-    app.undo
+    app.undo flash: false
     drawRect x, y
   end
 
@@ -583,7 +584,7 @@ class SpriteEditor < App
   end
 
   def flash(text)
-    message.flash text
+    message.flash text if history.enabled?
   end
 
   def activate()
@@ -608,15 +609,20 @@ class SpriteEditor < App
       sp.x = space + sp.w * (index % 8)
       sp.y = height - (space + sp.h * (2 - index / 8))
     end
-    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
+    editButtons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
       sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
       sp.y = colors.first.sprite.top
     end
+    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = editButtons.first.sprite.x + (sp.w + 1) * index
+      sp.y = editButtons.last.sprite.bottom + 2
+    end
     tools.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
-      sp.x = historyButtons.last.sprite.right + space + (sp.w + 1) * index
-      sp.y = historyButtons.first.sprite.top
+      sp.x = editButtons.last.sprite.right + space + (sp.w + 1) * index
+      sp.y = editButtons.first.sprite.top
     end
     brushSizes.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
@@ -649,16 +655,69 @@ class SpriteEditor < App
   end
 
   def keyPressed(key)
-    n = navigator
+    pressingKeys.add key
+    nav              = navigator
+    shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
     case key
-    when LEFT  then n.setFrame n.x - n.size, n.y, n.size, n.size
-    when RIGHT then n.setFrame n.x + n.size, n.y, n.size, n.size
-    when UP    then n.setFrame n.x, n.y - n.size, n.size, n.size
-    when DOWN  then n.setFrame n.x, n.y + n.size, n.size, n.size
+    when LEFT  then nav.setFrame nav.x - nav.size, nav.y, nav.size, nav.size
+    when RIGHT then nav.setFrame nav.x + nav.size, nav.y, nav.size, nav.size
+    when UP    then nav.setFrame nav.x, nav.y - nav.size, nav.size, nav.size
+    when DOWN  then nav.setFrame nav.x, nav.y + nav.size, nav.size, nav.size
+    when :c    then copy  if ctrl || cmd
+    when :x    then cut   if ctrl || cmd
+    when :v    then paste if ctrl || cmd
+    when :z    then shift ? self.redo : undo if ctrl || cmd
+    when :s    then select.click
+    when :b    then  brush.click
+    when :f    then   fill.click
+    when :r    then (shift ? fillRect    : strokeRect   ).click
+    when :e    then (shift ? fillEllipse : strokeEllipse).click
     end
   end
 
-  def undo()
+  def keyReleased(key)
+    pressingKeys.delete key
+  end
+
+  def copy(flash: true)
+    sel   = canvas.selection || canvas.frame
+    image = canvas.captureFrame sel
+    return unless image
+    x, y, = sel
+    @copy = [image, x - canvas.x, y - canvas.y]
+    self.flash 'Copy!' if flash
+  end
+
+  def cut(flash: true)
+    copy flash: false
+    return unless @copy
+    image, x, y = @copy
+    canvas.beginEditing do
+      canvas.paint do |g|
+        g.fill(*colors.first.color)
+        g.noStroke
+        g.rect x, y, image.width, image.height
+      end
+    end
+    self.flash 'Cut!' if flash
+  end
+
+  def paste(flash: true)
+    return unless @copy
+    image, x, y = @copy
+    w, h        = image.width, image.height
+    history.group do
+      canvas.beginEditing do
+        canvas.paint do |g|
+          g.copy image, 0, 0, w, h, x, y, w, h
+        end
+      end
+      canvas.select canvas.x + x, canvas.y + y, w, h
+    end
+    self.flash 'Paste!' if flash
+  end
+
+  def undo(flash: true)
     history.undo do |action|
       case action
       in [:frame, [x, y, w, h], _]       then navigator.setFrame x, y, w, h
@@ -666,10 +725,11 @@ class SpriteEditor < App
       in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
       in [:deselect, sel]                then canvas.select *sel
       end
+      self.flash 'Undo!' if flash
     end
   end
 
-  def redo()
+  def redo(flash: true)
     history.redo do |action|
       case action
       in [:frame, _, [x, y, w, h]]       then navigator.setFrame x, y, w, h
@@ -677,7 +737,13 @@ class SpriteEditor < App
       in [  :select, _, sel]             then canvas.select *sel
       in [:deselect, _]                  then canvas.deselect
       end
+      self.flash 'Redo!' if flash
     end
+  end
+
+  def setBrushSize(size)
+    brush.size = size
+    flash "Brush Size #{size}"
   end
 
   def inspect()
@@ -686,6 +752,14 @@ class SpriteEditor < App
 
   private
 
+  def pressingKeys()
+    @pressingKeys ||= Set.new
+  end
+
+  def pressing?(key)
+    pressingKeys.include? key
+  end
+
   def sprites()
     [
       message,
@@ -693,6 +767,7 @@ class SpriteEditor < App
       canvas,
       navigator,
       *colors,
+      *editButtons,
       *historyButtons,
       *tools,
       *brushSizes
@@ -717,36 +792,40 @@ class SpriteEditor < App
     end
   end
 
+  def editButtons()
+    @editButtons ||= [
+      Button.new('Co') {copy},
+      Button.new('Cu') {cut},
+      Button.new('Pa') {paste},
+    ]
+  end
+
   def historyButtons()
     @historyButtons ||= [
-      Button.new('Un') {flash 'Undo!'; undo},
-      Button.new('Re') {flash 'Redo!'; self.redo},
+      Button.new('Un') {undo},
+      Button.new('Re') {self.redo},
     ]
   end
 
   def tools()
-    @tools ||= group(
-      Select.new(self)                 {|select|  canvas.tool = select},
-      brush,
-      Fill.new(self)                   {|fill|    canvas.tool = fill},
-      Shape.new(self, :rect,    false) {|rect|    canvas.tool = rect},
-      Shape.new(self, :rect,    true)  {|rect|    canvas.tool = rect},
-      Shape.new(self, :ellipse, false) {|ellipse| canvas.tool = ellipse},
-      Shape.new(self, :ellipse, true)  {|ellipse| canvas.tool = ellipse},
-    )
+    @tools ||= group(select, brush, fill, strokeRect, fillRect, strokeEllipse, fillEllipse)
   end
 
-  def brush()
-    @brush ||= Brush.new(self) {|brush| canvas.tool = brush}
-  end
+  def select        = @select        ||= Select.new(self)                 {canvas.tool = _1}
+  def brush         = @brush         ||= Brush.new(self)                  {canvas.tool = _1}
+  def fill          = @fill          ||= Fill.new(self)                   {canvas.tool = _1}
+  def strokeRect    = @strokeRect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
+  def fillRect      = @fillRect      ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
+  def strokeEllipse = @strokeEllipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
+  def fillEllipse   = @fillEllipse   ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
 
   def brushSizes()
-    @btushSizes ||= group(
-      Button.new(1)  {brush.size = 1},
-      Button.new(2)  {brush.size = 2},
-      Button.new(3)  {brush.size = 3},
-      Button.new(5)  {brush.size = 5},
-      Button.new(10) {brush.size = 10}
+    @brushSizes ||= group(
+      Button.new(1)  {setBrushSize 1},
+      Button.new(2)  {setBrushSize 2},
+      Button.new(3)  {setBrushSize 3},
+      Button.new(5)  {setBrushSize 5},
+      Button.new(10) {setBrushSize 10}
     )
   end
 
