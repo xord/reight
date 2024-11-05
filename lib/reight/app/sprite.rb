@@ -99,7 +99,7 @@ class Canvas
 
   def setFrame(x, y, w, h)
     old            = [@x, @y, @w, @h]
-    new            = [x, y, w, h].map &:floor
+    new            = correctBounds x, y, w, h
     return if new == old
     @x, @y, @w, @h = new
     @app.history.push [:frame, old, new]
@@ -107,7 +107,7 @@ class Canvas
 
   def select(x, y, w, h)
     old        = @selection
-    new        = [x.to_i, y.to_i, w.ceil, h.ceil]
+    new        = correctBounds x, y, w, h
     return if new == old
     @selection = new
     @app.history.push [:select, old, new]
@@ -173,6 +173,14 @@ class Canvas
     return x, y unless @w && @h
     sp = sprite
     return x * (@w.to_f / sp.w), y * (@h.to_f / sp.h)
+  end
+
+  def correctBounds(x, y, w, h)
+    x2, y2 = x + w, y + h
+    x, x2  = x2, x if x > x2
+    y, y2  = y2, y if y > y2
+    x, y   = x.floor, y.floor
+    return x, y, (x2 - x).ceil, (y2 - y).ceil
   end
 
   def draw()
@@ -397,8 +405,7 @@ class Select < Tool
   end
 
   def select(x, y)
-    xi, yi = @x.to_i, @y.to_i
-    canvas.select xi, yi, x - xi, y - yi
+    canvas.select @x, @y, x - @x, y - @y
   end
 
   def mousePressed(x, y)
