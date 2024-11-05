@@ -640,11 +640,12 @@ class SpriteEditor < App
   end
 
   def keyPressed(key)
+    n = navigator
     case key
-    when LEFT  then navigator.x -= navigator.size
-    when RIGHT then navigator.x += navigator.size
-    when UP    then navigator.y -= navigator.size
-    when DOWN  then navigator.y += navigator.size
+    when LEFT  then n.setFrame n.x - n.size, n.y, n.size, n.size
+    when RIGHT then n.setFrame n.x + n.size, n.y, n.size, n.size
+    when UP    then n.setFrame n.x, n.y - n.size, n.size, n.size
+    when DOWN  then n.setFrame n.x, n.y + n.size, n.size, n.size
     end
   end
 
