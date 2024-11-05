@@ -87,7 +87,7 @@ class Canvas
 
   attr_accessor :tool, :color
 
-  attr_reader :x, :y, :w, :h
+  attr_reader :x, :y, :w, :h, :selection
 
   def width  = @image.width
 
@@ -105,6 +105,8 @@ class Canvas
     @app.history.push [:frame, old, new]
   end
 
+  def frame = [x, y, w, h]
+
   def select(x, y, w, h)
     old        = @selection
     new        = correctBounds x, y, w, h
@@ -121,7 +123,7 @@ class Canvas
 
   def paint(&block)
     @image.beginDraw do |g|
-      g.clip x, y, w, h
+      g.clip(*(@selection || frame))
       g.push do
         g.translate x, y
         block.call g
@@ -405,7 +407,7 @@ class Select < Tool
   end
 
   def select(x, y)
-    canvas.select @x, @y, x - @x, y - @y
+    canvas.select canvas.x + @x, canvas.y + @y, x - @x, y - @y
   end
 
   def mousePressed(x, y)
@@ -467,26 +469,32 @@ class Fill < Tool
   end
 
   def mousePressed(x, y)
+    x, y           = [x, y].map &:to_i
+    fx, fy, fw, fh = canvas.frame
+    sx, sy, sw, sh = canvas.selection || canvas.frame
+    sx -= fx
+    sy -= fy
+    return unless (sx...(sx + sw)).include?(x) && (sy...(sy + sh)).include?(y)
     beginEditing
-    x, y = [x, y].map &:to_i
+    count = 0
     canvas.updatePixels do |pixels|
-      w, h = canvas.w, canvas.h
-      from = pixels[y * w + x]
+      from = pixels[y * fw + x]
       to   = color canvas.color
       rest = [[x, y]]
       until rest.empty?
         xx, yy = rest.shift
-        next if pixels[yy * w + xx] == to
-        pixels[yy * w + xx] = to
+        next if pixels[yy * fw + xx] == to
+        pixels[yy * fw + xx] = to
+        count += 1
         _x, x_ = xx - 1, xx + 1
         _y, y_ = yy - 1, yy + 1
-        rest << [x_, yy] if x_ <  w && pixels[yy * w + x_] == from
-        rest << [_x, yy] if _x >= 0 && pixels[yy * w + _x] == from
-        rest << [xx, y_] if y_ <  h && pixels[y_ * w + xx] == from
-        rest << [xx, _y] if _y >= 0 && pixels[_y * w + xx] == from
+        rest << [_x, yy] if _x >= sx      && pixels[yy * fw + _x] == from
+        rest << [x_, yy] if x_ <  sx + sw && pixels[yy * fw + x_] == from
+        rest << [xx, _y] if _y >= sy      && pixels[_y * fw + xx] == from
+        rest << [xx, y_] if y_ <  sy + sh && pixels[y_ * fw + xx] == from
       end
     end
-    endEditing
+    endEditing if count > 0
   end
 
 end# Fill
