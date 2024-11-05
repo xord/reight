@@ -77,7 +77,8 @@ end# Message
 class Canvas
 
   def initialize(app, image, path)
-    @app, @image, @path, @tool, @color = app, image, path, nil, [255, 255, 255]
+    @app, @image, @path       = app, image, path
+    @tool, @color, @selection = nil, [255, 255, 255], nil
 
     @app.history.disable do
       setFrame 0, 0, 16, 16
@@ -96,11 +97,26 @@ class Canvas
     @image.save @path
   end
 
-  def setFrame(x, y, w, h, force: false)
+  def setFrame(x, y, w, h)
     old            = [@x, @y, @w, @h]
-    @x, @y, @w, @h = [x, y, w, h].map &:floor
-    new            = [@x, @y, @w, @h]
-    @app.history.push [:frame, old, new] if new != old || force
+    new            = [x, y, w, h].map &:floor
+    return if new == old
+    @x, @y, @w, @h = new
+    @app.history.push [:frame, old, new]
+  end
+
+  def select(x, y, w, h)
+    old        = @selection
+    new        = [x.to_i, y.to_i, w.ceil, h.ceil]
+    return if new == old
+    @selection = new
+    @app.history.push [:select, old, new]
+  end
+
+  def deselect()
+    return if @selection == nil
+    old, @selection = @selection, nil
+    @app.history.push [:deselect, old]
   end
 
   def paint(&block)
@@ -164,16 +180,25 @@ class Canvas
     clip sp.x, sp.y, sp.w, sp.h
     copy @image, x, y, w, h, 0, 0, sp.w, sp.h if @image && x && y && w && h
 
-    scale sp.w / w, sp.h / h
+    sx, sy = sp.w / w, sp.h / h
+    scale sx, sy
     translate -x, -y
     noFill
     strokeWeight 0
-    stroke 50, 50, 50
-    shape grid 8
-    stroke 100, 100, 100
-    shape grid 16
-    stroke 150, 150, 150
-    shape grid 32
+
+    drawGrids
+    drawSelection sx, sy
+  end
+
+  def drawGrids()
+    push do
+      stroke 50, 50, 50
+      shape grid 8
+      stroke 100, 100, 100
+      shape grid 16
+      stroke 150, 150, 150
+      shape grid 32
+    end
   end
 
   def grid(interval)
@@ -190,6 +215,47 @@ class Canvas
       end
       sh.endShape
     end
+  end
+
+  def drawSelection(scaleX, scaleY)
+    return unless @selection&.size == 4
+    push do
+      stroke 255, 255, 255
+      shader selectionShader.tap {|sh|
+        sh.set :time, frameCount.to_f / 60
+        sh.set :scale, scaleX, scaleY
+      }
+=begin
+      beginShape LINES
+      x, y, w, h = @selection
+      vertex x,     y,     x, 0
+      vertex x + w, y,     x + w, 0
+      vertex x + w, y,     x, 0
+      vertex x + w, y + h, x + w, 0
+      vertex x + w, y + h, x, 0
+      vertex x,     y + h, x + w, 0
+      vertex x,     y + h, x, 0
+      vertex x,     y,     x + w, 0
+      endShape
+=end
+      rect *@selection
+    end
+  end
+
+  def selectionShader()
+    @selectionShader ||= createShader nil, <<~END
+      varying vec4  vertTexCoord;
+      uniform float time;
+      uniform vec2  scale;
+      void main()
+      {
+        vec2 pos = vertTexCoord.xy * scale;
+        float t  = floor(time * 4.) / 4.;
+        float x  = mod( pos.x + time, 4.) < 2. ? 1. : 0.;
+        float y  = mod(-pos.y + time, 4.) < 2. ? 1. : 0.;
+        gl_FragColor = x != y ? vec4(0., 0., 0., 1.) : vec4(1., 1., 1., 1.);
+      }
+    END
   end
 
 end# Canvas
@@ -354,6 +420,35 @@ class Hand < Tool
 end# Hand
 
 
+class Select < Tool
+
+  def initialize(app, &block)
+    super app, 'S', &block
+  end
+
+  def select(x, y)
+    xi, yi = @x.to_i, @y.to_i
+    canvas.select xi, yi, x - xi, y - yi
+  end
+
+  def mousePressed(x, y)
+    @x, @y = x, y
+    select x, y
+  end
+
+  def mouseDragged(x, y)
+    app.undo
+    select x, y
+  end
+
+  def mouseClicked()
+    app.undo
+    canvas.deselect
+  end
+
+end# Select
+
+
 class Brush < Tool
 
   def initialize(app, &block)
@@ -502,7 +597,7 @@ class SpriteEditor < App
     history.disable do
       spriteSizes[0].click
       colors[7].click
-      tools[1].click
+      tools[2].click
       brushSizes[0].click
     end
   end
@@ -573,9 +668,10 @@ class SpriteEditor < App
       case action
       in [:frame, [x, y, w, h], _]       then navigator.setFrame x, y, w, h
       in [:capture, before, after, x, y] then canvas.applyFrame before, x, y
+      in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
+      in [:deselect, sel]                then canvas.select *sel
       end
     end
-    flash "Undo!"
   end
 
   def redo()
@@ -583,9 +679,10 @@ class SpriteEditor < App
       case action
       in [:frame, _, [x, y, w, h]]       then navigator.setFrame x, y, w, h
       in [:capture, before, after, x, y] then canvas.applyFrame after, x, y
+      in [  :select, _, sel]             then canvas.select *sel
+      in [:deselect, _]                  then canvas.deselect
       end
     end
-    flash "Redo!"
   end
 
   private
@@ -623,15 +720,16 @@ class SpriteEditor < App
 
   def historyButtons()
     @historyButtons ||= [
-      Button.new('Un') {undo},
-      Button.new('Re') {self.redo},
+      Button.new('Un') {flash 'Undo!'; undo},
+      Button.new('Re') {flash 'Redo!'; self.redo},
     ]
   end
 
   def tools()
     @tools ||= group(
       Hand.new(self)                   {|hand|    canvas.tool = hand},
-      Brush.new(self)                  {|brush|   canvas.tool = brush},
+      Select.new(self)                 {|select|  canvas.tool = select},
+      brush,
       Fill.new(self)                   {|fill|    canvas.tool = fill},
       Shape.new(self, :rect,    false) {|rect|    canvas.tool = rect},
       Shape.new(self, :rect,    true)  {|rect|    canvas.tool = rect},
@@ -640,7 +738,9 @@ class SpriteEditor < App
     )
   end
 
-  def brush = tools[1]
+  def brush()
+    @brush ||= Brush.new(self) {|brush| canvas.tool = brush}
+  end
 
   def brushSizes()
     @btushSizes ||= group(
