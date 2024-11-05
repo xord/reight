@@ -390,36 +390,6 @@ class Tool < Button
 end# Tool
 
 
-class Hand < Tool
-
-  def initialize(app, &block)
-    super app, 'H', &block
-  end
-
-  def updateFrame(x, y)
-    xx = (@canvasPos.x - (x - @pressPos.x)).clamp 0, canvas.width  - 1
-    yy = (@canvasPos.y - (y - @pressPos.y)).clamp 0, canvas.height - 1
-    canvas.setFrame xx, yy, canvas.w, canvas.h
-  end
-
-  def mousePressed(x, y)
-    @canvasPos = createVector canvas.x, canvas.y
-    @pressPos  = createVector x, y
-    history.disable
-  end
-
-  def mouseReleased(x, y)
-    history.enable
-    updateFrame force: true
-  end
-
-  def mouseDragged(x, y)
-    updateFrame
-  end
-
-end# Hand
-
-
 class Select < Tool
 
   def initialize(app, &block)
@@ -597,7 +567,7 @@ class SpriteEditor < App
     history.disable do
       spriteSizes[0].click
       colors[7].click
-      tools[2].click
+      tools[1].click
       brushSizes[0].click
     end
   end
@@ -727,7 +697,6 @@ class SpriteEditor < App
 
   def tools()
     @tools ||= group(
-      Hand.new(self)                   {|hand|    canvas.tool = hand},
       Select.new(self)                 {|select|  canvas.tool = select},
       brush,
       Fill.new(self)                   {|fill|    canvas.tool = fill},
