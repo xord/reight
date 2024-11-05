@@ -416,23 +416,50 @@ class Select < Tool
     super app, 'S', &block
   end
 
-  def select(x, y)
-    canvas.select canvas.x + @x, canvas.y + @y, x - @x, y - @y
+  def moveOrSelect(x, y)
+    x0, y0 = @pressPos&.to_a || return
+    if @moving
+      sx, sy, sw, sh = canvas.selection
+      dx, dy         = (x - x0).to_i, (y - y0).to_i
+      history.group do
+        canvas.beginEditing do
+          image = canvas.captureFrame [sx, sy, sw, sh]
+          canvas.applyFrame image, sx + dx, sy + dy
+          canvas.select sx + dx, sy + dy, sw, sh
+        end
+      end
+    else
+      canvas.select canvas.x + x0, canvas.y + y0, x - x0, y - y0
+    end
   end
 
   def mousePressed(x, y)
-    @x, @y = x, y
-    select x, y
+    @pressPos = createVector x, y
+    @moving   = isInSelection? x, y
+    moveOrSelect x, y
+  end
+
+  def mouseReleased(x, y)
+    @pressPos = nil
+    @moving   = false
   end
 
   def mouseDragged(x, y)
     app.undo flash: false
-    select x, y
+    moveOrSelect x, y
   end
 
   def mouseClicked()
     app.undo flash: false
     canvas.deselect
+  end
+
+  private
+
+  def isInSelection?(x, y)
+    return false unless sel = canvas.selection
+    sx, sy, sw, sh = sel
+    (sx..(sx + sw)).include?(canvas.x + x) && (sy..(sy + sh)).include?(canvas.y + y)
   end
 
 end# Select
