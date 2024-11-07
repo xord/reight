@@ -1,17 +1,60 @@
 using RubySketch
 
 
-class Button
+module Activatable
 
-  def initialize(label, &clicked)
-    @label, @clickeds = label, []
-    on_click &clicked
+  def initialize()
+    super()
+    @active, @activateds = false, []
   end
 
-  attr_accessor :active
+  def active=(active)
+    active  = !!active
+    return if active == @active
+    @active = active
+    activated!
+  end
 
-  def on_click(&block)
+  def active? = @active
+
+  def activated(&block)
+    @activateds.push block if block
+  end
+
+  def activated!()
+    @activateds.each {_1.call active}
+  end
+
+end# Activatable
+
+
+module Clickable
+
+  def initialize()
+    super()
+    @clickeds = []
+  end
+
+  def clicked(&block)
     @clickeds.push block if block
+  end
+
+  def clicked!()
+    @clickeds.each {_1.call self}
+  end
+
+end# Clickable
+
+
+class Button
+
+  include Activatable
+  include Clickable
+
+  def initialize(label, &clicked)
+    super()
+    @label = label
+    self.clicked &clicked
   end
 
   def draw()
@@ -20,7 +63,7 @@ class Button
     noStroke
     fill 50, 50, 50
     rect 0, 1, sp.w, sp.h, 2
-    fill(*(active ? [200, 200, 200] : [150, 150, 150]))
+    fill(*(active? ? [200, 200, 200] : [150, 150, 150]))
     rect 0, 0, sp.w, sp.h, 2
 
     textAlign CENTER, CENTER
@@ -30,16 +73,16 @@ class Button
     text @label, 0, 0, sp.w, sp.h
   end
 
-  def buttonClicked()
-    @clickeds.each {_1.call self}
+  def hover(x, y)
   end
 
-  alias click buttonClicked
+  alias click clicked!
 
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
       sp.draw         {draw}
-      sp.mouseClicked {buttonClicked}
+      sp.mouseMoved   {hover sp.mouseX, sp.mouseY}
+      sp.mouseClicked {clicked!}
     end
   end
 
@@ -393,13 +436,18 @@ class Tool < Button
 
   def initialize(app, label = nil, &clicked)
     super label, &clicked
-    @app = app
-    on_click {app.flash name}
+    @app      = app
+    @subTools = nil
+    self.clicked {app.flash name}
   end
+
+  attr_accessor :subTools
 
   attr_reader :app
 
   def name    = self.class.name
+
+  def help    = name
 
   def canvas  = app.canvas
 
@@ -418,6 +466,10 @@ class Tool < Button
   end
 
   def mouseClicked()
+  end
+
+  def hover(x, y)
+    app.flash help, priority: 0.5
   end
 
 end# Tool
@@ -600,7 +652,7 @@ class Color < Button
     noStroke
     rect 0, 0, sp.w, sp.h
 
-    if active
+    if active?
       noFill
       strokeWeight 1
       stroke '#000000'
@@ -874,7 +926,7 @@ class SpriteEditor < App
 
   def group(*buttons)
     buttons.each.with_index do |button, index|
-      button.on_click do
+      button.clicked do
         buttons.each.with_index {|b, i| b.active = i == index}
       end
     end
