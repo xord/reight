@@ -206,11 +206,11 @@ class Canvas
     @sprite ||= Sprite.new.tap do |sp|
       pos = -> {toImage sp.mouseX, sp.mouseY}
       sp.draw          {draw}
-      sp.mousePressed  {tool&.mousePressed( *pos.call)}
-      sp.mouseReleased {tool&.mouseReleased(*pos.call)}
-      sp.mouseMoved    {tool&.mouseMoved(   *pos.call)}
-      sp.mouseDragged  {tool&.mouseDragged( *pos.call)}
-      sp.mouseClicked  {tool&.mouseClicked}
+      sp.mousePressed  {tool&.canvasPressed( *pos.call, sp.mouseButton)}
+      sp.mouseReleased {tool&.canvasReleased(*pos.call, sp.mouseButton)}
+      sp.mouseMoved    {tool&.canvasMoved(   *pos.call)}
+      sp.mouseDragged  {tool&.canvasDragged( *pos.call, sp.mouseButton)}
+      sp.mouseClicked  {tool&.canvasClicked( *pos.call, sp.mouseButton)}
     end
   end
 
@@ -422,19 +422,19 @@ class Tool < Button
 
   def history = app.history
 
-  def mousePressed(x, y)
+  def canvasPressed(x, y, button)
   end
 
-  def mouseReleased(x, y)
+  def canvasReleased(x, y, button)
   end
 
-  def mouseMoved(x, y)
+  def canvasMoved(x, y)
   end
 
-  def mouseDragged(x, y)
+  def canvasDragged(x, y, button)
   end
 
-  def mouseClicked()
+  def canvasClicked(x, y, button)
   end
 
   def hover(x, y)
@@ -468,24 +468,24 @@ class Select < Tool
     end
   end
 
-  def mousePressed(x, y)
+  def canvasPressed(x, y, button)
     @pressPos = createVector x, y
-    @moving   = isInSelection? x, y
+    @moving   = button == LEFT && isInSelection?(x, y)
     moveOrSelect x, y
   end
 
-  def mouseReleased(x, y)
+  def canvasReleased(x, y, button)
     @pressPos = nil
     @moving   = false
   end
 
-  def mouseDragged(x, y)
+  def canvasDragged(x, y, button)
     app.undo flash: false
     moveOrSelect x, y
   end
 
-  def mouseClicked()
-    app.undo flash: false
+  def canvasClicked(x, y, button)
+    app.undo flash: false if button == LEFT
     canvas.deselect
   end
 
@@ -509,7 +509,8 @@ class Brush < Tool
 
   attr_accessor :size
 
-  def brush(x, y)
+  def brush(x, y, button)
+    return unless button == LEFT
     canvas.paint do |g|
       g.noFill
       g.stroke *canvas.color
@@ -518,16 +519,16 @@ class Brush < Tool
     end
   end
 
-  def mousePressed(...)
+  def canvasPressed(...)
     canvas.beginEditing
     brush(...)
   end
 
-  def mouseReleased(...)
+  def canvasReleased(...)
     canvas.endEditing
   end
 
-  def mouseDragged(...)
+  def canvasDragged(...)
     brush(...)
   end
 
@@ -540,7 +541,8 @@ class Fill < Tool
     super app, 'F', &block
   end
 
-  def mousePressed(x, y)
+  def canvasPressed(x, y, button)
+    return unless button == LEFT
     x, y           = [x, y].map &:to_i
     fx, fy, fw, fh = canvas.frame
     sx, sy, sw, sh = canvas.selection || canvas.frame
@@ -593,12 +595,12 @@ class Shape < Tool
     end
   end
 
-  def mousePressed(x, y)
+  def canvasPressed(x, y, button)
     @x, @y = x, y
     drawRect x, y
   end
 
-  def mouseDragged(x, y)
+  def canvasDragged(x, y, button)
     app.undo flash: false
     drawRect x, y
   end
