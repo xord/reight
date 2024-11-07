@@ -748,6 +748,7 @@ class SpriteEditor < App
     image, x, y = @copy || return
     w, h        = image.width, image.height
     history.group do
+      canvas.deselect
       canvas.beginEditing do
         canvas.paint do |g|
           g.copy image, 0, 0, w, h, x, y, w, h
