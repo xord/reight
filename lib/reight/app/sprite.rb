@@ -85,9 +85,9 @@ class Canvas
     end
   end
 
-  attr_accessor :tool, :color
+  attr_accessor :tool
 
-  attr_reader :x, :y, :w, :h, :selection
+  attr_reader :x, :y, :w, :h, :color, :selection
 
   def width  = @image.width
 
@@ -106,6 +106,12 @@ class Canvas
   end
 
   def frame = [x, y, w, h]
+
+  def color=(color)
+    return if color == @color
+    @color = color
+    colorChanged!
+  end
 
   def select(x, y, w, h)
     old        = @selection
@@ -186,6 +192,14 @@ class Canvas
       w, h = image.width, image.height
       g.copy image, 0, 0, w, h, x, y, w, h
     end
+  end
+
+  def colorChanged(&block)
+    (@colorChangeds ||= []).push block if block
+  end
+
+  def colorChanged!()
+    @colorChangeds&.each {_1.call color}
   end
 
   def sprite()
@@ -537,7 +551,7 @@ class Fill < Tool
     count = 0
     canvas.updatePixels do |pixels|
       from = pixels[y * fw + x]
-      to   = color canvas.color
+      to   = color *canvas.color
       rest = [[x, y]]
       until rest.empty?
         xx, yy = rest.shift
@@ -624,7 +638,13 @@ end# Color
 class SpriteEditor < App
 
   def canvas()
-    @canvas ||= Canvas.new self, r8.project.spriteImage, r8.project.spriteImagePath
+    @canvas ||= Canvas.new(
+      self,
+      r8.project.spriteImage,
+      r8.project.spriteImagePath
+    ).tap do |canvas|
+      canvas.colorChanged {updateActiveColor}
+    end
   end
 
   def history()
@@ -876,9 +896,17 @@ class SpriteEditor < App
   end
 
   def colors()
-    @colors ||= r8.project.paletteColors.map do |color|
-      Color.new(color) {canvas.color = color}
-    end.then {|buttons| group *buttons}
+    @colors ||= r8.project.paletteColors.map {|color|
+      rgb = self.color(color)
+        .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
+      Color.new(rgb) {canvas.color = rgb}
+    }
+  end
+
+  def updateActiveColor()
+    colors.each do |button|
+      button.active = button.color == canvas.color
+    end
   end
 
   def group(*buttons)
