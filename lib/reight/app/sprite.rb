@@ -48,12 +48,17 @@ end# Button
 
 class Message
 
+  def initialize()
+    @priority = 0
+  end
+
   attr_accessor :text
 
-  def flash(str)
-    @text = str
+  def flash(str, priority: 1)
+    return if priority < @priority
+    @text, @priority = str, priority
     setTimeout 3, id: :messageFlash do
-      @text = ''
+      @text, @priority = '', 0
     end
   end
 
@@ -618,8 +623,8 @@ class SpriteEditor < App
     @history ||= History.new
   end
 
-  def flash(text)
-    message.flash text if history.enabled?
+  def flash(text, **kwargs)
+    message.flash text, **kwargs if history.enabled?
   end
 
   def activate()
