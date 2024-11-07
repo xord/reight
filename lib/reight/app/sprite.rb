@@ -444,6 +444,7 @@ class Select < Tool
       history.group do
         canvas.beginEditing do
           image = canvas.captureFrame [sx, sy, sw, sh]
+          app.clearCanvas sx, sy, sw, sh
           canvas.applyFrame image, sx + dx, sy + dy
           canvas.select sx + dx, sy + dy, sw, sh
         end
