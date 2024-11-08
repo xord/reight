@@ -6,9 +6,9 @@ class Button
   include Activatable
   include Clickable
 
-  def initialize(label, &clicked)
+  def initialize(name: nil, label: nil, &clicked)
     super()
-    @label = label
+    @name, @label = name, label
     self.clicked &clicked
   end
 
@@ -21,11 +21,13 @@ class Button
     fill(*(active? ? [200, 200, 200] : [150, 150, 150]))
     rect 0, 0, sp.w, sp.h, 2
 
-    textAlign CENTER, CENTER
-    fill 100, 100, 100
-    text @label, 0, 1, sp.w, sp.h
-    fill 255, 255, 255
-    text @label, 0, 0, sp.w, sp.h
+    if @label
+      textAlign CENTER, CENTER
+      fill 100, 100, 100
+      text @label, 0, 1, sp.w, sp.h
+      fill 255, 255, 255
+      text @label, 0, 0, sp.w, sp.h
+    end
   end
 
   def hover(x, y)
@@ -411,26 +413,42 @@ class Navigator
 end# Navigator
 
 
-class Tool < Button
+class Command < Button
 
-  def initialize(app, label = nil, &clicked)
-    super label, &clicked
-    @app      = app
-    @subTools = nil
+  include HasHelp
+
+  def initialize(app, *args, **kwargs, &clicked)
+    super *args, **kwargs, &clicked
+    @app = app
+
     self.clicked {app.flash name}
   end
 
-  attr_accessor :subTools
-
   attr_reader :app
-
-  def name    = self.class.name
-
-  def help    = name
 
   def canvas  = app.canvas
 
   def history = app.history
+
+  def hover(x, y)
+    app.flash help, priority: 0.5
+  end
+
+end# Command
+
+
+class Tool < Command
+
+  def initialize(...)
+    super
+    @subTools = nil
+  end
+
+  attr_accessor :subTools
+
+  def pickColor(x, y)
+    canvas.color = canvas.pixelAt x, y
+  end
 
   def canvasPressed(x, y, button)
   end
@@ -447,21 +465,14 @@ class Tool < Button
   def canvasClicked(x, y, button)
   end
 
-  def hover(x, y)
-    app.flash help, priority: 0.5
-  end
-
-  def pickColor(x, y)
-    canvas.color = canvas.pixelAt x, y
-  end
-
 end# Tool
 
 
 class Select < Tool
 
   def initialize(app, &block)
-    super app, 'S', &block
+    super app, label: 'S', &block
+    setHelp left: 'Select or Move'
   end
 
   def moveOrSelect(x, y)
@@ -499,7 +510,7 @@ class Select < Tool
   end
 
   def canvasClicked(x, y, button)
-    app.undo flash: false if button == LEFT
+    app.undo flash: false
     canvas.deselect
   end
 
@@ -517,8 +528,9 @@ end# Select
 class Brush < Tool
 
   def initialize(app, &block)
-    super app, 'B', &block
+    super app, label: 'B', &block
     @size = 1
+    setHelp left: 'Brush', right: 'Pick Color'
   end
 
   attr_accessor :size
@@ -558,7 +570,8 @@ end# Brush
 class Fill < Tool
 
   def initialize(app, &block)
-    super app, 'F', &block
+    super app, label: 'F', &block
+    setHelp left: 'Fill', right: 'Pick Color'
   end
 
   def canvasPressed(x, y, button)
@@ -601,8 +614,9 @@ end# Fill
 class Shape < Tool
 
   def initialize(app, shape, fill, &block)
-    super app, "#{shape[0].capitalize}#{fill ? :f : :s}", &block
     @shape, @fill = shape, fill
+    super app, label: "#{shape[0].capitalize}#{fill ? :f : :s}", &block
+    setHelp left: name, right: 'Pick Color'
   end
 
   def name = "#{@fill ? :Fill : :Stroke} #{@shape.capitalize}"
@@ -641,7 +655,7 @@ end# Shape
 class Color < Button
 
   def initialize(color, &clicked)
-    super '', &clicked
+    super &clicked
     @color = color
   end
 
@@ -877,11 +891,11 @@ class SpriteEditor < App
   end
 
   def spriteSizes()
-    @spriteSizes ||= group(
-      Button.new(8)  {navigator.setFrame navigator.x, navigator.y, 8,  8},
-      Button.new(16) {navigator.setFrame navigator.x, navigator.y, 16, 16},
-      Button.new(32) {navigator.setFrame navigator.x, navigator.y, 32, 32}
-    )
+    @spriteSizes ||= group(*[8, 16, 32].map {|size|
+      Command.new self, name: "#{size}x#{size}", label: size do
+        navigator.setFrame navigator.x, navigator.y, size, size
+      end
+    })
   end
 
   def navigator()
@@ -892,16 +906,16 @@ class SpriteEditor < App
 
   def editButtons()
     @editButtons ||= [
-      Button.new('Co') {copy},
-      Button.new('Cu') {cut},
-      Button.new('Pa') {paste},
+      Command.new(self, name: 'Copy',  label: 'Co') {copy  flash: false},
+      Command.new(self, name: 'Cut',   label: 'Cu') {cut   flash: false},
+      Command.new(self, name: 'Paste', label: 'Pa') {paste flash: false},
     ]
   end
 
   def historyButtons()
     @historyButtons ||= [
-      Button.new('Un') {undo},
-      Button.new('Re') {self.redo},
+      Command.new(self, name: 'Undo', label: 'Un') {undo      flash: false},
+      Command.new(self, name: 'Redo', label: 'Re') {self.redo flash: false},
     ]
   end
 
@@ -918,13 +932,11 @@ class SpriteEditor < App
   def fillEllipse   = @fillEllipse   ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
 
   def brushSizes()
-    @brushSizes ||= group(
-      Button.new(1)  {setBrushSize 1},
-      Button.new(2)  {setBrushSize 2},
-      Button.new(3)  {setBrushSize 3},
-      Button.new(5)  {setBrushSize 5},
-      Button.new(10) {setBrushSize 10}
-    )
+    @brushSizes ||= group(*[1, 2, 3, 5, 10].map {|size|
+      Command.new self, name: "Button Size #{size}", label: size do
+        setBrushSize size
+      end
+    })
   end
 
   def colors()
