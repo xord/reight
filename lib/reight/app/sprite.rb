@@ -147,14 +147,24 @@ class Canvas
   end
 
   def updatePixels(&block)
-    tmp = createGraphics w, h
-    tmp.beginDraw do |g|
-      g.copy @image, x, y, w, h, 0, 0, w, h
-    end
+    tmp = subImage x, y, w, h
     tmp.updatePixels {|pixels| block.call pixels}
     @image.beginDraw do |g|
       g.copy tmp, 0, 0, w, h, x, y, w, h
     end
+  end
+
+  def subImage(x, y, w, h)
+    createGraphics(w, h).tap do |g|
+      g.beginDraw {g.copy @image, x, y, w, h, 0, 0, w, h}
+    end
+  end
+
+  def pixelAt(x, y)
+    img = subImage x, y, 1, 1
+    img.loadPixels
+    c = img.pixels[0]
+    [red(c), green(c), blue(c), alpha(c)].map &:to_i
   end
 
   def clear(frame, color: [0, 0, 0])
@@ -441,6 +451,10 @@ class Tool < Button
     app.flash help, priority: 0.5
   end
 
+  def pickColor(x, y)
+    canvas.color = canvas.pixelAt x, y
+  end
+
 end# Tool
 
 
@@ -510,7 +524,6 @@ class Brush < Tool
   attr_accessor :size
 
   def brush(x, y, button)
-    return unless button == LEFT
     canvas.paint do |g|
       g.noFill
       g.stroke *canvas.color
@@ -519,17 +532,24 @@ class Brush < Tool
     end
   end
 
-  def canvasPressed(...)
+  def canvasPressed(x, y, button)
+    return unless button == LEFT
     canvas.beginEditing
-    brush(...)
+    brush x, y, button
   end
 
-  def canvasReleased(...)
+  def canvasReleased(x, y, button)
+    return unless button == LEFT
     canvas.endEditing
   end
 
-  def canvasDragged(...)
-    brush(...)
+  def canvasDragged(x, y, button)
+    return unless button == LEFT
+    brush x, y, button
+  end
+
+  def canvasClicked(x, y, button)
+    pickColor x, y if button == RIGHT
   end
 
 end# Brush
@@ -571,6 +591,10 @@ class Fill < Tool
     canvas.endEditing if count > 0
   end
 
+  def canvasClicked(x, y, button)
+    pickColor x, y if button == RIGHT
+  end
+
 end# Fill
 
 
@@ -596,13 +620,19 @@ class Shape < Tool
   end
 
   def canvasPressed(x, y, button)
+    return unless button == LEFT
     @x, @y = x, y
     drawRect x, y
   end
 
   def canvasDragged(x, y, button)
+    return unless button == LEFT
     app.undo flash: false
     drawRect x, y
+  end
+
+  def canvasClicked(x, y, button)
+    pickColor x, y if button == RIGHT
   end
 
 end# Shape
