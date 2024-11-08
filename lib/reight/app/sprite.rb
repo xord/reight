@@ -600,21 +600,21 @@ end# Fill
 
 class Shape < Tool
 
-  def initialize(app, fun, fill, &block)
-    super app, "#{fun[0].capitalize}#{fill ? :f : :s}", &block
-    @fun, @fill = fun, fill
+  def initialize(app, shape, fill, &block)
+    super app, "#{shape[0].capitalize}#{fill ? :f : :s}", &block
+    @shape, @fill = shape, fill
   end
 
-  def name = "#{@fill ? :Fill : :Stroke} #{@fun.capitalize}"
+  def name = "#{@fill ? :Fill : :Stroke} #{@shape.capitalize}"
 
-  def drawRect(x, y)
+  def drawShape(x, y)
     canvas.beginEditing do
       canvas.paint do |g|
         @fill ? g.fill(*canvas.color) : g.noFill
         g.stroke(*canvas.color)
         g.rectMode    CORNER
         g.ellipseMode CORNER
-        g.send @fun, @x, @y, x - @x, y - @y
+        g.send @shape, @x, @y, x - @x, y - @y
       end
     end
   end
@@ -622,13 +622,13 @@ class Shape < Tool
   def canvasPressed(x, y, button)
     return unless button == LEFT
     @x, @y = x, y
-    drawRect x, y
+    drawShape x, y
   end
 
   def canvasDragged(x, y, button)
     return unless button == LEFT
     app.undo flash: false
-    drawRect x, y
+    drawShape x, y
   end
 
   def canvasClicked(x, y, button)
