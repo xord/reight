@@ -24,9 +24,14 @@ class Reight::Navigator < Reight::App
       sp.x = SPACE + (sp.w + 1) * index
       sp.y = margin
     end
+    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x = appButtons.last.sprite.right + SPACE + (sp.w + 1) * index
+      sp.y = appButtons.last.sprite.y
+    end
     message.sprite.tap do |sp|
-      sp.y     = appButtons.last.sprite.y
-      sp.left  = appButtons.last.sprite.right + SPACE
+      sp.x     = historyButtons.last.sprite.right + SPACE * 2
+      sp.y     = historyButtons.last.sprite.y
       sp.right = width - margin
       sp.h     = NAVIGATOR_HEIGHT
     end
@@ -42,7 +47,7 @@ class Reight::Navigator < Reight::App
   private
 
   def sprites()
-    [*appButtons, message].map {_1.sprite}
+    [*appButtons, *historyButtons, message].map {_1.sprite}
   end
 
   def appButtons()
@@ -59,6 +64,13 @@ class Reight::Navigator < Reight::App
     @mapEditorButton ||= Reight::Button.new(name: 'Map Editor', label: 'M') do
       switchApp Reight::MapEditor
     end
+  end
+
+  def historyButtons()
+    @historyButtons ||= [
+      Reight::Button.new(name: 'Undo', label: 'Un') {r8.current.undo flash: false},
+      Reight::Button.new(name: 'Redo', label: 'Re') {r8.current.redo flash: false}
+    ]
   end
 
   def message()

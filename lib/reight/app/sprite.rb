@@ -40,11 +40,6 @@ class Reight::SpriteEditor < Reight::App
       sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
       sp.y = colors.first.sprite.y
     end
-    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = editButtons.first.sprite.x + (sp.w + 1) * index
-      sp.y = editButtons.last.sprite.bottom + 2
-    end
     tools.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
       sp.x = editButtons.last.sprite.right + space + (sp.w + 1) * index
@@ -210,10 +205,6 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def historyButtons()
-    @historyButtons ||= [
-      Command.new(self, name: 'Undo', label: 'Un') {undo      flash: false},
-      Command.new(self, name: 'Redo', label: 'Re') {self.redo flash: false},
-    ]
   end
 
   def tools()

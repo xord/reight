@@ -52,6 +52,12 @@ class Reight::App
   def keyReleased(key)
   end
 
+  def undo(flash: true)
+  end
+
+  def redo(flash: true)
+  end
+
   def inspect()
     "#<#{self.class.name}:#{object_id}>"
   end
