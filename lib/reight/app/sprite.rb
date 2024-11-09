@@ -189,7 +189,7 @@ class Reight::SpriteEditor < Reight::App
 
   def spriteSizes()
     @spriteSizes ||= group(*[8, 16, 32].map {|size|
-      Command.new self, name: "#{size}x#{size}", label: size do
+      Reight::Button.new name: "#{size}x#{size}", label: size do
         spriteSheet.setFrame spriteSheet.x, spriteSheet.y, size, size
       end
     })
@@ -203,9 +203,9 @@ class Reight::SpriteEditor < Reight::App
 
   def editButtons()
     @editButtons ||= [
-      Command.new(self, name: 'Copy',  label: 'Co') {copy  flash: false},
-      Command.new(self, name: 'Cut',   label: 'Cu') {cut   flash: false},
-      Command.new(self, name: 'Paste', label: 'Pa') {paste flash: false},
+      Reight::Button.new(name: 'Copy',  label: 'Co') {copy  flash: false},
+      Reight::Button.new(name: 'Cut',   label: 'Cu') {cut   flash: false},
+      Reight::Button.new(name: 'Paste', label: 'Pa') {paste flash: false},
     ]
   end
 
@@ -230,7 +230,7 @@ class Reight::SpriteEditor < Reight::App
 
   def brushSizes()
     @brushSizes ||= group(*[1, 2, 3, 5, 10].map {|size|
-      Command.new self, name: "Button Size #{size}", label: size do
+      Reight::Button.new name: "Button Size #{size}", label: size do
         setBrushSize size
       end
     })
@@ -590,15 +590,11 @@ class Reight::SpriteEditor::SpriteSheet
 end# SpriteSheet
 
 
-class Reight::SpriteEditor::Command < Reight::Button
+class Reight::SpriteEditor::Tool < Reight::Button
 
-  include Reight::HasHelp
-
-  def initialize(app, *args, **kwargs, &clicked)
-    super *args, **kwargs, &clicked
+  def initialize(app, *a, **k, &b)
+    super(*a, **k, &b)
     @app = app
-
-    self.clicked {app.flash name}
   end
 
   attr_reader :app
@@ -606,22 +602,6 @@ class Reight::SpriteEditor::Command < Reight::Button
   def canvas  = app.canvas
 
   def history = app.history
-
-  def hover(x, y)
-    app.flash help, priority: 0.5
-  end
-
-end# Command
-
-
-class Reight::SpriteEditor::Tool < Reight::SpriteEditor::Command
-
-  def initialize(...)
-    super
-    @subTools = nil
-  end
-
-  attr_accessor :subTools
 
   def pickColor(x, y)
     canvas.color = canvas.pixelAt x, y
@@ -832,7 +812,7 @@ end# Shape
 class Reight::SpriteEditor::Color < Reight::Button
 
   def initialize(color, &clicked)
-    super &clicked
+    super name: '', &clicked
     @color = color
   end
 

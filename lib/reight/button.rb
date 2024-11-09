@@ -5,11 +5,13 @@ class Reight::Button
 
   include Reight::Activatable
   include Reight::Clickable
+  include Reight::HasHelp
 
   def initialize(name: nil, label: nil, &clicked)
-    super()
     @name, @label = name, label
+    super()
     self.clicked &clicked
+    self.clicked {r8.flash name}
   end
 
   def draw()
@@ -31,6 +33,7 @@ class Reight::Button
   end
 
   def hover(x, y)
+    r8.flash help, priority: 0.5
   end
 
   alias click clicked!

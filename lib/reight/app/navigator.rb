@@ -50,13 +50,13 @@ class Reight::Navigator < Reight::App
   end
 
   def spriteEditorButton()
-    @spriteEditorButton ||= Reight::Button.new(label: 'S') do
+    @spriteEditorButton ||= Reight::Button.new(name: 'Sprite Editor', label: 'S') do
       switchApp Reight::SpriteEditor
     end
   end
 
   def mapEditorButton()
-    @mapEditorButton ||= Reight::Button.new(label: 'M') do
+    @mapEditorButton ||= Reight::Button.new(name: 'Map Editor', label: 'M') do
       switchApp Reight::MapEditor
     end
   end
