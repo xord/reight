@@ -28,4 +28,8 @@ class App
   def keyPressed()
   end
 
+  def inspect()
+    "#<#{self.class.name}:#{object_id}>"
+  end
+
 end# App

@@ -813,10 +813,6 @@ class SpriteEditor < App
     flash "Brush Size #{size}"
   end
 
-  def inspect()
-    "#<#{self.class.name}:#{object_id}>"
-  end
-
   private
 
   def pressingKeys()
