@@ -1,36 +1,6 @@
 using RubySketch
 
 
-class Reight::Navigator::Message
-
-  def initialize()
-    @priority = 0
-  end
-
-  attr_accessor :text
-
-  def flash(str, priority: 1)
-    return if priority < @priority
-    @text, @priority = str, priority
-    setTimeout 2, id: :messageFlash do
-      @text, @priority = '', 0
-    end
-  end
-
-  def sprite()
-    @sprite ||= Sprite.new.tap do |sp|
-      sp.draw do
-        next unless @text
-        fill 255, 255, 255
-        textAlign LEFT, CENTER
-        drawText @text, 0, 0, sp.w, sp.h
-      end
-    end
-  end
-
-end# Message
-
-
 class Reight::Navigator < Reight::App
 
   def flash(...) = message.flash(...)
@@ -95,3 +65,33 @@ class Reight::Navigator < Reight::App
   end
 
 end# Navigator
+
+
+class Reight::Navigator::Message
+
+  def initialize()
+    @priority = 0
+  end
+
+  attr_accessor :text
+
+  def flash(str, priority: 1)
+    return if priority < @priority
+    @text, @priority = str, priority
+    setTimeout 2, id: :messageFlash do
+      @text, @priority = '', 0
+    end
+  end
+
+  def sprite()
+    @sprite ||= Sprite.new.tap do |sp|
+      sp.draw do
+        next unless @text
+        fill 255, 255, 255
+        textAlign LEFT, CENTER
+        drawText @text, 0, 0, sp.w, sp.h
+      end
+    end
+  end
+
+end# Message

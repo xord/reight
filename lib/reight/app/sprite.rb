@@ -1,6 +1,258 @@
 using RubySketch
 
 
+class Reight::SpriteEditor < Reight::App
+
+  def canvas()
+    @canvas ||= Canvas.new(
+      self,
+      r8.project.spriteImage,
+      r8.project.spriteImagePath
+    ).tap do |canvas|
+      canvas.colorChanged {updateActiveColor}
+    end
+  end
+
+  def activate()
+    super
+    history.disable do
+      spriteSizes[0].click
+      colors[7].click
+      tools[1].click
+      brushSizes[0].click
+    end
+  end
+
+  def draw()
+    background 100, 100, 100
+    sprite *sprites
+  end
+
+  def resized()
+    space, buttonSize = 8, 12
+    colors.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = space + sp.w * (index % 8)
+      sp.y = height - (space + sp.h * (2 - index / 8))
+    end
+    editButtons.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
+      sp.y = colors.first.sprite.y
+    end
+    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = editButtons.first.sprite.x + (sp.w + 1) * index
+      sp.y = editButtons.last.sprite.bottom + 2
+    end
+    tools.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = editButtons.last.sprite.right + space + (sp.w + 1) * index
+      sp.y = editButtons.first.sprite.y
+    end
+    brushSizes.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = tools.first.sprite.x + (sp.w + 1) * index
+      sp.y = tools.first.sprite.bottom + 2
+    end
+    spriteSizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = buttonSize
+      sp.x = width - (space + sp.w * (index + 1) + index)
+      sp.y = tools.first.sprite.y - (sp.h + space)
+    end
+    spriteSheet.sprite.tap do |sp|
+      sp.w      = 80
+      sp.x      = width - (space + sp.w)
+      sp.y      = NAVIGATOR_HEIGHT + space
+      sp.bottom = spriteSizes.first.sprite.y - space / 2
+    end
+    canvas.sprite.tap do |sp|
+      sp.x     = space
+      sp.y     = spriteSheet.sprite.y
+      sp.right = spriteSheet.sprite.x - space
+      sp.h     = sp.w
+    end
+  end
+
+  def keyPressed(key)
+    pressingKeys.add key
+    ss               = spriteSheet
+    shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
+    case key
+    when LEFT  then ss.setFrame ss.x - ss.size, ss.y, ss.size, ss.size
+    when RIGHT then ss.setFrame ss.x + ss.size, ss.y, ss.size, ss.size
+    when UP    then ss.setFrame ss.x, ss.y - ss.size, ss.size, ss.size
+    when DOWN  then ss.setFrame ss.x, ss.y + ss.size, ss.size, ss.size
+    when :c    then copy  if ctrl || cmd
+    when :x    then cut   if ctrl || cmd
+    when :v    then paste if ctrl || cmd
+    when :z    then shift ? self.redo : undo if ctrl || cmd
+    when :s    then select.click
+    when :b    then  brush.click
+    when :f    then   fill.click
+    when :r    then (shift ? fillRect    : strokeRect   ).click
+    when :e    then (shift ? fillEllipse : strokeEllipse).click
+    end
+  end
+
+  def keyReleased(key)
+    pressingKeys.delete key
+  end
+
+  def copy(flash: true)
+    sel   = canvas.selection || canvas.frame
+    image = canvas.captureFrame(sel) || return
+    x, y, = sel
+    @copy = [image, x - canvas.x, y - canvas.y]
+    self.flash 'Copy!' if flash
+  end
+
+  def cut(flash: true)
+    copy flash: false
+    image, x, y = @copy || return
+    canvas.beginEditing do
+      clearCanvas x, y, image.width, image.height
+    end
+    self.flash 'Cut!' if flash
+  end
+
+  def paste(flash: true)
+    image, x, y = @copy || return
+    w, h        = image.width, image.height
+    history.group do
+      canvas.deselect
+      canvas.beginEditing do
+        canvas.paint do |g|
+          g.copy image, 0, 0, w, h, x, y, w, h
+        end
+      end
+      canvas.select canvas.x + x, canvas.y + y, w, h
+    end
+    self.flash 'Paste!' if flash
+  end
+
+  def undo(flash: true)
+    history.undo do |action|
+      case action
+      in [:frame, [x, y, w, h], _]       then spriteSheet.setFrame x, y, w, h
+      in [:capture, before, after, x, y] then canvas.applyFrame before, x, y
+      in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
+      in [:deselect, sel]                then canvas.select *sel
+      end
+      self.flash 'Undo!' if flash
+    end
+  end
+
+  def redo(flash: true)
+    history.redo do |action|
+      case action
+      in [:frame, _, [x, y, w, h]]       then spriteSheet.setFrame x, y, w, h
+      in [:capture, before, after, x, y] then canvas.applyFrame after, x, y
+      in [  :select, _, sel]             then canvas.select *sel
+      in [:deselect, _]                  then canvas.deselect
+      end
+      self.flash 'Redo!' if flash
+    end
+  end
+
+  def clearCanvas(x, y, w, h)
+    canvas.clear [x, y, w, h], color: colors.first.color
+  end
+
+  def setBrushSize(size)
+    brush.size = size
+    flash "Brush Size #{size}"
+  end
+
+  private
+
+  def pressingKeys()
+    @pressingKeys ||= Set.new
+  end
+
+  def pressing?(key)
+    pressingKeys.include? key
+  end
+
+  def sprites()
+    [
+      *spriteSizes,
+      canvas,
+      spriteSheet,
+      *colors,
+      *editButtons,
+      *historyButtons,
+      *tools,
+      *brushSizes
+    ].map {_1.sprite}
+  end
+
+  def spriteSizes()
+    @spriteSizes ||= group(*[8, 16, 32].map {|size|
+      Command.new self, name: "#{size}x#{size}", label: size do
+        spriteSheet.setFrame spriteSheet.x, spriteSheet.y, size, size
+      end
+    })
+  end
+
+  def spriteSheet()
+    @spriteSheet ||= SpriteSheet.new self, r8.project.spriteImage do |x, y, w, h|
+      canvas.setFrame x, y, w, h
+    end
+  end
+
+  def editButtons()
+    @editButtons ||= [
+      Command.new(self, name: 'Copy',  label: 'Co') {copy  flash: false},
+      Command.new(self, name: 'Cut',   label: 'Cu') {cut   flash: false},
+      Command.new(self, name: 'Paste', label: 'Pa') {paste flash: false},
+    ]
+  end
+
+  def historyButtons()
+    @historyButtons ||= [
+      Command.new(self, name: 'Undo', label: 'Un') {undo      flash: false},
+      Command.new(self, name: 'Redo', label: 'Re') {self.redo flash: false},
+    ]
+  end
+
+  def tools()
+    @tools ||= group(select, brush, fill, strokeRect, fillRect, strokeEllipse, fillEllipse)
+  end
+
+  def select        = @select        ||= Select.new(self)                 {canvas.tool = _1}
+  def brush         = @brush         ||= Brush.new(self)                  {canvas.tool = _1}
+  def fill          = @fill          ||= Fill.new(self)                   {canvas.tool = _1}
+  def strokeRect    = @strokeRect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
+  def fillRect      = @fillRect      ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
+  def strokeEllipse = @strokeEllipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
+  def fillEllipse   = @fillEllipse   ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
+
+  def brushSizes()
+    @brushSizes ||= group(*[1, 2, 3, 5, 10].map {|size|
+      Command.new self, name: "Button Size #{size}", label: size do
+        setBrushSize size
+      end
+    })
+  end
+
+  def colors()
+    @colors ||= r8.project.paletteColors.map {|color|
+      rgb = self.color(color)
+        .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
+      Color.new(rgb) {canvas.color = rgb}
+    }
+  end
+
+  def updateActiveColor()
+    colors.each do |button|
+      button.active = button.color == canvas.color
+    end
+  end
+
+end# SpriteEditor
+
+
 class Reight::SpriteEditor::Canvas
 
   def initialize(app, image, path)
@@ -604,255 +856,3 @@ class Reight::SpriteEditor::Color < Reight::Button
   end
 
 end# Color
-
-
-class Reight::SpriteEditor < Reight::App
-
-  def canvas()
-    @canvas ||= Canvas.new(
-      self,
-      r8.project.spriteImage,
-      r8.project.spriteImagePath
-    ).tap do |canvas|
-      canvas.colorChanged {updateActiveColor}
-    end
-  end
-
-  def activate()
-    super
-    history.disable do
-      spriteSizes[0].click
-      colors[7].click
-      tools[1].click
-      brushSizes[0].click
-    end
-  end
-
-  def draw()
-    background 100, 100, 100
-    sprite *sprites
-  end
-
-  def resized()
-    space, buttonSize = 8, 12
-    colors.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = space + sp.w * (index % 8)
-      sp.y = height - (space + sp.h * (2 - index / 8))
-    end
-    editButtons.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
-      sp.y = colors.first.sprite.y
-    end
-    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = editButtons.first.sprite.x + (sp.w + 1) * index
-      sp.y = editButtons.last.sprite.bottom + 2
-    end
-    tools.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = editButtons.last.sprite.right + space + (sp.w + 1) * index
-      sp.y = editButtons.first.sprite.y
-    end
-    brushSizes.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = tools.first.sprite.x + (sp.w + 1) * index
-      sp.y = tools.first.sprite.bottom + 2
-    end
-    spriteSizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = width - (space + sp.w * (index + 1) + index)
-      sp.y = tools.first.sprite.y - (sp.h + space)
-    end
-    spriteSheet.sprite.tap do |sp|
-      sp.w      = 80
-      sp.x      = width - (space + sp.w)
-      sp.y      = NAVIGATOR_HEIGHT + space
-      sp.bottom = spriteSizes.first.sprite.y - space / 2
-    end
-    canvas.sprite.tap do |sp|
-      sp.x     = space
-      sp.y     = spriteSheet.sprite.y
-      sp.right = spriteSheet.sprite.x - space
-      sp.h     = sp.w
-    end
-  end
-
-  def keyPressed(key)
-    pressingKeys.add key
-    ss               = spriteSheet
-    shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
-    case key
-    when LEFT  then ss.setFrame ss.x - ss.size, ss.y, ss.size, ss.size
-    when RIGHT then ss.setFrame ss.x + ss.size, ss.y, ss.size, ss.size
-    when UP    then ss.setFrame ss.x, ss.y - ss.size, ss.size, ss.size
-    when DOWN  then ss.setFrame ss.x, ss.y + ss.size, ss.size, ss.size
-    when :c    then copy  if ctrl || cmd
-    when :x    then cut   if ctrl || cmd
-    when :v    then paste if ctrl || cmd
-    when :z    then shift ? self.redo : undo if ctrl || cmd
-    when :s    then select.click
-    when :b    then  brush.click
-    when :f    then   fill.click
-    when :r    then (shift ? fillRect    : strokeRect   ).click
-    when :e    then (shift ? fillEllipse : strokeEllipse).click
-    end
-  end
-
-  def keyReleased(key)
-    pressingKeys.delete key
-  end
-
-  def copy(flash: true)
-    sel   = canvas.selection || canvas.frame
-    image = canvas.captureFrame(sel) || return
-    x, y, = sel
-    @copy = [image, x - canvas.x, y - canvas.y]
-    self.flash 'Copy!' if flash
-  end
-
-  def cut(flash: true)
-    copy flash: false
-    image, x, y = @copy || return
-    canvas.beginEditing do
-      clearCanvas x, y, image.width, image.height
-    end
-    self.flash 'Cut!' if flash
-  end
-
-  def paste(flash: true)
-    image, x, y = @copy || return
-    w, h        = image.width, image.height
-    history.group do
-      canvas.deselect
-      canvas.beginEditing do
-        canvas.paint do |g|
-          g.copy image, 0, 0, w, h, x, y, w, h
-        end
-      end
-      canvas.select canvas.x + x, canvas.y + y, w, h
-    end
-    self.flash 'Paste!' if flash
-  end
-
-  def undo(flash: true)
-    history.undo do |action|
-      case action
-      in [:frame, [x, y, w, h], _]       then spriteSheet.setFrame x, y, w, h
-      in [:capture, before, after, x, y] then canvas.applyFrame before, x, y
-      in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
-      in [:deselect, sel]                then canvas.select *sel
-      end
-      self.flash 'Undo!' if flash
-    end
-  end
-
-  def redo(flash: true)
-    history.redo do |action|
-      case action
-      in [:frame, _, [x, y, w, h]]       then spriteSheet.setFrame x, y, w, h
-      in [:capture, before, after, x, y] then canvas.applyFrame after, x, y
-      in [  :select, _, sel]             then canvas.select *sel
-      in [:deselect, _]                  then canvas.deselect
-      end
-      self.flash 'Redo!' if flash
-    end
-  end
-
-  def clearCanvas(x, y, w, h)
-    canvas.clear [x, y, w, h], color: colors.first.color
-  end
-
-  def setBrushSize(size)
-    brush.size = size
-    flash "Brush Size #{size}"
-  end
-
-  private
-
-  def pressingKeys()
-    @pressingKeys ||= Set.new
-  end
-
-  def pressing?(key)
-    pressingKeys.include? key
-  end
-
-  def sprites()
-    [
-      *spriteSizes,
-      canvas,
-      spriteSheet,
-      *colors,
-      *editButtons,
-      *historyButtons,
-      *tools,
-      *brushSizes
-    ].map {_1.sprite}
-  end
-
-  def spriteSizes()
-    @spriteSizes ||= group(*[8, 16, 32].map {|size|
-      Command.new self, name: "#{size}x#{size}", label: size do
-        spriteSheet.setFrame spriteSheet.x, spriteSheet.y, size, size
-      end
-    })
-  end
-
-  def spriteSheet()
-    @spriteSheet ||= SpriteSheet.new self, r8.project.spriteImage do |x, y, w, h|
-      canvas.setFrame x, y, w, h
-    end
-  end
-
-  def editButtons()
-    @editButtons ||= [
-      Command.new(self, name: 'Copy',  label: 'Co') {copy  flash: false},
-      Command.new(self, name: 'Cut',   label: 'Cu') {cut   flash: false},
-      Command.new(self, name: 'Paste', label: 'Pa') {paste flash: false},
-    ]
-  end
-
-  def historyButtons()
-    @historyButtons ||= [
-      Command.new(self, name: 'Undo', label: 'Un') {undo      flash: false},
-      Command.new(self, name: 'Redo', label: 'Re') {self.redo flash: false},
-    ]
-  end
-
-  def tools()
-    @tools ||= group(select, brush, fill, strokeRect, fillRect, strokeEllipse, fillEllipse)
-  end
-
-  def select        = @select        ||= Select.new(self)                 {canvas.tool = _1}
-  def brush         = @brush         ||= Brush.new(self)                  {canvas.tool = _1}
-  def fill          = @fill          ||= Fill.new(self)                   {canvas.tool = _1}
-  def strokeRect    = @strokeRect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
-  def fillRect      = @fillRect      ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
-  def strokeEllipse = @strokeEllipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
-  def fillEllipse   = @fillEllipse   ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
-
-  def brushSizes()
-    @brushSizes ||= group(*[1, 2, 3, 5, 10].map {|size|
-      Command.new self, name: "Button Size #{size}", label: size do
-        setBrushSize size
-      end
-    })
-  end
-
-  def colors()
-    @colors ||= r8.project.paletteColors.map {|color|
-      rgb = self.color(color)
-        .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
-      Color.new(rgb) {canvas.color = rgb}
-    }
-  end
-
-  def updateActiveColor()
-    colors.each do |button|
-      button.active = button.color == canvas.color
-    end
-  end
-
-end# SpriteEditor
