@@ -46,7 +46,10 @@ class App
   def resized()
   end
 
-  def keyPressed()
+  def keyPressed(key)
+  end
+
+  def keyReleased(key)
   end
 
   def inspect()

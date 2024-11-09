@@ -37,7 +37,7 @@ class Navigator < App
 
   def activate()
     super
-    apps[0].click
+    spriteEditorButton.click
   end
 
   def draw()
@@ -49,35 +49,40 @@ class Navigator < App
 
   def resized()
     margin = (NAVIGATOR_HEIGHT - BUTTON_SIZE) / 2
-    apps.map {_1.sprite}.each.with_index do |sp, index|
+    appButtons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
       sp.x = SPACE + sp.w * index
       sp.y = margin
     end
     message.sprite.tap do |sp|
-      sp.y     = apps.last.sprite.y
-      sp.left  = apps.last.sprite.right + SPACE
+      sp.y     = appButtons.last.sprite.y
+      sp.left  = appButtons.last.sprite.right + SPACE
       sp.right = width - margin
       sp.h     = NAVIGATOR_HEIGHT
     end
   end
 
   def keyPressed(key)
-  end
-
-  def keyReleased(key)
+    case key
+    when F1 then spriteEditorButton.click
+    when F2 then    mapEditorButton.click
+    end
   end
 
   private
 
   def sprites()
-    [*apps, message].map {_1.sprite}
+    [*appButtons, message].map {_1.sprite}
   end
 
-  def apps()
-    @apps ||= [
-      Button.new(label: 'S') {switchApp SpriteEditor}
-    ]
+  def appButtons()
+    @appButtons ||= [spriteEditorButton]
+  end
+
+  def spriteEditorButton()
+    @spriteEditorButton ||= Button.new(label: 'S') do
+      switchApp SpriteEditor
+    end
   end
 
   def message()
