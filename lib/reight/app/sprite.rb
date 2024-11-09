@@ -283,7 +283,7 @@ class Canvas
 end# Canvas
 
 
-class Navigator
+class SpriteSheet
 
   def initialize(app, image, size = 8, &selected)
     @app, @image, @selected = app, image, selected
@@ -297,7 +297,7 @@ class Navigator
   attr_reader :x, :y, :size
 
   def setFrame(x, y, w, h)
-    raise 'Navigator: width != height' if w != h
+    raise 'SpriteSheet: width != height' if w != h
     @x    = alignToGrid(x).clamp(0..@image.width)
     @y    = alignToGrid(y).clamp(0..@image.height)
     @size = w
@@ -365,7 +365,7 @@ class Navigator
     @selected.call @x, @y, @size, @size
   end
 
-end# Navigator
+end# SpriteSheet
 
 
 class Command < Button
@@ -703,7 +703,7 @@ class SpriteEditor < App
       sp.x = width - (space + sp.w * (index + 1) + index)
       sp.y = space
     end
-    navigator.sprite.tap do |sp|
+    spriteSheet.sprite.tap do |sp|
       sp.w      = 80
       sp.x      = width - (space + sp.w)
       sp.top    = spriteSizes.first.sprite.bottom + space
@@ -711,8 +711,8 @@ class SpriteEditor < App
     end
     canvas.sprite.tap do |sp|
       sp.x     = space
-      sp.y     = navigator.sprite.y
-      sp.right = navigator.sprite.left - space
+      sp.y     = spriteSheet.sprite.y
+      sp.right = spriteSheet.sprite.left - space
       sp.h     = sp.w
     end
     message.sprite.tap do |sp|
@@ -725,13 +725,13 @@ class SpriteEditor < App
 
   def keyPressed(key)
     pressingKeys.add key
-    nav              = navigator
+    ss               = spriteSheet
     shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
     case key
-    when LEFT  then nav.setFrame nav.x - nav.size, nav.y, nav.size, nav.size
-    when RIGHT then nav.setFrame nav.x + nav.size, nav.y, nav.size, nav.size
-    when UP    then nav.setFrame nav.x, nav.y - nav.size, nav.size, nav.size
-    when DOWN  then nav.setFrame nav.x, nav.y + nav.size, nav.size, nav.size
+    when LEFT  then ss.setFrame ss.x - ss.size, ss.y, ss.size, ss.size
+    when RIGHT then ss.setFrame ss.x + ss.size, ss.y, ss.size, ss.size
+    when UP    then ss.setFrame ss.x, ss.y - ss.size, ss.size, ss.size
+    when DOWN  then ss.setFrame ss.x, ss.y + ss.size, ss.size, ss.size
     when :c    then copy  if ctrl || cmd
     when :x    then cut   if ctrl || cmd
     when :v    then paste if ctrl || cmd
@@ -783,7 +783,7 @@ class SpriteEditor < App
   def undo(flash: true)
     history.undo do |action|
       case action
-      in [:frame, [x, y, w, h], _]       then navigator.setFrame x, y, w, h
+      in [:frame, [x, y, w, h], _]       then spriteSheet.setFrame x, y, w, h
       in [:capture, before, after, x, y] then canvas.applyFrame before, x, y
       in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
       in [:deselect, sel]                then canvas.select *sel
@@ -795,7 +795,7 @@ class SpriteEditor < App
   def redo(flash: true)
     history.redo do |action|
       case action
-      in [:frame, _, [x, y, w, h]]       then navigator.setFrame x, y, w, h
+      in [:frame, _, [x, y, w, h]]       then spriteSheet.setFrame x, y, w, h
       in [:capture, before, after, x, y] then canvas.applyFrame after, x, y
       in [  :select, _, sel]             then canvas.select *sel
       in [:deselect, _]                  then canvas.deselect
@@ -832,7 +832,7 @@ class SpriteEditor < App
       message,
       *spriteSizes,
       canvas,
-      navigator,
+      spriteSheet,
       *colors,
       *editButtons,
       *historyButtons,
@@ -848,13 +848,13 @@ class SpriteEditor < App
   def spriteSizes()
     @spriteSizes ||= group(*[8, 16, 32].map {|size|
       Command.new self, name: "#{size}x#{size}", label: size do
-        navigator.setFrame navigator.x, navigator.y, size, size
+        spriteSheet.setFrame spriteSheet.x, spriteSheet.y, size, size
       end
     })
   end
 
-  def navigator()
-    @navigator ||= Navigator.new self, r8.project.spriteImage do |x, y, w, h|
+  def spriteSheet()
+    @spriteSheet ||= SpriteSheet.new self, r8.project.spriteImage do |x, y, w, h|
       canvas.setFrame x, y, w, h
     end
   end
