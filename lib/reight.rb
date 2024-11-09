@@ -1,8 +1,9 @@
 require 'rubysketch'
 
+require 'reight/helpers'
 require 'reight/project'
 require 'reight/history'
-require 'reight/helpers'
+require 'reight/button'
 
 require 'reight/reight'
 require 'reight/app'
