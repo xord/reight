@@ -13,6 +13,10 @@ class Reight::Project
 
   def projectPath = "#{projectDir}/project.json"
 
+  def font        = @font ||= createFont(nil, fontSize)
+
+  def fontSize    = 8
+
   def spriteImageWidth  = 1024
 
   def spriteImageHeight = 1024

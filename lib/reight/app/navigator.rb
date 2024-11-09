@@ -21,7 +21,7 @@ class Reight::Navigator < Reight::App
     margin = (NAVIGATOR_HEIGHT - BUTTON_SIZE) / 2
     appButtons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
-      sp.x = SPACE + sp.w * index
+      sp.x = SPACE + (sp.w + 1) * index
       sp.y = margin
     end
     message.sprite.tap do |sp|

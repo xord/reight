@@ -36,7 +36,7 @@ class Reight::R8
 
   def setup()
     size 256, 224
-    textFont @font, 8
+    textFont r8.project.font, r8.project.fontSize
   end
 
   def draw()
@@ -46,7 +46,7 @@ class Reight::R8
 
   def resized()
     navigator.resized
-    @apps.each {_1.resized}
+    apps.each {_1.resized}
   end
 
   def keyPressed(key)
