@@ -31,7 +31,13 @@ class Reight::R8
     @current&.deactivate
     @current = app
     @current.activate
-    setTitle "#{self.class.name} #{version} | #{current.name}"
+
+    setTitle [
+      self.class.name.split('::').first,
+      version,
+      '|',
+      current.class.name.split('::').last
+    ].join ' '
   end
 
   def setup()
