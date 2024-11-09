@@ -1,36 +1,6 @@
 using RubySketch
 
 
-class Message
-
-  def initialize()
-    @priority = 0
-  end
-
-  attr_accessor :text
-
-  def flash(str, priority: 1)
-    return if priority < @priority
-    @text, @priority = str, priority
-    setTimeout 3, id: :messageFlash do
-      @text, @priority = '', 0
-    end
-  end
-
-  def sprite()
-    @sprite ||= Sprite.new.tap do |sp|
-      sp.draw do
-        next unless @text
-        fill 255, 255, 255
-        textAlign LEFT, CENTER
-        drawText @text, 0, 0, sp.w, sp.h
-      end
-    end
-  end
-
-end# Message
-
-
 class Canvas
 
   def initialize(app, image, path)
@@ -648,14 +618,6 @@ class SpriteEditor < App
     end
   end
 
-  def history()
-    @history ||= History.new
-  end
-
-  def flash(text, **kwargs)
-    message.flash text, **kwargs if history.enabled?
-  end
-
   def activate()
     super
     history.disable do
@@ -681,7 +643,7 @@ class SpriteEditor < App
     editButtons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
       sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
-      sp.y = colors.first.sprite.top
+      sp.y = colors.first.sprite.y
     end
     historyButtons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
@@ -691,7 +653,7 @@ class SpriteEditor < App
     tools.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
       sp.x = editButtons.last.sprite.right + space + (sp.w + 1) * index
-      sp.y = editButtons.first.sprite.top
+      sp.y = editButtons.first.sprite.y
     end
     brushSizes.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
@@ -701,25 +663,19 @@ class SpriteEditor < App
     spriteSizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = buttonSize
       sp.x = width - (space + sp.w * (index + 1) + index)
-      sp.y = space
+      sp.y = tools.first.sprite.y - (sp.h + space)
     end
     spriteSheet.sprite.tap do |sp|
       sp.w      = 80
       sp.x      = width - (space + sp.w)
-      sp.top    = spriteSizes.first.sprite.bottom + space
-      sp.bottom = colors.first.sprite.top - space
+      sp.y      = NAVIGATOR_HEIGHT + space
+      sp.bottom = spriteSizes.first.sprite.y - space / 2
     end
     canvas.sprite.tap do |sp|
       sp.x     = space
       sp.y     = spriteSheet.sprite.y
-      sp.right = spriteSheet.sprite.left - space
+      sp.right = spriteSheet.sprite.x - space
       sp.h     = sp.w
-    end
-    message.sprite.tap do |sp|
-      sp.left  = space
-      sp.right = spriteSizes.first.sprite.left - space
-      sp.h     = 8
-      sp.y     = canvas.sprite.top - (space + sp.h)
     end
   end
 
@@ -825,7 +781,6 @@ class SpriteEditor < App
 
   def sprites()
     [
-      message,
       *spriteSizes,
       canvas,
       spriteSheet,
@@ -835,10 +790,6 @@ class SpriteEditor < App
       *tools,
       *brushSizes
     ].map {_1.sprite}
-  end
-
-  def message()
-    @message ||= Message.new
   end
 
   def spriteSizes()
@@ -902,15 +853,6 @@ class SpriteEditor < App
     colors.each do |button|
       button.active = button.color == canvas.color
     end
-  end
-
-  def group(*buttons)
-    buttons.each.with_index do |button, index|
-      button.clicked do
-        buttons.each.with_index {|b, i| b.active = i == index}
-      end
-    end
-    buttons
   end
 
 end# SpriteEditor

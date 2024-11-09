@@ -7,7 +7,7 @@ class Reight
     raise if $reight
     $reight = self
 
-    self.current = apps.first
+    navigator.activate
   end
 
   def version()
@@ -18,9 +18,16 @@ class Reight
     @project ||= Project.new File.expand_path '../..', __dir__
   end
 
+  def apps()
+    @apps ||= [SpriteEditor.new]
+  end
+
+  def flash(...) = navigator.flash(...)
+
   attr_reader :current
 
   def current=(app)
+    return if app == @current
     @current&.deactivate
     @current = app
     @current.activate
@@ -34,24 +41,28 @@ class Reight
 
   def draw()
     current.draw
+    navigator.draw
   end
 
   def resized()
+    navigator.resized
     @apps.each {_1.resized}
   end
 
   def keyPressed(key)
+    navigator.keyPressed key
     current.keyPressed key
   end
 
   def keyReleased(key)
+    navigator.keyReleased key
     current.keyReleased key
   end
 
   private
 
-  def apps()
-    @apps ||= [SpriteEditor.new]
+  def navigator()
+    @navigator ||= Navigator.new
   end
 
 end# Reight

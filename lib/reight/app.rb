@@ -3,8 +3,29 @@ using RubySketch
 
 class App
 
+  SPACE            = 8
+  BUTTON_SIZE      = 12
+  NAVIGATOR_HEIGHT = BUTTON_SIZE + 2
+
+  def flash(...)
+    r8.flash(...) if history.enabled?
+  end
+
+  def group(*buttons)
+    buttons.each.with_index do |button, index|
+      button.clicked do
+        buttons.each.with_index {|b, i| b.active = i == index}
+      end
+    end
+    buttons
+  end
+
   def name()
     self.class.name
+  end
+
+  def history()
+    @history ||= History.new
   end
 
   def sprites()

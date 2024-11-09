@@ -7,4 +7,5 @@ require 'reight/button'
 
 require 'reight/reight'
 require 'reight/app'
+require 'reight/app/navigator'
 require 'reight/app/sprite'
