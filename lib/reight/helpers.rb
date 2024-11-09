@@ -1,4 +1,4 @@
-module Activatable
+module Reight::Activatable
 
   def initialize(...)
     super
@@ -25,7 +25,7 @@ module Activatable
 end# Activatable
 
 
-module Clickable
+module Reight::Clickable
 
   def initialize(...)
     super
@@ -43,7 +43,7 @@ module Clickable
 end# Clickable
 
 
-module HasHelp
+module Reight::HasHelp
 
   def initialize(...)
     super

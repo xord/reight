@@ -1,7 +1,7 @@
 using RubySketch
 
 
-class Project
+class Reight::Project
 
   def initialize(projectDir)
     raise 'the project directory is required' unless projectDir

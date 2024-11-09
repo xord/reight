@@ -1,4 +1,4 @@
-class History
+class Reight::History
 
   def initialize(undos = [], redos = [])
     super()

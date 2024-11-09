@@ -1,10 +1,10 @@
 using RubySketch
 
 
-class Button
+class Reight::Button
 
-  include Activatable
-  include Clickable
+  include Reight::Activatable
+  include Reight::Clickable
 
   def initialize(name: nil, label: nil, &clicked)
     super()

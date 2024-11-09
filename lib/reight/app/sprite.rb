@@ -1,7 +1,7 @@
 using RubySketch
 
 
-class Canvas
+class Reight::SpriteEditor::Canvas
 
   def initialize(app, image, path)
     @app, @image, @path       = app, image, path
@@ -253,7 +253,7 @@ class Canvas
 end# Canvas
 
 
-class SpriteSheet
+class Reight::SpriteEditor::SpriteSheet
 
   def initialize(app, image, size = 8, &selected)
     @app, @image, @selected = app, image, selected
@@ -338,9 +338,9 @@ class SpriteSheet
 end# SpriteSheet
 
 
-class Command < Button
+class Reight::SpriteEditor::Command < Reight::Button
 
-  include HasHelp
+  include Reight::HasHelp
 
   def initialize(app, *args, **kwargs, &clicked)
     super *args, **kwargs, &clicked
@@ -362,7 +362,7 @@ class Command < Button
 end# Command
 
 
-class Tool < Command
+class Reight::SpriteEditor::Tool < Reight::SpriteEditor::Command
 
   def initialize(...)
     super
@@ -393,7 +393,7 @@ class Tool < Command
 end# Tool
 
 
-class Select < Tool
+class Reight::SpriteEditor::Select < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
     super app, label: 'S', &block
@@ -450,7 +450,7 @@ class Select < Tool
 end# Select
 
 
-class Brush < Tool
+class Reight::SpriteEditor::Brush < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
     super app, label: 'B', &block
@@ -492,7 +492,7 @@ class Brush < Tool
 end# Brush
 
 
-class Fill < Tool
+class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
     super app, label: 'F', &block
@@ -536,7 +536,7 @@ class Fill < Tool
 end# Fill
 
 
-class Shape < Tool
+class Reight::SpriteEditor::Shape < Reight::SpriteEditor::Tool
 
   def initialize(app, shape, fill, &block)
     @shape, @fill = shape, fill
@@ -577,7 +577,7 @@ class Shape < Tool
 end# Shape
 
 
-class Color < Button
+class Reight::SpriteEditor::Color < Reight::Button
 
   def initialize(color, &clicked)
     super &clicked
@@ -606,7 +606,7 @@ class Color < Button
 end# Color
 
 
-class SpriteEditor < App
+class Reight::SpriteEditor < Reight::App
 
   def canvas()
     @canvas ||= Canvas.new(

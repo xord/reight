@@ -1,7 +1,7 @@
 using RubySketch
 
 
-class Message
+class Reight::Navigator::Message
 
   def initialize()
     @priority = 0
@@ -31,7 +31,7 @@ class Message
 end# Message
 
 
-class Navigator < App
+class Reight::Navigator < Reight::App
 
   def flash(...) = message.flash(...)
 
@@ -80,8 +80,8 @@ class Navigator < App
   end
 
   def spriteEditorButton()
-    @spriteEditorButton ||= Button.new(label: 'S') do
-      switchApp SpriteEditor
+    @spriteEditorButton ||= Reight::Button.new(label: 'S') do
+      switchApp Reight::SpriteEditor
     end
   end
 

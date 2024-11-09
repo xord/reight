@@ -1,5 +1,7 @@
 require 'rubysketch'
 
+module Reight; end
+
 require 'reight/helpers'
 require 'reight/project'
 require 'reight/history'

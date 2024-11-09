@@ -1,11 +1,11 @@
 using RubySketch
 
 
-class Reight
+class Reight::R8
 
   def initialize()
-    raise if $reight
-    $reight = self
+    raise if $r8
+    $r8 = self
 
     navigator.activate
   end
@@ -15,11 +15,11 @@ class Reight
   end
 
   def project()
-    @project ||= Project.new File.expand_path '../..', __dir__
+    @project ||= Reight::Project.new File.expand_path '../..', __dir__
   end
 
   def apps()
-    @apps ||= [SpriteEditor.new]
+    @apps ||= [Reight::SpriteEditor.new]
   end
 
   def flash(...) = navigator.flash(...)
@@ -62,7 +62,7 @@ class Reight
   private
 
   def navigator()
-    @navigator ||= Navigator.new
+    @navigator ||= Reight::Navigator.new
   end
 
-end# Reight
+end# R8

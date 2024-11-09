@@ -1,9 +1,9 @@
 require 'reight'
 using RubySketch
 
-def r8 = $reight
+def r8 = $r8
 
-setup         {Reight.new.setup}
+setup         {Reight::R8.new.setup}
 draw          {r8.draw}
 windowResized {r8.resized}
 keyPressed    {r8.keyPressed  keyCode}

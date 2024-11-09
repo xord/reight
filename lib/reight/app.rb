@@ -1,7 +1,7 @@
 using RubySketch
 
 
-class App
+class Reight::App
 
   SPACE            = 8
   BUTTON_SIZE      = 12
@@ -25,7 +25,7 @@ class App
   end
 
   def history()
-    @history ||= History.new
+    @history ||= Reight::History.new
   end
 
   def sprites()
