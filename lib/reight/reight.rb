@@ -19,7 +19,7 @@ class Reight::R8
   end
 
   def apps()
-    @apps ||= [Reight::SpriteEditor.new]
+    @apps ||= [Reight::SpriteEditor.new, Reight::MapEditor.new]
   end
 
   def flash(...) = navigator.flash(...)
