@@ -1,4 +1,4 @@
-using RubySketch
+using Reight
 
 
 class Reight::Navigator < Reight::App
@@ -7,67 +7,67 @@ class Reight::Navigator < Reight::App
 
   def activate()
     super
-    spriteEditorButton.click
+    sprite_editor_button.click
   end
 
   def draw()
     fill 50, 50, 50
-    noStroke
+    no_stroke
     rect 0, 0, width, NAVIGATOR_HEIGHT
     sprite *sprites
   end
 
   def resized()
     margin = (NAVIGATOR_HEIGHT - BUTTON_SIZE) / 2
-    appButtons.map {_1.sprite}.each.with_index do |sp, index|
+    app_buttons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
       sp.x = SPACE + (sp.w + 1) * index
       sp.y = margin
     end
-    historyButtons.map {_1.sprite}.each.with_index do |sp, index|
+    history_buttons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
-      sp.x = appButtons.last.sprite.right + SPACE + (sp.w + 1) * index
-      sp.y = appButtons.last.sprite.y
+      sp.x = app_buttons.last.sprite.right + SPACE + (sp.w + 1) * index
+      sp.y = app_buttons.last.sprite.y
     end
     message.sprite.tap do |sp|
-      sp.x     = historyButtons.last.sprite.right + SPACE * 2
-      sp.y     = historyButtons.last.sprite.y
+      sp.x     = history_buttons.last.sprite.right + SPACE * 2
+      sp.y     = history_buttons.last.sprite.y
       sp.right = width - margin
       sp.h     = NAVIGATOR_HEIGHT
     end
   end
 
-  def keyPressed(key)
+  def key_pressed(key)
     case key
-    when F1 then spriteEditorButton.click
-    when F2 then    mapEditorButton.click
+    when F1 then sprite_editor_button.click
+    when F2 then    map_editor_button.click
     end
   end
 
   private
 
   def sprites()
-    [*appButtons, *historyButtons, message].map {_1.sprite}
+    [*app_buttons, *history_buttons, message].map {_1.sprite}
   end
 
-  def appButtons()
-    @appButtons ||= [spriteEditorButton, mapEditorButton]
+  def app_buttons()
+    @app_buttons ||= [sprite_editor_button, map_editor_button]
   end
 
-  def spriteEditorButton()
-    @spriteEditorButton ||= Reight::Button.new(name: 'Sprite Editor', label: 'S') do
-      switchApp Reight::SpriteEditor
+  def sprite_editor_button()
+    @sprite_editor_button ||= Reight::Button.new(name: 'Sprite Editor', label: 'S') do
+      switch_app Reight::SpriteEditor
     end
   end
 
-  def mapEditorButton()
-    @mapEditorButton ||= Reight::Button.new(name: 'Map Editor', label: 'M') do
-      switchApp Reight::MapEditor
+  def map_editor_button()
+    @map_editor_button ||= Reight::Button.new(name: 'Map Editor', label: 'M') do
+      switch_app Reight::MapEditor
     end
   end
 
-  def historyButtons()
-    @historyButtons ||= [
+  def history_buttons()
+    @history_buttons ||= [
       Reight::Button.new(name: 'Undo', label: 'Un') {r8.current.undo flash: false},
       Reight::Button.new(name: 'Redo', label: 'Re') {r8.current.redo flash: false}
     ]
@@ -77,7 +77,7 @@ class Reight::Navigator < Reight::App
     @message ||= Message.new
   end
 
-  def switchApp(klass)
+  def switch_app(klass)
     app        = r8.apps.find {_1.class == klass}
     r8.current = app if app
   end
@@ -96,7 +96,7 @@ class Reight::Navigator::Message
   def flash(str, priority: 1)
     return if priority < @priority
     @text, @priority = str, priority
-    setTimeout 2, id: :messageFlash do
+    set_timeout 2, id: :message_flash do
       @text, @priority = '', 0
     end
   end
@@ -106,8 +106,8 @@ class Reight::Navigator::Message
       sp.draw do
         next unless @text
         fill 255, 255, 255
-        textAlign LEFT, CENTER
-        drawText @text, 0, 0, sp.w, sp.h
+        text_align LEFT, CENTER
+        draw_text @text, 0, 0, sp.w, sp.h
       end
     end
   end

@@ -1,4 +1,4 @@
-using RubySketch
+using Reight
 
 
 class Reight::MapEditor < Reight::App

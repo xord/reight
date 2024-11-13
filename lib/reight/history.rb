@@ -63,11 +63,11 @@ class Reight::History
     end
   end
 
-  def canUndo?()
+  def can_undo?()
     !@undos.empty?
   end
 
-  def canRedo?()
+  def can_redo?()
     !@redos.empty?
   end
 
@@ -89,17 +89,17 @@ class Reight::History
   def disabled()
   end
 
-  def to_h(&dumpObject)
+  def to_h(&dump_object)
     {
       version: 1,
-      undos: self.class.dump(@undos, &dumpObject),
-      redos: self.class.dump(@redos, &dumpObject)
+      undos: self.class.dump(@undos, &dump_object),
+      redos: self.class.dump(@redos, &dump_object)
     }
   end
 
-  def self.load(hash, &restoreObject)
-    undos = restore hash['undos'], &restoreObject
-    redos = restore hash['redos'], &restoreObject
+  def self.load(hash, &restore_object)
+    undos = restore hash['undos'], &restore_object
+    redos = restore hash['redos'], &restore_object
     self.new undos, redos
   end
 
@@ -109,18 +109,18 @@ class Reight::History
     @updated.call if @updated
   end
 
-  def self.dump(xdos, &dumpObject)
+  def self.dump(xdos, &dump_object)
     xdos.map do |actions|
       actions.map do |action, *args|
-        [action.to_s, *args.map {|obj| dumpObject.call(obj) || obj}]
+        [action.to_s, *args.map {|obj| dump_object.call(obj) || obj}]
       end
     end
   end
 
-  def self.restore(xdos, &restoreObject)
+  def self.restore(xdos, &restore_object)
     xdos.map do |actions|
       actions.map do |action, *args|
-        [action.intern, *args.map {|obj| restoreObject.call(obj) || obj}]
+        [action.intern, *args.map {|obj| restore_object.call(obj) || obj}]
       end
     end
   end

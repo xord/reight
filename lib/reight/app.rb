@@ -1,4 +1,4 @@
-using RubySketch
+using Reight
 
 
 class Reight::App
@@ -33,11 +33,11 @@ class Reight::App
   end
 
   def activate()
-    sprites.each {|sp| addSprite sp}
+    sprites.each {|sp| add_sprite sp}
   end
 
   def deactivate()
-    sprites.each {|sp| removeSprite sp}
+    sprites.each {|sp| remove_sprite sp}
   end
 
   def draw()
@@ -46,10 +46,10 @@ class Reight::App
   def resized()
   end
 
-  def keyPressed(key)
+  def key_pressed(key)
   end
 
-  def keyReleased(key)
+  def key_released(key)
   end
 
   def undo(flash: true)

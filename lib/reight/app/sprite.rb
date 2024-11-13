@@ -1,4 +1,4 @@
-using RubySketch
+using Reight
 
 
 class Reight::SpriteEditor < Reight::App
@@ -6,20 +6,20 @@ class Reight::SpriteEditor < Reight::App
   def canvas()
     @canvas ||= Canvas.new(
       self,
-      r8.project.spriteImage,
-      r8.project.spriteImagePath
+      r8.project.sprite_image,
+      r8.project.sprite_image_path
     ).tap do |canvas|
-      canvas.colorChanged {updateActiveColor}
+      canvas.color_changed {update_active_color}
     end
   end
 
   def activate()
     super
     history.disable do
-      spriteSizes[0].click
+      sprite_sizes[0].click
       colors[7].click
       tools[1].click
-      brushSizes[0].click
+      brush_sizes[0].click
     end
   end
 
@@ -29,55 +29,55 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def resized()
-    space, buttonSize = 8, 12
+    space, button_size = 8, 12
     colors.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
+      sp.w = sp.h = button_size
       sp.x = space + sp.w * (index % 8)
       sp.y = height - (space + sp.h * (2 - index / 8))
     end
-    editButtons.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
+    edit_buttons.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = button_size
       sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
       sp.y = colors.first.sprite.y
     end
     tools.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
-      sp.x = editButtons.last.sprite.right + space + (sp.w + 1) * index
-      sp.y = editButtons.first.sprite.y
+      sp.w = sp.h = button_size
+      sp.x = edit_buttons.last.sprite.right + space + (sp.w + 1) * index
+      sp.y = edit_buttons.first.sprite.y
     end
-    brushSizes.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
+    brush_sizes.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = button_size
       sp.x = tools.first.sprite.x + (sp.w + 1) * index
       sp.y = tools.first.sprite.bottom + 2
     end
-    spriteSizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = buttonSize
+    sprite_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = button_size
       sp.x = width - (space + sp.w * (index + 1) + index)
       sp.y = tools.first.sprite.y - (sp.h + space)
     end
-    spriteSheet.sprite.tap do |sp|
+    sprite_sheet.sprite.tap do |sp|
       sp.w      = 80
       sp.x      = width - (space + sp.w)
       sp.y      = NAVIGATOR_HEIGHT + space
-      sp.bottom = spriteSizes.first.sprite.y - space / 2
+      sp.bottom = sprite_sizes.first.sprite.y - space / 2
     end
     canvas.sprite.tap do |sp|
       sp.x     = space
-      sp.y     = spriteSheet.sprite.y
-      sp.right = spriteSheet.sprite.x - space
+      sp.y     = sprite_sheet.sprite.y
+      sp.right = sprite_sheet.sprite.x - space
       sp.h     = sp.w
     end
   end
 
-  def keyPressed(key)
-    pressingKeys.add key
-    ss               = spriteSheet
+  def key_pressed(key)
+    pressing_keys.add key
+    ss               = sprite_sheet
     shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
     case key
-    when LEFT  then ss.setFrame ss.x - ss.size, ss.y, ss.size, ss.size
-    when RIGHT then ss.setFrame ss.x + ss.size, ss.y, ss.size, ss.size
-    when UP    then ss.setFrame ss.x, ss.y - ss.size, ss.size, ss.size
-    when DOWN  then ss.setFrame ss.x, ss.y + ss.size, ss.size, ss.size
+    when LEFT  then ss.set_frame ss.x - ss.size, ss.y, ss.size, ss.size
+    when RIGHT then ss.set_frame ss.x + ss.size, ss.y, ss.size, ss.size
+    when UP    then ss.set_frame ss.x, ss.y - ss.size, ss.size, ss.size
+    when DOWN  then ss.set_frame ss.x, ss.y + ss.size, ss.size, ss.size
     when :c    then copy  if ctrl || cmd
     when :x    then cut   if ctrl || cmd
     when :v    then paste if ctrl || cmd
@@ -85,18 +85,18 @@ class Reight::SpriteEditor < Reight::App
     when :s    then select.click
     when :b    then  brush.click
     when :f    then   fill.click
-    when :r    then (shift ? fillRect    : strokeRect   ).click
-    when :e    then (shift ? fillEllipse : strokeEllipse).click
+    when :r    then (shift ? fill_rect    : stroke_rect   ).click
+    when :e    then (shift ? fill_ellipse : stroke_ellipse).click
     end
   end
 
-  def keyReleased(key)
-    pressingKeys.delete key
+  def key_released(key)
+    pressing_keys.delete key
   end
 
   def copy(flash: true)
     sel   = canvas.selection || canvas.frame
-    image = canvas.captureFrame(sel) || return
+    image = canvas.capture_frame(sel) || return
     x, y, = sel
     @copy = [image, x - canvas.x, y - canvas.y]
     self.flash 'Copy!' if flash
@@ -105,8 +105,8 @@ class Reight::SpriteEditor < Reight::App
   def cut(flash: true)
     copy flash: false
     image, x, y = @copy || return
-    canvas.beginEditing do
-      clearCanvas x, y, image.width, image.height
+    canvas.begin_editing do
+      clear_canvas x, y, image.width, image.height
     end
     self.flash 'Cut!' if flash
   end
@@ -116,7 +116,7 @@ class Reight::SpriteEditor < Reight::App
     w, h        = image.width, image.height
     history.group do
       canvas.deselect
-      canvas.beginEditing do
+      canvas.begin_editing do
         canvas.paint do |g|
           g.copy image, 0, 0, w, h, x, y, w, h
         end
@@ -129,8 +129,8 @@ class Reight::SpriteEditor < Reight::App
   def undo(flash: true)
     history.undo do |action|
       case action
-      in [:frame, [x, y, w, h], _]       then spriteSheet.setFrame x, y, w, h
-      in [:capture, before, after, x, y] then canvas.applyFrame before, x, y
+      in [:frame, [x, y, w, h], _]       then sprite_sheet.set_frame x, y, w, h
+      in [:capture, before, after, x, y] then canvas.apply_frame before, x, y
       in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
       in [:deselect, sel]                then canvas.select *sel
       end
@@ -141,8 +141,8 @@ class Reight::SpriteEditor < Reight::App
   def redo(flash: true)
     history.redo do |action|
       case action
-      in [:frame, _, [x, y, w, h]]       then spriteSheet.setFrame x, y, w, h
-      in [:capture, before, after, x, y] then canvas.applyFrame after, x, y
+      in [:frame, _, [x, y, w, h]]       then sprite_sheet.set_frame x, y, w, h
+      in [:capture, before, after, x, y] then canvas.apply_frame after, x, y
       in [  :select, _, sel]             then canvas.select *sel
       in [:deselect, _]                  then canvas.deselect
       end
@@ -150,92 +150,96 @@ class Reight::SpriteEditor < Reight::App
     end
   end
 
-  def clearCanvas(x, y, w, h)
+  def clear_canvas(x, y, w, h)
     canvas.clear [x, y, w, h], color: colors.first.color
   end
 
-  def setBrushSize(size)
+  def set_brush_size(size)
     brush.size = size
     flash "Brush Size #{size}"
   end
 
   private
 
-  def pressingKeys()
-    @pressingKeys ||= Set.new
+  def pressing_keys()
+    @pressing_keys ||= Set.new
   end
 
   def pressing?(key)
-    pressingKeys.include? key
+    pressing_keys.include? key
   end
 
   def sprites()
     [
-      *spriteSizes,
+      *sprite_sizes,
       canvas,
-      spriteSheet,
+      sprite_sheet,
       *colors,
-      *editButtons,
-      *historyButtons,
+      *edit_buttons,
       *tools,
-      *brushSizes
+      *brush_sizes
     ].map {_1.sprite}
   end
 
-  def spriteSizes()
-    @spriteSizes ||= group(*[8, 16, 32].map {|size|
+  def sprite_sizes()
+    @sprite_sizes ||= group(*[8, 16, 32].map {|size|
       Reight::Button.new name: "#{size}x#{size}", label: size do
-        spriteSheet.setFrame spriteSheet.x, spriteSheet.y, size, size
+        sprite_sheet.set_frame sprite_sheet.x, sprite_sheet.y, size, size
       end
     })
   end
 
-  def spriteSheet()
-    @spriteSheet ||= SpriteSheet.new self, r8.project.spriteImage do |x, y, w, h|
-      canvas.setFrame x, y, w, h
+  def sprite_sheet()
+    @sprite_sheet ||= SpriteSheet.new self, r8.project.sprite_image do |x, y, w, h|
+      canvas.set_frame x, y, w, h
     end
   end
 
-  def editButtons()
-    @editButtons ||= [
+  def edit_buttons()
+    @edit_buttons ||= [
       Reight::Button.new(name: 'Copy',  label: 'Co') {copy  flash: false},
       Reight::Button.new(name: 'Cut',   label: 'Cu') {cut   flash: false},
       Reight::Button.new(name: 'Paste', label: 'Pa') {paste flash: false},
     ]
   end
 
-  def historyButtons()
-  end
-
   def tools()
-    @tools ||= group(select, brush, fill, strokeRect, fillRect, strokeEllipse, fillEllipse)
+    @tools ||= group(
+      select,
+      brush,
+      fill,
+      stroke_rect,
+        fill_rect,
+      stroke_ellipse,
+        fill_ellipse
+    )
   end
 
-  def select        = @select        ||= Select.new(self)                 {canvas.tool = _1}
-  def brush         = @brush         ||= Brush.new(self)                  {canvas.tool = _1}
-  def fill          = @fill          ||= Fill.new(self)                   {canvas.tool = _1}
-  def strokeRect    = @strokeRect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
-  def fillRect      = @fillRect      ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
-  def strokeEllipse = @strokeEllipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
-  def fillEllipse   = @fillEllipse   ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
+  def select         = @select         ||= Select.new(self)                 {canvas.tool = _1}
+  def brush          = @brush          ||= Brush.new(self)                  {canvas.tool = _1}
+  def fill           = @fill           ||= Fill.new(self)                   {canvas.tool = _1}
+  def stroke_rect    = @stroke_rect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
+  def   fill_rect    =   @fill_rect    ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
+  def stroke_ellipse = @stroke_ellipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
+  def   fill_ellipse =   @fill_ellipse ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
 
-  def brushSizes()
-    @brushSizes ||= group(*[1, 2, 3, 5, 10].map {|size|
+  def brush_sizes()
+    @brush_sizes ||= group(*[1, 2, 3, 5, 10].map {|size|
       Reight::Button.new name: "Button Size #{size}", label: size do
-        setBrushSize size
+        set_brush_size size
       end
     })
   end
 
   def colors()
-    @colors ||= r8.project.paletteColors.map {|color|
+    @colors ||= r8.project.palette_colors.map {|color|
       rgb = self.color(color)
         .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
       Color.new(rgb) {canvas.color = rgb}
     }
   end
 
-  def updateActiveColor()
+  def update_active_color()
     colors.each do |button|
       button.active = button.color == canvas.color
     end
@@ -251,7 +255,7 @@ class Reight::SpriteEditor::Canvas
     @tool, @color, @selection = nil, [255, 255, 255], nil
 
     @app.history.disable do
-      setFrame 0, 0, 16, 16
+      set_frame 0, 0, 16, 16
     end
   end
 
@@ -267,9 +271,9 @@ class Reight::SpriteEditor::Canvas
     @image.save @path
   end
 
-  def setFrame(x, y, w, h)
+  def set_frame(x, y, w, h)
     old            = [@x, @y, @w, @h]
-    new            = correctBounds x, y, w, h
+    new            = correct_bounds x, y, w, h
     return if new == old
     @x, @y, @w, @h = new
     @app.history.push [:frame, old, new]
@@ -280,12 +284,12 @@ class Reight::SpriteEditor::Canvas
   def color=(color)
     return if color == @color
     @color = color
-    colorChanged!
+    color_changed!
   end
 
   def select(x, y, w, h)
     old        = @selection
-    new        = correctBounds x, y, w, h
+    new        = correct_bounds x, y, w, h
     return if new == old
     @selection = new
     @app.history.push [:select, old, new]
@@ -307,7 +311,7 @@ class Reight::SpriteEditor::Canvas
   end
 
   def paint(&block)
-    @image.beginDraw do |g|
+    @image.begin_draw do |g|
       g.clip(*(selection || frame))
       g.push do
         g.translate x, y
@@ -316,23 +320,23 @@ class Reight::SpriteEditor::Canvas
     end
   end
 
-  def updatePixels(&block)
-    tmp = subImage x, y, w, h
-    tmp.updatePixels {|pixels| block.call pixels}
-    @image.beginDraw do |g|
+  def update_pixels(&block)
+    tmp = sub_image x, y, w, h
+    tmp.update_pixels {|pixels| block.call pixels}
+    @image.begin_draw do |g|
       g.copy tmp, 0, 0, w, h, x, y, w, h
     end
   end
 
-  def subImage(x, y, w, h)
-    createGraphics(w, h).tap do |g|
-      g.beginDraw {g.copy @image, x, y, w, h, 0, 0, w, h}
+  def sub_image(x, y, w, h)
+    create_graphics(w, h).tap do |g|
+      g.begin_draw {g.copy @image, x, y, w, h, 0, 0, w, h}
     end
   end
 
-  def pixelAt(x, y)
-    img = subImage x, y, 1, 1
-    img.loadPixels
+  def pixel_at(x, y)
+    img = sub_image x, y, 1, 1
+    img.load_pixels
     c = img.pixels[0]
     [red(c), green(c), blue(c), alpha(c)].map &:to_i
   end
@@ -340,69 +344,69 @@ class Reight::SpriteEditor::Canvas
   def clear(frame, color: [0, 0, 0])
     paint do |g|
       g.fill(*color)
-      g.noStroke
+      g.no_stroke
       g.rect(*frame)
     end
   end
 
-  def beginEditing(&block)
-    @before = captureFrame
+  def begin_editing(&block)
+    @before = capture_frame
     block.call if block
   ensure
-    endEditing if block
+    end_editing if block
   end
 
-  def endEditing()
+  def end_editing()
     return unless @before
     save
-    @app.history.push [:capture, @before, captureFrame, x, y]
+    @app.history.push [:capture, @before, capture_frame, x, y]
   end
 
-  def captureFrame(frame = self.frame)
+  def capture_frame(frame = self.frame)
     x, y, w, h = frame
-    createGraphics(w, h).tap do |g|
-      g.beginDraw do
+    create_graphics(w, h).tap do |g|
+      g.begin_draw do
         g.copy @image, x, y, w, h, 0, 0, w, h
       end
     end
   end
 
-  def applyFrame(image, x, y)
-    @image.beginDraw do |g|
+  def apply_frame(image, x, y)
+    @image.begin_draw do |g|
       w, h = image.width, image.height
       g.copy image, 0, 0, w, h, x, y, w, h
     end
   end
 
-  def colorChanged(&block)
-    (@colorChangeds ||= []).push block if block
+  def color_changed(&block)
+    (@color_changeds ||= []).push block if block
   end
 
-  def colorChanged!()
-    @colorChangeds&.each {_1.call color}
+  def color_changed!()
+    @color_changeds&.each {_1.call color}
   end
 
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
-      pos = -> {toImage sp.mouseX, sp.mouseY}
+      pos = -> {to_image sp.mouse_x, sp.mouse_y}
       sp.draw          {draw}
-      sp.mousePressed  {tool&.canvasPressed( *pos.call, sp.mouseButton)}
-      sp.mouseReleased {tool&.canvasReleased(*pos.call, sp.mouseButton)}
-      sp.mouseMoved    {tool&.canvasMoved(   *pos.call)}
-      sp.mouseDragged  {tool&.canvasDragged( *pos.call, sp.mouseButton)}
-      sp.mouseClicked  {tool&.canvasClicked( *pos.call, sp.mouseButton)}
+      sp.mouse_pressed  {tool&.canvas_pressed( *pos.call, sp.mouse_button)}
+      sp.mouse_released {tool&.canvas_released(*pos.call, sp.mouse_button)}
+      sp.mouse_moved    {tool&.canvas_moved(   *pos.call)}
+      sp.mouse_dragged  {tool&.canvas_dragged( *pos.call, sp.mouse_button)}
+      sp.mouse_clicked  {tool&.canvas_clicked( *pos.call, sp.mouse_button)}
     end
   end
 
   private
 
-  def toImage(x, y)
+  def to_image(x, y)
     return x, y unless @w && @h
     sp = sprite
     return x * (@w.to_f / sp.w), y * (@h.to_f / sp.h)
   end
 
-  def correctBounds(x, y, w, h)
+  def correct_bounds(x, y, w, h)
     x2, y2 = x + w, y + h
     x, x2  = x2, x if x > x2
     y, y2  = y2, y if y > y2
@@ -418,14 +422,14 @@ class Reight::SpriteEditor::Canvas
     sx, sy = sp.w / w, sp.h / h
     scale sx, sy
     translate -x, -y
-    noFill
-    strokeWeight 0
+    no_fill
+    stroke_weight 0
 
-    drawGrids
-    drawSelection sx, sy
+    draw_grids
+    draw_selection sx, sy
   end
 
-  def drawGrids()
+  def draw_grids()
     push do
       stroke 50, 50, 50
       shape grid 8
@@ -437,9 +441,9 @@ class Reight::SpriteEditor::Canvas
   end
 
   def grid(interval)
-    (@grids ||= [])[interval] ||= createShape.tap do |sh|
+    (@grids ||= [])[interval] ||= create_shape.tap do |sh|
       w, h = @image.width, @image.height
-      sh.beginShape LINES
+      sh.begin_shape LINES
       (0..w).step(interval).each do |x|
         sh.vertex x, 0
         sh.vertex x, h
@@ -448,20 +452,20 @@ class Reight::SpriteEditor::Canvas
         sh.vertex 0, y
         sh.vertex w, y
       end
-      sh.endShape
+      sh.end_shape
     end
   end
 
-  def drawSelection(scaleX, scaleY)
+  def draw_selection(scale_x, scale_y)
     return unless @selection&.size == 4
     push do
       stroke 255, 255, 255
-      shader selectionShader.tap {|sh|
-        sh.set :time, frameCount.to_f / 60
-        sh.set :scale, scaleX, scaleY
+      shader selection_shader.tap {|sh|
+        sh.set :time, frame_count.to_f / 60
+        sh.set :scale, scale_x, scale_y
       }
 =begin
-      beginShape LINES
+      begin_shape LINES
       x, y, w, h = @selection
       vertex x,     y,     x, 0
       vertex x + w, y,     x + w, 0
@@ -471,14 +475,14 @@ class Reight::SpriteEditor::Canvas
       vertex x,     y + h, x + w, 0
       vertex x,     y + h, x, 0
       vertex x,     y,     x + w, 0
-      endShape
+      end_shape
 =end
       rect *@selection
     end
   end
 
-  def selectionShader()
-    @selectionShader ||= createShader nil, <<~END
+  def selection_shader()
+    @selection_shader ||= create_shader nil, <<~END
       varying vec4  vertTexCoord;
       uniform float time;
       uniform vec2  scale;
@@ -500,19 +504,19 @@ class Reight::SpriteEditor::SpriteSheet
 
   def initialize(app, image, size = 8, &selected)
     @app, @image, @selected = app, image, selected
-    @offset = createVector
+    @offset = create_vector
 
     @app.history.disable do
-      setFrame 0, 0, size, size
+      set_frame 0, 0, size, size
     end
   end
 
   attr_reader :x, :y, :size
 
-  def setFrame(x, y, w, h)
+  def set_frame(x, y, w, h)
     raise 'SpriteSheet: width != height' if w != h
-    @x    = alignToGrid(x).clamp(0..@image.width)
-    @y    = alignToGrid(y).clamp(0..@image.height)
+    @x    = align_to_grid(x).clamp(0..@image.width)
+    @y    = align_to_grid(y).clamp(0..@image.height)
     @size = w
     selected
   end
@@ -520,33 +524,33 @@ class Reight::SpriteEditor::SpriteSheet
   def draw()
     sp = sprite
     clip sp.x, sp.y, sp.w, sp.h
-    translate(*clampOffset(@offset).to_a)
+    translate(*clamp_offset(@offset).to_a)
     image @image, 0, 0
 
-    noFill
+    no_fill
     stroke 255, 255, 255
-    strokeWeight 1
+    stroke_weight 1
     rect @x, @y, @size, @size
   end
 
-  def mousePressed(x, y)
-    @prevPos = createVector x, y
+  def mouse_pressed(x, y)
+    @prev_pos = create_vector x, y
   end
 
-  def mouseReleased(x, y)
-    @offset = clampOffset @offset
+  def mouse_released(x, y)
+    @offset = clamp_offset @offset
   end
 
-  def mouseDragged(x, y)
-    pos      = createVector x, y
-    @offset += pos - @prevPos if @prevPos
-    @prevPos = pos
+  def mouse_dragged(x, y)
+    pos       = create_vector x, y
+    @offset  += pos - @prev_pos if @prev_pos
+    @prev_pos = pos
   end
 
-  def mouseClicked(x, y)
-    setFrame(
-      -@offset.x + alignToGrid(x),
-      -@offset.y + alignToGrid(y),
+  def mouse_clicked(x, y)
+    set_frame(
+      -@offset.x + align_to_grid(x),
+      -@offset.y + align_to_grid(y),
       size,
       size)
   end
@@ -554,23 +558,23 @@ class Reight::SpriteEditor::SpriteSheet
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
       sp.draw          {draw}
-      sp.mousePressed  {mousePressed  sp.mouseX, sp.mouseY}
-      sp.mouseReleased {mouseReleased sp.mouseX, sp.mouseY}
-      sp.mouseDragged  {mouseDragged  sp.mouseX, sp.mouseY}
-      sp.mouseClicked  {mouseClicked  sp.mouseX, sp.mouseY}
+      sp.mouse_pressed  {mouse_pressed  sp.mouse_x, sp.mouse_y}
+      sp.mouse_released {mouse_released sp.mouse_x, sp.mouse_y}
+      sp.mouse_dragged  {mouse_dragged  sp.mouse_x, sp.mouse_y}
+      sp.mouse_clicked  {mouse_clicked  sp.mouse_x, sp.mouse_y}
     end
   end
 
   private
 
-  def clampOffset(offset)
+  def clamp_offset(offset)
     sp = sprite
     x  = offset.x.clamp(-(@image.width  - sp.w)..0)
     y  = offset.y.clamp(-(@image.height - sp.h)..0)
-    createVector alignToGrid(x), alignToGrid(y)
+    create_vector align_to_grid(x), align_to_grid(y)
   end
 
-  def alignToGrid(n)
+  def align_to_grid(n)
     n.to_i / 8 * 8
   end
 
@@ -594,23 +598,23 @@ class Reight::SpriteEditor::Tool < Reight::Button
 
   def history = app.history
 
-  def pickColor(x, y)
-    canvas.color = canvas.pixelAt x, y
+  def pick_color(x, y)
+    canvas.color = canvas.pixel_at x, y
   end
 
-  def canvasPressed(x, y, button)
+  def canvas_pressed(x, y, button)
   end
 
-  def canvasReleased(x, y, button)
+  def canvas_released(x, y, button)
   end
 
-  def canvasMoved(x, y)
+  def canvas_moved(x, y)
   end
 
-  def canvasDragged(x, y, button)
+  def canvas_dragged(x, y, button)
   end
 
-  def canvasClicked(x, y, button)
+  def canvas_clicked(x, y, button)
   end
 
 end# Tool
@@ -620,19 +624,19 @@ class Reight::SpriteEditor::Select < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
     super app, label: 'S', &block
-    setHelp left: 'Select or Move'
+    set_help left: 'Select or Move'
   end
 
-  def moveOrSelect(x, y)
-    x0, y0 = @pressPos&.to_a || return
+  def move_or_select(x, y)
+    x0, y0 = @press_pos&.to_a || return
     if @moving
       sx, sy, sw, sh = canvas.selection
       dx, dy         = (x - x0).to_i, (y - y0).to_i
       history.group do
-        canvas.beginEditing do
-          image = canvas.captureFrame [sx, sy, sw, sh]
-          app.clearCanvas sx, sy, sw, sh
-          canvas.applyFrame image, sx + dx, sy + dy
+        canvas.begin_editing do
+          image = canvas.capture_frame [sx, sy, sw, sh]
+          app.clear_canvas sx, sy, sw, sh
+          canvas.apply_frame image, sx + dx, sy + dy
           canvas.select sx + dx, sy + dy, sw, sh
         end
       end
@@ -641,30 +645,30 @@ class Reight::SpriteEditor::Select < Reight::SpriteEditor::Tool
     end
   end
 
-  def canvasPressed(x, y, button)
-    @pressPos = createVector x, y
-    @moving   = button == LEFT && isInSelection?(x, y)
-    moveOrSelect x, y
+  def canvas_pressed(x, y, button)
+    @press_pos = create_vector x, y
+    @moving    = button == LEFT && is_in_selection?(x, y)
+    move_or_select x, y
   end
 
-  def canvasReleased(x, y, button)
-    @pressPos = nil
-    @moving   = false
+  def canvas_released(x, y, button)
+    @press_pos = nil
+    @moving    = false
   end
 
-  def canvasDragged(x, y, button)
+  def canvas_dragged(x, y, button)
     app.undo flash: false
-    moveOrSelect x, y
+    move_or_select x, y
   end
 
-  def canvasClicked(x, y, button)
+  def canvas_clicked(x, y, button)
     app.undo flash: false
     canvas.deselect
   end
 
   private
 
-  def isInSelection?(x, y)
+  def is_in_selection?(x, y)
     return false unless sel = canvas.selection
     sx, sy, sw, sh = sel
     (sx..(sx + sw)).include?(canvas.x + x) && (sy..(sy + sh)).include?(canvas.y + y)
@@ -678,38 +682,38 @@ class Reight::SpriteEditor::Brush < Reight::SpriteEditor::Tool
   def initialize(app, &block)
     super app, label: 'B', &block
     @size = 1
-    setHelp left: 'Brush', right: 'Pick Color'
+    set_help left: 'Brush', right: 'Pick Color'
   end
 
   attr_accessor :size
 
   def brush(x, y, button)
     canvas.paint do |g|
-      g.noFill
+      g.no_fill
       g.stroke *canvas.color
-      g.strokeWeight size
+      g.stroke_weight size
       g.point x, y
     end
   end
 
-  def canvasPressed(x, y, button)
+  def canvas_pressed(x, y, button)
     return unless button == LEFT
-    canvas.beginEditing
+    canvas.begin_editing
     brush x, y, button
   end
 
-  def canvasReleased(x, y, button)
+  def canvas_released(x, y, button)
     return unless button == LEFT
-    canvas.endEditing
+    canvas.end_editing
   end
 
-  def canvasDragged(x, y, button)
+  def canvas_dragged(x, y, button)
     return unless button == LEFT
     brush x, y, button
   end
 
-  def canvasClicked(x, y, button)
-    pickColor x, y if button == RIGHT
+  def canvas_clicked(x, y, button)
+    pick_color x, y if button == RIGHT
   end
 
 end# Brush
@@ -719,10 +723,10 @@ class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
     super app, label: 'F', &block
-    setHelp left: 'Fill', right: 'Pick Color'
+    set_help left: 'Fill', right: 'Pick Color'
   end
 
-  def canvasPressed(x, y, button)
+  def canvas_pressed(x, y, button)
     return unless button == LEFT
     x, y           = [x, y].map &:to_i
     fx, fy, fw, fh = canvas.frame
@@ -730,9 +734,9 @@ class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
     sx -= fx
     sy -= fy
     return unless (sx...(sx + sw)).include?(x) && (sy...(sy + sh)).include?(y)
-    canvas.beginEditing
+    canvas.begin_editing
     count = 0
-    canvas.updatePixels do |pixels|
+    canvas.update_pixels do |pixels|
       from = pixels[y * fw + x]
       to   = color *canvas.color
       rest = [[x, y]]
@@ -749,11 +753,11 @@ class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
         rest << [xx, y_] if y_ <  sy + sh && pixels[y_ * fw + xx] == from
       end
     end
-    canvas.endEditing if count > 0
+    canvas.end_editing if count > 0
   end
 
-  def canvasClicked(x, y, button)
-    pickColor x, y if button == RIGHT
+  def canvas_clicked(x, y, button)
+    pick_color x, y if button == RIGHT
   end
 
 end# Fill
@@ -764,37 +768,37 @@ class Reight::SpriteEditor::Shape < Reight::SpriteEditor::Tool
   def initialize(app, shape, fill, &block)
     @shape, @fill = shape, fill
     super app, label: "#{shape[0].capitalize}#{fill ? :f : :s}", &block
-    setHelp left: name, right: 'Pick Color'
+    set_help left: name, right: 'Pick Color'
   end
 
   def name = "#{@fill ? :Fill : :Stroke} #{@shape.capitalize}"
 
-  def drawShape(x, y)
-    canvas.beginEditing do
+  def draw_shape(x, y)
+    canvas.begin_editing do
       canvas.paint do |g|
-        @fill ? g.fill(*canvas.color) : g.noFill
+        @fill ? g.fill(*canvas.color) : g.no_fill
         g.stroke(*canvas.color)
-        g.rectMode    CORNER
-        g.ellipseMode CORNER
+        g.rect_mode    CORNER
+        g.ellipse_mode CORNER
         g.send @shape, @x, @y, x - @x, y - @y
       end
     end
   end
 
-  def canvasPressed(x, y, button)
+  def canvas_pressed(x, y, button)
     return unless button == LEFT
     @x, @y = x, y
-    drawShape x, y
+    draw_shape x, y
   end
 
-  def canvasDragged(x, y, button)
+  def canvas_dragged(x, y, button)
     return unless button == LEFT
     app.undo flash: false
-    drawShape x, y
+    draw_shape x, y
   end
 
-  def canvasClicked(x, y, button)
-    pickColor x, y if button == RIGHT
+  def canvas_clicked(x, y, button)
+    pick_color x, y if button == RIGHT
   end
 
 end# Shape
@@ -813,12 +817,12 @@ class Reight::SpriteEditor::Color < Reight::Button
     sp = sprite
 
     fill *color
-    noStroke
+    no_stroke
     rect 0, 0, sp.w, sp.h
 
     if active?
-      noFill
-      strokeWeight 1
+      no_fill
+      stroke_weight 1
       stroke '#000000'
       rect 2, 2, sp.w - 4, sp.h - 4
       stroke '#ffffff'

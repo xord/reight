@@ -1,4 +1,4 @@
-using RubySketch
+using Reight
 
 
 class Reight::R8
@@ -32,7 +32,7 @@ class Reight::R8
     @current = app
     @current.activate
 
-    setTitle [
+    set_title [
       self.class.name.split('::').first,
       version,
       '|',
@@ -42,7 +42,7 @@ class Reight::R8
 
   def setup()
     size 256, 224
-    textFont r8.project.font, r8.project.fontSize
+    text_font r8.project.font, r8.project.font_size
   end
 
   def draw()
@@ -55,14 +55,14 @@ class Reight::R8
     apps.each {_1.resized}
   end
 
-  def keyPressed(key)
-    navigator.keyPressed key
-    current.keyPressed key
+  def key_pressed(key)
+    navigator.key_pressed key
+    current.key_pressed key
   end
 
-  def keyReleased(key)
-    navigator.keyReleased key
-    current.keyReleased key
+  def key_released(key)
+    navigator.key_released key
+    current.key_released key
   end
 
   private

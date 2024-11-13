@@ -1,33 +1,33 @@
-using RubySketch
+using Reight
 
 
 class Reight::Project
 
-  def initialize(projectDir)
-    raise 'the project directory is required' unless projectDir
-    @projectDir = projectDir
+  def initialize(project_dir)
+    raise 'the project directory is required' unless project_dir
+    @project_dir = project_dir
     load
   end
 
-  attr_reader :projectDir, :settings
+  attr_reader :project_dir, :settings
 
-  def projectPath = "#{projectDir}/project.json"
+  def project_path = "#{project_dir}/project.json"
 
-  def font        = @font ||= createFont(nil, fontSize)
+  def font         = @font ||= create_font(nil, font_size)
 
-  def fontSize    = 8
+  def font_size    = 8
 
-  def spriteImageWidth  = 1024
+  def sprite_image_width  = 1024
 
-  def spriteImageHeight = 1024
+  def sprite_image_height = 1024
 
-  def spriteImagePath   = "#{projectDir}/sprite.png"
+  def sprite_image_path   = "#{project_dir}/sprite.png"
 
-  def spriteImage()
-    @spriteImage ||= loadSpriteImage spriteImagePath
+  def sprite_image()
+    @sprite_image ||= load_sprite_image sprite_image_path
   end
 
-  def paletteColors()
+  def palette_colors()
     %w[
       #000000 #1D2B53 #7E2553 #008751 #AB5236 #5F574F #C2C3C7 #FFF1E8
       #FF004D #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
@@ -37,23 +37,23 @@ class Reight::Project
   private
 
   def load()
-    @settings = JSON.parse File.read projectPath
+    @settings = JSON.parse File.read project_path
   rescue
     @settings = {}
   end
 
   def save()
-    File.write projectPath, @settings.to_json
+    File.write project_path, @settings.to_json
   end
 
-  def loadSpriteImage(path)
-    i = loadImage path
-    g = createGraphics i.width, i.height
-    g.beginDraw {|g| g.image i, 0, 0}
+  def load_sprite_image(path)
+    i = load_image path
+    g = create_graphics i.width, i.height
+    g.begin_draw {|g| g.image i, 0, 0}
     g
   rescue
-    g = createGraphics spriteImageWidth, spriteImageHeight
-    g.beginDraw {|g| g.background 0, 0, 0}
+    g = create_graphics sprite_image_width, sprite_image_height
+    g.begin_draw {|g| g.background 0, 0, 0}
     g
   end
 

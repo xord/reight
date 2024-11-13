@@ -47,12 +47,12 @@ module Reight::HasHelp
 
   def initialize(...)
     super
-    setHelp name: name
+    set_help name: name
   end
 
   def name = @name || self.class.name
 
-  def setHelp(name: nil, left: nil, right: nil)
+  def set_help(name: nil, left: nil, right: nil)
     @helps = {name: name, left: left, right: right}
   end
 
