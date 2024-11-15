@@ -55,16 +55,17 @@ class Reight::ChipList
 
   def self.restore(hash, image)
     hash => {next_id:, chips:}
-    new(image).instance_eval {
-      @next_id    = next_id
-      @id2chip    = chips
-        .map {|hash| Reight::Chip.restore hash, image}
-        .map {|chip| [chip.id, chip]}
-        .to_h
-      @frame2chip = @id2chip.each_value
-        .with_object({}) {|chip, hash| hash[chip.frame] = chip}
-      self
-    }
+    new(image).tap do |obj|
+      obj.instance_eval do
+        @next_id    = next_id
+        @id2chip    = chips
+          .map {|hash| Reight::Chip.restore hash, image}
+          .map {|chip| [chip.id, chip]}
+          .to_h
+        @frame2chip = @id2chip.each_value
+          .with_object({}) {|chip, hash| hash[chip.frame] = chip}
+      end
+    end
   end
 
   private

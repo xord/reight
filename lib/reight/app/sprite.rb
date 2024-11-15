@@ -169,15 +169,14 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def sprites()
-    [
-      *chip_sizes,
-      canvas,
-      chips,
-      *colors,
-      *edit_buttons,
-      *tools,
-      *brush_sizes
-    ].map {_1.sprite}
+    [canvas, chips, *chip_sizes, *colors, *edit_buttons, *tools, *brush_sizes]
+      .map &:sprite
+  end
+
+  def chips()
+    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
+      canvas.set_frame x, y, w, h
+    end
   end
 
   def chip_sizes()
@@ -186,12 +185,6 @@ class Reight::SpriteEditor < Reight::App
         chips.set_frame chips.x, chips.y, size, size
       end
     })
-  end
-
-  def chips()
-    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
-      canvas.set_frame x, y, w, h
-    end
   end
 
   def edit_buttons()
@@ -503,7 +496,7 @@ class Reight::SpriteEditor::Chips
 
   def initialize(app, image, size = 8, &selected)
     @app, @image, @selected = app, image, selected
-    @offset = create_vector
+    @offset                 = create_vector
 
     @app.history.disable do
       set_frame 0, 0, size, size
