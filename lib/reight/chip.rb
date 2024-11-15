@@ -39,7 +39,7 @@ class Reight::ChipList
 
   attr_reader :image
 
-  def chip_at(x, y, w, h)
+  def at(x, y, w, h)
     @frame2chip[[x, y, w, h]] ||= create_chip x, y, w, h
   end
 
