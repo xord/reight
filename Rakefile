@@ -8,8 +8,8 @@ require 'xot/rake'
 
 
 default_tasks
+test_ruby_extension
 
-task :build
 
 task :run do
   libs = %w[xot rucy beeps rays reflex processing rubysketch]
