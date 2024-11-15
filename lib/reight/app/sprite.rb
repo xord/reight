@@ -16,7 +16,7 @@ class Reight::SpriteEditor < Reight::App
   def activate()
     super
     history.disable do
-      sprite_sizes[0].click
+      chip_sizes[0].click
       colors[7].click
       tools[1].click
       brush_sizes[0].click
@@ -50,34 +50,34 @@ class Reight::SpriteEditor < Reight::App
       sp.x = tools.first.sprite.x + (sp.w + 1) * index
       sp.y = tools.first.sprite.bottom + 2
     end
-    sprite_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
+    chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = button_size
       sp.x = width - (space + sp.w * (index + 1) + index)
       sp.y = tools.first.sprite.y - (sp.h + space)
     end
-    sprite_sheet.sprite.tap do |sp|
+    chips.sprite.tap do |sp|
       sp.w      = 80
       sp.x      = width - (space + sp.w)
       sp.y      = NAVIGATOR_HEIGHT + space
-      sp.bottom = sprite_sizes.first.sprite.y - space / 2
+      sp.bottom = chip_sizes.first.sprite.y - space / 2
     end
     canvas.sprite.tap do |sp|
       sp.x     = space
-      sp.y     = sprite_sheet.sprite.y
-      sp.right = sprite_sheet.sprite.x - space
+      sp.y     = chips.sprite.y
+      sp.right = chips.sprite.x - space
       sp.h     = sp.w
     end
   end
 
   def key_pressed(key)
     pressing_keys.add key
-    ss               = sprite_sheet
     shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
+    ch               = chips
     case key
-    when LEFT  then ss.set_frame ss.x - ss.size, ss.y, ss.size, ss.size
-    when RIGHT then ss.set_frame ss.x + ss.size, ss.y, ss.size, ss.size
-    when UP    then ss.set_frame ss.x, ss.y - ss.size, ss.size, ss.size
-    when DOWN  then ss.set_frame ss.x, ss.y + ss.size, ss.size, ss.size
+    when LEFT  then ch.set_frame ch.x - ch.size, ch.y, ch.size, ch.size
+    when RIGHT then ch.set_frame ch.x + ch.size, ch.y, ch.size, ch.size
+    when UP    then ch.set_frame ch.x, ch.y - ch.size, ch.size, ch.size
+    when DOWN  then ch.set_frame ch.x, ch.y + ch.size, ch.size, ch.size
     when :c    then copy  if ctrl || cmd
     when :x    then cut   if ctrl || cmd
     when :v    then paste if ctrl || cmd
@@ -129,7 +129,7 @@ class Reight::SpriteEditor < Reight::App
   def undo(flash: true)
     history.undo do |action|
       case action
-      in [:frame, [x, y, w, h], _]       then sprite_sheet.set_frame x, y, w, h
+      in [:frame, [x, y, w, h], _]       then chips.set_frame x, y, w, h
       in [:capture, before, after, x, y] then canvas.apply_frame before, x, y
       in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
       in [:deselect, sel]                then canvas.select *sel
@@ -141,7 +141,7 @@ class Reight::SpriteEditor < Reight::App
   def redo(flash: true)
     history.redo do |action|
       case action
-      in [:frame, _, [x, y, w, h]]       then sprite_sheet.set_frame x, y, w, h
+      in [:frame, _, [x, y, w, h]]       then chips.set_frame x, y, w, h
       in [:capture, before, after, x, y] then canvas.apply_frame after, x, y
       in [  :select, _, sel]             then canvas.select *sel
       in [:deselect, _]                  then canvas.deselect
@@ -171,9 +171,9 @@ class Reight::SpriteEditor < Reight::App
 
   def sprites()
     [
-      *sprite_sizes,
+      *chip_sizes,
       canvas,
-      sprite_sheet,
+      chips,
       *colors,
       *edit_buttons,
       *tools,
@@ -181,16 +181,16 @@ class Reight::SpriteEditor < Reight::App
     ].map {_1.sprite}
   end
 
-  def sprite_sizes()
-    @sprite_sizes ||= group(*[8, 16, 32].map {|size|
+  def chip_sizes()
+    @chip_sizes ||= group(*[8, 16, 32].map {|size|
       Reight::Button.new name: "#{size}x#{size}", label: size do
-        sprite_sheet.set_frame sprite_sheet.x, sprite_sheet.y, size, size
+        chips.set_frame chips.x, chips.y, size, size
       end
     })
   end
 
-  def sprite_sheet()
-    @sprite_sheet ||= SpriteSheet.new self, project.chips_image do |x, y, w, h|
+  def chips()
+    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
       canvas.set_frame x, y, w, h
     end
   end
@@ -500,7 +500,7 @@ class Reight::SpriteEditor::Canvas
 end# Canvas
 
 
-class Reight::SpriteEditor::SpriteSheet
+class Reight::SpriteEditor::Chips
 
   def initialize(app, image, size = 8, &selected)
     @app, @image, @selected = app, image, selected
@@ -514,7 +514,7 @@ class Reight::SpriteEditor::SpriteSheet
   attr_reader :x, :y, :size
 
   def set_frame(x, y, w, h)
-    raise 'SpriteSheet: width != height' if w != h
+    raise 'Chips: width != height' if w != h
     @x    = align_to_grid(x).clamp(0..@image.width)
     @y    = align_to_grid(y).clamp(0..@image.height)
     @size = w
@@ -582,7 +582,7 @@ class Reight::SpriteEditor::SpriteSheet
     @selected.call @x, @y, @size, @size
   end
 
-end# SpriteSheet
+end# Chips
 
 
 class Reight::SpriteEditor::Tool < Reight::Button
