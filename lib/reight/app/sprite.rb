@@ -29,42 +29,41 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def resized()
-    space, button_size = 8, 12
     colors.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = button_size
-      sp.x = space + sp.w * (index % 8)
-      sp.y = height - (space + sp.h * (2 - index / 8))
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x = SPACE + sp.w * (index % 8)
+      sp.y = height - (SPACE + sp.h * (2 - index / 8))
     end
     edit_buttons.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = button_size
-      sp.x = colors.last.sprite.right + space + (sp.w + 1) * index
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x = colors.last.sprite.right + SPACE + (sp.w + 1) * index
       sp.y = colors.first.sprite.y
     end
     tools.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = button_size
-      sp.x = edit_buttons.last.sprite.right + space + (sp.w + 1) * index
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x = edit_buttons.last.sprite.right + SPACE + (sp.w + 1) * index
       sp.y = edit_buttons.first.sprite.y
     end
     brush_sizes.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = button_size
+      sp.w = sp.h = BUTTON_SIZE
       sp.x = tools.first.sprite.x + (sp.w + 1) * index
       sp.y = tools.first.sprite.bottom + 2
     end
     chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = button_size
-      sp.x = width - (space + sp.w * (index + 1) + index)
-      sp.y = tools.first.sprite.y - (sp.h + space)
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x = width - (SPACE + sp.w * (index + 1) + index)
+      sp.y = tools.first.sprite.y - (sp.h + SPACE)
     end
     chips.sprite.tap do |sp|
       sp.w      = 80
-      sp.x      = width - (space + sp.w)
-      sp.y      = NAVIGATOR_HEIGHT + space
-      sp.bottom = chip_sizes.first.sprite.y - space / 2
+      sp.x      = width - (SPACE + sp.w)
+      sp.y      = NAVIGATOR_HEIGHT + SPACE
+      sp.bottom = chip_sizes.first.sprite.y - SPACE / 2
     end
     canvas.sprite.tap do |sp|
-      sp.x     = space
+      sp.x     = SPACE
       sp.y     = chips.sprite.y
-      sp.right = chips.sprite.x - space
+      sp.right = chips.sprite.x - SPACE
       sp.h     = sp.w
     end
   end
