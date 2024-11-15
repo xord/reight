@@ -6,6 +6,7 @@ class Reight::Project
   def initialize(project_dir)
     raise 'the project directory is required' unless project_dir
     @project_dir = project_dir
+    @settings    = {}
     load
   end
 
@@ -13,18 +14,39 @@ class Reight::Project
 
   def project_path = "#{project_dir}/project.json"
 
-  def font         = @font ||= create_font(nil, font_size)
+  def font      = @font ||= create_font(nil, font_size)
 
-  def font_size    = 8
+  def font_size = 8
 
-  def sprite_image_width  = 1024
+  def chips_path = "#{project_dir}/chips.json"
 
-  def sprite_image_height = 1024
+  def chips()
+    @chips ||=
+      if File.file? chips_path
+        ChipList.restore JSON.parse(File.read chips_path), chips_image
+      else
+        ChipList.new chips_image
+      end
+  end
 
-  def sprite_image_path   = "#{project_dir}/sprite.png"
+  def chips_image_width  = 1024
 
-  def sprite_image()
-    @sprite_image ||= load_sprite_image sprite_image_path
+  def chips_image_height = 1024
+
+  def chips_image_path   = "#{project_dir}/chips.png"
+
+  def chips_image()
+    @chips_image ||=
+      begin
+        i = load_image chips_image_path
+        create_graphics(i.width, i.height).tap do |g|
+          g.begin_draw {g.image i, 0, 0}
+        end
+      rescue => e
+        create_graphics(chips_image_width, chips_image_height).tap do |g|
+          g.begin_draw {g.background 0, 0, 0}
+        end
+      end
   end
 
   def palette_colors()
@@ -38,23 +60,10 @@ class Reight::Project
 
   def load()
     @settings = JSON.parse File.read project_path
-  rescue
-    @settings = {}
   end
 
   def save()
     File.write project_path, @settings.to_json
-  end
-
-  def load_sprite_image(path)
-    i = load_image path
-    g = create_graphics i.width, i.height
-    g.begin_draw {|g| g.image i, 0, 0}
-    g
-  rescue
-    g = create_graphics sprite_image_width, sprite_image_height
-    g.begin_draw {|g| g.background 0, 0, 0}
-    g
   end
 
 end# Project

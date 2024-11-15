@@ -7,6 +7,12 @@ class Reight::App
   BUTTON_SIZE      = 12
   NAVIGATOR_HEIGHT = BUTTON_SIZE + 2
 
+  def initialize(project)
+    @project = project
+  end
+
+  attr_reader :project
+
   def flash(...)
     r8.flash(...) if history.enabled?
   end

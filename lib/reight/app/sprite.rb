@@ -6,8 +6,8 @@ class Reight::SpriteEditor < Reight::App
   def canvas()
     @canvas ||= Canvas.new(
       self,
-      r8.project.sprite_image,
-      r8.project.sprite_image_path
+      project.chips_image,
+      project.chips_image_path
     ).tap do |canvas|
       canvas.color_changed {update_active_color}
     end
@@ -190,7 +190,7 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def sprite_sheet()
-    @sprite_sheet ||= SpriteSheet.new self, r8.project.sprite_image do |x, y, w, h|
+    @sprite_sheet ||= SpriteSheet.new self, project.chips_image do |x, y, w, h|
       canvas.set_frame x, y, w, h
     end
   end
@@ -232,7 +232,7 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def colors()
-    @colors ||= r8.project.palette_colors.map {|color|
+    @colors ||= project.palette_colors.map {|color|
       rgb = self.color(color)
         .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
       Color.new(rgb) {canvas.color = rgb}
@@ -557,7 +557,7 @@ class Reight::SpriteEditor::SpriteSheet
 
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
-      sp.draw          {draw}
+      sp.draw           {draw}
       sp.mouse_pressed  {mouse_pressed  sp.mouse_x, sp.mouse_y}
       sp.mouse_released {mouse_released sp.mouse_x, sp.mouse_y}
       sp.mouse_dragged  {mouse_dragged  sp.mouse_x, sp.mouse_y}
