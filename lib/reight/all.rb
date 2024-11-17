@@ -7,6 +7,7 @@ require 'reight/button'
 
 require 'reight/reight'
 require 'reight/chip'
+require 'reight/map'
 require 'reight/app'
 require 'reight/app/navigator'
 require 'reight/app/sprite'

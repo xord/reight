@@ -23,9 +23,9 @@ class Reight::Project
   def chips()
     @chips ||=
       if File.file? chips_path
-        ChipList.restore JSON.parse(File.read chips_path), chips_image
+        Reight::ChipList.restore JSON.parse(File.read chips_path), chips_image
       else
-        ChipList.new chips_image
+        Reight::ChipList.new chips_image
       end
   end
 
@@ -47,6 +47,12 @@ class Reight::Project
           g.begin_draw {g.background 0, 0, 0}
         end
       end
+  end
+
+  def maps_path = "#{project_dir}/maps.json"
+
+  def maps()
+    @maps ||= [Reight::Map.new]
   end
 
   def palette_colors = %w[

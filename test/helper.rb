@@ -9,3 +9,7 @@ require 'reight/all'
 require 'test/unit'
 
 include Xot::Test
+
+
+R8 = Reight
+RS = RubySketch

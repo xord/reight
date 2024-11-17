@@ -47,6 +47,10 @@ class Reight::ChipList
     {next_id: @next_id, chips: @id2chip.values.map {_1.to_hash}}
   end
 
+  def [](id)
+    @id2chip[id]
+  end
+
   def <=>(o)
     a =                  [@image, @next_id, @id2chip, @frame2chip]
     b = o.instance_eval {[@image, @next_id, @id2chip, @frame2chip]}

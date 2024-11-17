@@ -3,9 +3,6 @@ require_relative 'helper'
 
 class TestChip < Test::Unit::TestCase
 
-  R8 = Reight
-  RS = RubySketch
-
   def chip(...) = R8::Chip.new(...)
 
   def image(w = 1, h = 1) = RS::Image.new Rays::Image.new w, h
