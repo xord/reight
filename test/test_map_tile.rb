@@ -5,55 +5,87 @@ class TestMapTile < Test::Unit::TestCase
 
   def tile(...) = R8::Map::Tile.new(...)
 
-  def chip(...) = R8::Chip.new(...)
+  def chip(id: 1, image: self.image, frame: [2, 3, 4, 5]) =
+    R8::Chip.new id, image, *frame
 
   def image(w = 1, h = 1) = RS::Image.new Rays::Image.new w, h
 
   def test_initialize()
-    assert_equal [1, 2, 3, 4], tile(1,   2,   3,   4)  .frame
-    assert_equal [1, 2, 3, 4], tile(1.1, 2.2, 3.3, 4.4).frame
+    assert_equal [1, 3, 6, 8], tile(1,   3,   6, 8, chip_size: 2).frame
+    assert_equal [1, 3, 6, 8], tile(1.1, 3,   6, 8, chip_size: 2).frame
+    assert_equal [1, 3, 6, 8], tile(1,   3.3, 6, 8, chip_size: 2).frame
+
+    assert_raise(ArgumentError) {tile 1, 3, 6,   8, chip_size: 2.2}
+    assert_raise(ArgumentError) {tile 1, 3, 6.6, 8}
+    assert_raise(ArgumentError) {tile 1, 3, 6,   8.8}
+  end
+
+  def test_each_chip()
+    t        = tile 1, 3, 6, 8, chip_size: 2
+    t[3, 7]  = chip id: 10
+    t[6, 10] = chip id: 11
+
+    assert_equal(
+      [[10, 3, 7], [11, 5, 9]],
+      t.each_chip.to_a.map {|chip, x, y| [chip.id, x, y]})
   end
 
   def test_to_hash()
-    t       = tile 1, 2, 3, 4
-    t[2, 3] = chip(9, image, 8, 7, 6, 5)
+    x = nil
+
+    t           = tile 1, 3, 6, 8, chip_size: 2
+    t[3, 5]     = chip id: 10
     assert_equal(
-      {x: 1, y: 2, w: 3, h: 4, chips: [nil,nil,nil, nil,9]},
+      {x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [x,x,x, x,10]},
+      t.to_hash)
+
+    t[5, 7]     = chip id: 11
+    assert_equal(
+      {x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [x,x,x, x,10,x, x,x,11]},
+      t.to_hash)
+
+    t[5.5, 7.7] = chip id: 12
+    assert_equal(
+      {x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [x,x,x, x,10,x, x,x,12]},
       t.to_hash)
   end
 
   def test_compare()
-    assert_not_equal tile(1, 2, 3, 4), tile(0, 2, 3, 4)
-    assert_not_equal tile(1, 2, 3, 4), tile(1, 0, 3, 4)
-    assert_not_equal tile(1, 2, 3, 4), tile(1, 2, 0, 4)
-    assert_not_equal tile(1, 2, 3, 4), tile(1, 2, 3, 0)
+    assert_not_equal tile(1, 3, 6, 8, chip_size: 2), tile(0, 3, 6, 8, chip_size: 2)
+    assert_not_equal tile(1, 3, 6, 8, chip_size: 2), tile(1, 0, 6, 8, chip_size: 2)
+    assert_not_equal tile(1, 3, 6, 8, chip_size: 2), tile(1, 3, 0, 8, chip_size: 2)
+    assert_not_equal tile(1, 3, 6, 8, chip_size: 2), tile(1, 3, 6, 0, chip_size: 2)
+    assert_not_equal tile(1, 3, 6, 8, chip_size: 2), tile(1, 3, 6, 8, chip_size: 1)
 
-    t1, t2 = tile(1, 2, 3, 4), tile(1, 2, 3, 4)
+    t1, t2 = tile(1, 3, 6, 8, chip_size: 2), tile(1, 3, 6, 8, chip_size: 2)
     assert_equal t1, t2
 
     i        = image
-    t1[1, 2] = chip 9, i, 8, 7, 6, 5; assert_not_equal t1, t2
-    t2[1, 2] = chip 9, i, 8, 7, 6, 5; assert_equal     t1, t2
-    t2[1, 2] = chip 0, i, 8, 7, 6, 5; assert_not_equal t1, t2
+    t1[3, 5] = chip id: 10, image: i; assert_not_equal t1, t2
+    t2[3, 5] = chip id: 10, image: i; assert_equal     t1, t2
+    t2[3, 5] = chip id: 0,  image: i; assert_not_equal t1, t2
   end
 
   def test_at()
-    t = tile 1, 2, 3, 4
-    assert_nil t[2, 3]
+    t = tile 1, 3, 6, 8, chip_size: 2
+    assert_nil t[3, 5]
 
     i       = image
-    t[2, 3] =    chip 9, i, 8, 7, 6, 5
-    assert_equal chip(9, i, 8, 7, 6, 5), t[2, 3]
+    t[3, 5] =    chip id: 10, image: i
+    assert_equal chip(id: 10, image: i), t[3, 5]
   end
 
   def test_restore()
     i     = image
     chips = R8::ChipList.restore(
-      {next_id: 10, chips: [{id: 9, x: 8, y: 7, w: 6, h: 5}]}, i)
+      {next_id: 11, chips: [{id: 10, x: 9, y: 8, w: 7, h: 6}]}, i)
 
     assert_equal(
-      tile(1, 2, 3, 4).tap {_1[2, 3] = chip(9, i, 8, 7, 6, 5)},
-      R8::Map::Tile.restore({x: 1, y: 2, w: 3, h: 4, chips: [nil,nil,nil, nil,9]}, chips))
+      tile(1, 3, 6, 8, chip_size: 2)
+        .tap {_1[3, 5] = chip(id: 10, image: i, frame: [9, 8, 7, 6])},
+      R8::Map::Tile.restore({
+        x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [nil,nil,nil, nil,10]
+      }, chips))
   end
 
 end# TestMapTile
