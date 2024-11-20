@@ -3,9 +3,9 @@ require_relative 'helper'
 
 class TestMap < Test::Unit::TestCase
 
-  def map(...)  = R8::Map.new(...)
+  def map(...)   = R8::Map.new(...)
 
-  def tile(...) = R8::Map::Tile.new(...)
+  def chunk(...) = R8::Map::Chunk.new(...)
 
   def chip(id: 1, image: self.image, frame: [2, 3, 4, 5]) =
     R8::Chip.new id, image, *frame
@@ -13,14 +13,14 @@ class TestMap < Test::Unit::TestCase
   def image(w = 1, h = 1) = RS::Image.new Rays::Image.new w, h
 
   def test_initialize()
-    assert_nothing_raised       {map chip_size: 2,   tile_size: 6}
-    assert_raise(ArgumentError) {map chip_size: 2,   tile_size: 7}
-    assert_raise(ArgumentError) {map chip_size: 2.2, tile_size: 6}
-    assert_raise(ArgumentError) {map chip_size: 2,   tile_size: 6.6}
+    assert_nothing_raised       {map chip_size: 2,   chunk_size: 6}
+    assert_raise(ArgumentError) {map chip_size: 2,   chunk_size: 7}
+    assert_raise(ArgumentError) {map chip_size: 2.2, chunk_size: 6}
+    assert_raise(ArgumentError) {map chip_size: 2,   chunk_size: 6.6}
   end
 
   def test_each_chip()
-    m       = map chip_size: 2, tile_size: 6
+    m       = map chip_size: 2, chunk_size: 6
     m[2, 4] = chip id: 10
     m[6, 8] = chip id: 11
 
@@ -35,17 +35,17 @@ class TestMap < Test::Unit::TestCase
   def test_to_hash()
     assert_equal(
       {
-        chip_size: 2, tile_size: 6,
-        tiles: [{x: 6, y: 6, w: 6, h: 6, chip_size: 2, chips: [nil,nil,nil, 10]}]
+        chip_size: 2, chunk_size: 6,
+        chunks: [{x: 6, y: 6, w: 6, h: 6, chip_size: 2, chips: [nil,nil,nil, 10]}]
       },
-      map(chip_size: 2, tile_size: 6).tap {_1[6, 8] = chip id: 10}.to_hash)
+      map(chip_size: 2, chunk_size: 6).tap {_1[6, 8] = chip id: 10}.to_hash)
   end
 
   def test_compare()
-    assert_not_equal map(chip_size: 2, tile_size: 8), map(chip_size: 4, tile_size: 8)
-    assert_not_equal map(chip_size: 2, tile_size: 8), map(chip_size: 2, tile_size: 4)
+    assert_not_equal map(chip_size: 2, chunk_size: 8), map(chip_size: 4, chunk_size: 8)
+    assert_not_equal map(chip_size: 2, chunk_size: 8), map(chip_size: 2, chunk_size: 4)
 
-    m1, m2 = map(chip_size: 2, tile_size: 6), map(chip_size: 2, tile_size: 6)
+    m1, m2 = map(chip_size: 2, chunk_size: 6), map(chip_size: 2, chunk_size: 6)
     assert_equal m1, m2
 
     i        = image
@@ -55,7 +55,7 @@ class TestMap < Test::Unit::TestCase
   end
 
   def test_at()
-    m = map chip_size: 2, tile_size: 6
+    m = map chip_size: 2, chunk_size: 6
     assert_nil m[6, 8]
 
     i       = image
@@ -69,11 +69,11 @@ class TestMap < Test::Unit::TestCase
       {next_id: 11, chips: [{id: 10, x: 9, y: 8, w: 7, h: 6}]}, i)
 
     assert_equal(
-      map(chip_size: 2, tile_size: 6)
+      map(chip_size: 2, chunk_size: 6)
         .tap {_1[6, 8] = chip(id: 10, image: i, frame: [9, 8, 7, 6])},
       R8::Map.restore({
-        chip_size: 2, tile_size: 6,
-        tiles: [{x: 6, y: 6, w: 6, h: 6, chip_size: 2, chips: [nil,nil,nil, 10]}]
+        chip_size: 2, chunk_size: 6,
+        chunks: [{x: 6, y: 6, w: 6, h: 6, chip_size: 2, chips: [nil,nil,nil, 10]}]
       }, chips))
   end
 
