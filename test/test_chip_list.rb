@@ -1,4 +1,5 @@
 require_relative 'helper'
+using Reight
 
 
 class TestChipList < Test::Unit::TestCase
@@ -7,7 +8,7 @@ class TestChipList < Test::Unit::TestCase
 
   def chips(...) = R8::ChipList.new(...)
 
-  def image(w = 100, h = 100) = RS::Image.new Rays::Image.new w, h
+  def image(w = 100, h = 100) = create_image w, h
 
   def test_initialize()
     i = image

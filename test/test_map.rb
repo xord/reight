@@ -1,4 +1,5 @@
 require_relative 'helper'
+using Reight
 
 
 class TestMap < Test::Unit::TestCase
@@ -10,7 +11,7 @@ class TestMap < Test::Unit::TestCase
   def chip(id: 1, image: self.image, frame: [2, 3, 4, 5]) =
     R8::Chip.new id, image, *frame
 
-  def image(w = 1, h = 1) = RS::Image.new Rays::Image.new w, h
+  def image(w = 1, h = 1) = create_image w, h
 
   def test_initialize()
     assert_nothing_raised       {map chip_size: 2,   chunk_size: 6}
