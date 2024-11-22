@@ -18,25 +18,18 @@ class Reight::Map
 
   def each_chip(x, y, w, h, &block)
     return enum_for :each_chip, x, y, w, h unless block
-    x1, y1 = chunk_key_at x,         y
-    x2, y2 = chunk_key_at x + w - 1, y + h - 1
-    (y1..y2).step @chunk_size do |y|
-      (x1..x2).step @chunk_size do |x|
-        chunk_at(x, y)&.each_chip(&block)
-      end
-    end
+    each_chunk(x, y, w, h) {|chunk| chunk.each_chip(&block)}
   end
 
   def to_hash()
     {
-      chip_size:  @chip_size,
-      chunk_size: @chunk_size,
-      chunks:     @chunks.values.map(&:to_hash)
+      chip_size: @chip_size, chunk_size: @chunk_size,
+      chunks: @chunks.values.map(&:to_hash)
     }
   end
 
   def []=(x, y, chip)
-    chunk_at(x, y, create: true)[x, y] = chip
+    each_chunk(x, y, chip.w, chip.h, create: true) {|chunk| chunk[x, y] = chip}
   end
 
   def [](x, y)
@@ -63,8 +56,23 @@ class Reight::Map
 
   private
 
+  def each_chunk(x, y, w = 0, h = 0, create: false, &block)
+    x1, x2 = [x, x + w].sort
+    y1, y2 = [y, y + h].sort
+    x2    -= 1 if x2 >= x1 + 1
+    y2    -= 1 if y2 >= y1 + 1
+    x1, y1 = align_chunk_pos x1, y1
+    x2, y2 = align_chunk_pos x2, y2
+    (y1..y2).step @chunk_size do |yy|
+      (x1..x2).step @chunk_size do |xx|
+        chunk = chunk_at xx, yy, create: create
+        block.call chunk if chunk
+      end
+    end
+  end
+
   def chunk_at(x, y, create: false)
-    x, y = chunk_key_at x, y
+    x, y = align_chunk_pos x, y
     if create
       @chunks[[x, y]] ||=
         Chunk.new x, y, @chunk_size, @chunk_size, chip_size: @chip_size
@@ -73,7 +81,7 @@ class Reight::Map
     end
   end
 
-  def chunk_key_at(x, y)
+  def align_chunk_pos(x, y)
     cs = @chunk_size
     [x.to_i / cs * cs, y.to_i / cs * cs]
   end
