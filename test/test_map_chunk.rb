@@ -6,87 +6,111 @@ class TestMapChunk < Test::Unit::TestCase
 
   def chunk(...) = R8::Map::Chunk.new(...)
 
-  def chip(id: 1, image: self.image, frame: [2, 3, 4, 5]) =
-    R8::Chip.new id, image, *frame
+  def chip(x, y, w, h, id: 1, image: self.image, pos: nil) =
+    R8::Chip.new id, image, x, y, w, h, pos: pos
 
-  def image(w = 1, h = 1) = create_image w, h
+  def image(w = 100, h = 100) = create_image w, h
+
+  def vec(...)                = create_vector(...)
 
   def test_initialize()
-    assert_equal [1, 3, 6, 8], chunk(1,   3,   6, 8, chip_size: 2).frame
-    assert_equal [1, 3, 6, 8], chunk(1.1, 3,   6, 8, chip_size: 2).frame
-    assert_equal [1, 3, 6, 8], chunk(1,   3.3, 6, 8, chip_size: 2).frame
+    assert_equal [1, 3, 4, 6], chunk(1,   3,   4, 6, chip_size: 2).frame
+    assert_equal [1, 3, 4, 6], chunk(1.1, 3,   4, 6, chip_size: 2).frame
+    assert_equal [1, 3, 4, 6], chunk(1,   3.3, 4, 6, chip_size: 2).frame
 
-    assert_raise(ArgumentError) {chunk 1, 3, 6,   8, chip_size: 2.2}
-    assert_raise(ArgumentError) {chunk 1, 3, 6.6, 8}
-    assert_raise(ArgumentError) {chunk 1, 3, 6,   8.8}
+    assert_raise(ArgumentError) {chunk 1, 3, 4,   6,   chip_size: 2.2}
+    assert_raise(ArgumentError) {chunk 1, 3, 4.4, 6,   chip_size: 2}
+    assert_raise(ArgumentError) {chunk 1, 3, 4,   6.6, chip_size: 2}
   end
 
   def test_each_chip()
-    t        = chunk 1, 3, 6, 8, chip_size: 2
-    t[3, 7]  = chip id: 10
-    t[6, 10] = chip id: 11
+    c         = chunk 10, 20, 30, 40, chip_size: 10
+    c[10, 20] = chip 0, 0, 10, 10, id: 1
+    c[20, 30] = chip 0, 0, 20, 20, id: 2
 
     assert_equal(
-      [[10, 3, 7], [11, 5, 9]],
-      t.each_chip.to_a.map {|chip, x, y| [chip.id, x, y]})
+      [[1, 10, 20], [2, 20, 30]],
+      c.each_chip.to_a.map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
   end
 
   def test_to_hash()
-    x = nil
-
-    t           = chunk 1, 3, 6, 8, chip_size: 2
-    t[3, 5]     = chip id: 10
+    c         = chunk 10, 20, 30, 40, chip_size: 10
+    c[20, 30] = chip 0, 0, 10, 10, id: 1
     assert_equal(
-      {x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [x,x,x, x,10]},
-      t.to_hash)
+      {
+        x: 10, y: 20, w: 30, h: 40, chip_size: 10,
+        chips: [nil,nil,nil, nil,[1,20,30]]
+      },
+      c.to_hash)
 
-    t[5, 7]     = chip id: 11
+    c[30, 40] = chip 0, 0, 10, 20, id: 2
     assert_equal(
-      {x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [x,x,x, x,10,x, x,x,11]},
-      t.to_hash)
-
-    t[5.5, 7.7] = chip id: 12
-    assert_equal(
-      {x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [x,x,x, x,10,x, x,x,12]},
-      t.to_hash)
+      {
+        x: 10, y: 20, w: 30, h: 40, chip_size: 10,
+        chips: [nil,nil,nil, nil,[1,20,30],nil, nil,nil,[2,30,40], nil,nil,[2,30,40]]
+      },
+      c.to_hash)
   end
 
   def test_compare()
-    assert_not_equal chunk(1, 3, 6, 8, chip_size: 2), chunk(0, 3, 6, 8, chip_size: 2)
-    assert_not_equal chunk(1, 3, 6, 8, chip_size: 2), chunk(1, 0, 6, 8, chip_size: 2)
-    assert_not_equal chunk(1, 3, 6, 8, chip_size: 2), chunk(1, 3, 0, 8, chip_size: 2)
-    assert_not_equal chunk(1, 3, 6, 8, chip_size: 2), chunk(1, 3, 6, 0, chip_size: 2)
-    assert_not_equal chunk(1, 3, 6, 8, chip_size: 2), chunk(1, 3, 6, 8, chip_size: 1)
+    assert_not_equal chunk(10, 20, 30, 40, chip_size: 10), chunk( 0, 20, 30, 40, chip_size: 10)
+    assert_not_equal chunk(10, 20, 30, 40, chip_size: 10), chunk(10,  0, 30, 40, chip_size: 10)
+    assert_not_equal chunk(10, 20, 30, 40, chip_size: 10), chunk(10, 20,  0, 40, chip_size: 10)
+    assert_not_equal chunk(10, 20, 30, 40, chip_size: 10), chunk(10, 20, 30,  0, chip_size: 10)
+    assert_not_equal chunk(10, 20, 30, 40, chip_size: 10), chunk(10, 20, 30, 40, chip_size: 1)
 
-    t1, t2 = chunk(1, 3, 6, 8, chip_size: 2), chunk(1, 3, 6, 8, chip_size: 2)
-    assert_equal t1, t2
+    c1, c2 = chunk(10, 20, 30, 40, chip_size: 10), chunk(10, 20, 30, 40, chip_size: 10)
+    assert_equal c1, c2
 
-    i        = image
-    t1[3, 5] = chip id: 10, image: i; assert_not_equal t1, t2
-    t2[3, 5] = chip id: 10, image: i; assert_equal     t1, t2
-    t2[3, 5] = chip id: 0,  image: i; assert_not_equal t1, t2
+    img      = image
+    c1[10, 20] = chip 0, 0, 10, 10, id: 1, image: img; assert_not_equal c1, c2
+    c2[10, 20] = chip 0, 0, 10, 10, id: 1, image: img; assert_equal     c1, c2
+    c2[10, 20] = chip 0, 0, 10, 10, id: 2, image: img; assert_not_equal c1, c2
   end
 
   def test_at()
-    t = chunk 1, 3, 6, 8, chip_size: 2
-    assert_nil t[3, 5]
+    img = image
 
-    i       = image
-    t[3, 5] =    chip id: 10, image: i
-    assert_equal chip(id: 10, image: i), t[3, 5]
+    c = chunk 10, 20, 30, 40, chip_size: 10
+    assert_nil c[20, 30]
+
+    c[20, 30]     = chip 0, 0, 10, 10, id: 1, image: img, pos: nil
+    assert_equal    chip(0, 0, 10, 10, id: 1, image: img, pos: vec(20, 30)), c[20, 30]
+
+    c[20.2, 30.3] = chip 0, 0, 10, 10, id: 2, image: img, pos: nil
+    assert_equal    chip(0, 0, 10, 10, id: 2, image: img, pos: vec(20, 30)), c[20, 30]
+
+    c[20, 30]     = chip 0, 0, 20, 20, id: 3, image: img, pos: nil
+    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[20, 30]
+    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[30, 30]
+    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[30, 40]
+    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[20, 40]
+
+    assert_equal c[20, 30].object_id, c[30, 30].object_id
+    assert_equal c[20, 30].object_id, c[30, 40].object_id
+    assert_equal c[20, 30].object_id, c[20, 40].object_id
   end
 
   def test_restore()
-    i     = image
-    chips = R8::ChipList.restore(
-      {next_id: 11, chips: [{id: 10, x: 9, y: 8, w: 7, h: 6}]}, i)
+    img      = image
+    chips    = R8::ChipList.restore({
+      next_id: 3, chips: [
+        {id: 1, x: 0, y: 0, w: 10, h: 10, pos: nil},
+        {id: 2, x: 0, y: 0, w: 10, h: 20, pos: nil},
+      ]
+    }, img)
+    restored = R8::Map::Chunk.restore({
+      x: 10, y: 20, w: 30, h: 40, chip_size: 10,
+      chips: [nil,nil,nil, nil,[1,20,30],nil, nil,nil,[2,30,40], nil,nil,[2,30,40]]
+    }, chips)
 
     assert_equal(
-      chunk(1, 3, 6, 8, chip_size: 2)
-        .tap {_1[3, 5] = chip(id: 10, image: i, frame: [9, 8, 7, 6])},
-      R8::Map::Chunk.restore({
-        x: 1, y: 3, w: 6, h: 8, chip_size: 2, chips: [nil,nil,nil, nil,10]
-      }, chips))
+      chunk(10, 20, 30, 40, chip_size: 10).tap {
+        _1[20, 30] = chip 0, 0, 10, 10, id: 1, image: img
+        _1[30, 40] = chip 0, 0, 10, 20, id: 2, image: img
+      },
+      restored)
+    assert_equal restored[30, 40].object_id, restored[30, 50].object_id
   end
 
 end# TestMapChunk

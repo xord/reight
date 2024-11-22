@@ -1,3 +1,6 @@
+using Reight
+
+
 class Reight::Map
 
   include Enumerable
@@ -86,18 +89,20 @@ class Reight::Map::Chunk
     raise ArgumentError, "Invalid chip_size: #{chip_size}" if chip_size.to_i != chip_size
     raise ArgumentError, "Invalid w: #{w}"                 if w % chip_size != 0
     raise ArgumentError, "Invalid h: #{h}"                 if h % chip_size != 0
-    @x, @y, @w, @h     = [x, y, w, h].map &:to_i
-    @chip_size, @chips = chip_size, []
-    @ncolumn           = @w / @chip_size
+
+    @x, @y, @w, @h, @chip_size = [x, y, w, h, chip_size].map &:to_i
+    @chips, @ncolumn           = [], @w / @chip_size
   end
 
   attr_reader :x, :y, :w, :h
 
   def each_chip(&block)
     return enum_for :each_chip unless block
-    cs, ncol = @chip_size, @ncolumn
     @chips.each.with_index do |chip, index|
-      block.call chip, @x + (index % ncol) * cs, @y + (index / ncol) * cs if chip
+      next unless chip
+      x, y = index2pos index
+      pos  = chip.pos
+      block.call chip if x == pos.x && y == pos.y
     end
   end
 
@@ -105,17 +110,29 @@ class Reight::Map::Chunk
 
   def to_hash()
     {
-      x: @x, y: @y, w: @w, h: @h,
-      chip_size: @chip_size, chips: @chips.map {_1&.id}
+      x: @x, y: @y, w: @w, h: @h, chip_size: @chip_size,
+      chips: @chips.map {|chip| chip ? [chip.id, chip.pos.x, chip.pos.y] : nil}
     }
   end
 
   def []=(x, y, chip)
-    @chips[index_at x, y] = chip
+    raise "Invalid chip size" if
+      chip.w % @chip_size != 0 || chip.h % @chip_size != 0
+
+    x1, y1 = align_chip_pos x, y
+    x2, y2 = x1 + chip.w, y1 + chip.h
+    chip2  = nil
+    (y1...y2).step @chip_size do |yy|
+      next if yy < @y || @y + @h <= yy
+      (x1...x2).step @chip_size do |xx|
+        next if xx < @x || @x + @w <= xx
+        @chips[pos2index xx, yy] = (chip2 ||= chip.with pos: create_vector(x1, y1))
+      end
+    end
   end
 
   def [](x, y)
-    @chips[index_at x, y]
+    @chips[pos2index x, y]
   end
 
   def <=>(o)
@@ -125,17 +142,31 @@ class Reight::Map::Chunk
   end
 
   def self.restore(hash, source_chips)
-    hash => {x:, y:, w:, h:, chip_size: chip_size, chips: chip_ids}
+    hash      => {x:, y:, w:, h:, chip_size: chip_size, chips: chip_ids}
+    tmp_chips = {}
+    get_chip  = -> id, x, y {
+      tmp_chips[[id, x, y]] ||= source_chips[id].with(pos: create_vector(x, y))
+    }
     new(x, y, w, h, chip_size: chip_size).tap do |obj|
       obj.instance_eval do
-        @chips = chip_ids.map {|id| id ? source_chips[id] : nil}
+        @chips = chip_ids.map {|id, x, y| id ? get_chip.call(id, x, y) : nil}
       end
     end
   end
 
   private
 
-  def index_at(x, y) =
+  def align_chip_pos(x, y)
+    cs = @chip_size
+    [x.to_i / cs * cs, y.to_i / cs * cs]
+  end
+
+  def pos2index(x, y) =
     (y.to_i - @y) / @chip_size * @ncolumn + (x.to_i - @x) / @chip_size
+
+  def index2pos(index) = [
+    @x + (index % @ncolumn) * @chip_size,
+    @y + (index / @ncolumn) * @chip_size
+  ]
 
 end# Chunk
