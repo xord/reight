@@ -29,8 +29,29 @@ class TestMapChunk < Test::Unit::TestCase
     c[20, 30] = chip 0, 0, 20, 20, id: 2
 
     assert_equal(
-      [[1, 10, 20], [2, 20, 30]],
-      c.each_chip.to_a.map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+      [[1, 10,20, 10,20], [2, 20,30, 20,30]],
+      c.each_chip(all: false).map {|chip, x, y| [chip.id, chip.pos.x, chip.pos.y, x, y]})
+    assert_equal(
+      [
+        [1, 10,20, 10,20],
+        [2, 20,30, 20,30], [2, 20,30, 30,30], [2, 20,30, 20,40], [2, 20,30, 30,40]
+      ],
+      c.each_chip(all: true) .map {|chip, x, y| [chip.id, chip.pos.x, chip.pos.y, x, y]})
+  end
+
+  def test_each_chip_pos()
+    c = chunk 10, 20, 30, 40, chip_size: 10
+    assert_equal [],                   c.each_chip_pos( 0,  0, 10, 10).to_a
+    assert_equal [],                   c.each_chip_pos(20, 30,  0,  0).to_a
+    assert_equal [[20, 30]],           c.each_chip_pos(20, 30,  1,  1).to_a
+    assert_equal [[10, 20]],           c.each_chip_pos(20, 30, -1, -1) .to_a
+    assert_equal [[20, 30]],           c.each_chip_pos(20, 30, 10, 10).to_a
+    assert_equal [[20, 30], [30, 30]], c.each_chip_pos(20, 30, 11, 10).to_a
+    assert_equal [[20, 30], [20, 40]], c.each_chip_pos(20, 30, 10, 11).to_a
+    assert_equal([[20, 30], [30, 30], [20, 40], [30, 40]],
+                                       c.each_chip_pos(20, 30, 11, 11).to_a)
+    assert_equal [[20, 30]],           c.each_chip_pos(29, 39,  1,  1) .to_a
+    assert_equal [[20, 30], [30, 30]], c.each_chip_pos(29, 39,  2,  1) .to_a
   end
 
   def test_to_hash()
@@ -68,7 +89,7 @@ class TestMapChunk < Test::Unit::TestCase
     c2[10, 20] = chip 0, 0, 10, 10, id: 2, image: img; assert_not_equal c1, c2
   end
 
-  def test_at()
+  def test_index_accessor()
     img = image
 
     c = chunk 10, 20, 30, 40, chip_size: 10
@@ -89,6 +110,27 @@ class TestMapChunk < Test::Unit::TestCase
     assert_equal c[20, 30].object_id, c[30, 30].object_id
     assert_equal c[20, 30].object_id, c[30, 40].object_id
     assert_equal c[20, 30].object_id, c[20, 40].object_id
+  end
+
+  def test_index_accessor_assign_nil()
+    all_chips = -> &block {
+      chunk(10, 20, 30, 40, chip_size: 10).tap {|c|
+        c[20, 30] = chip 0, 0, 20, 20
+        block.call c
+      }.each_chip(all: true).map {|_, x, y| [x, y]}
+    }
+
+    assert_equal [[20, 30], [30, 30], [20, 40], [30, 40]], all_chips.call {}
+    assert_equal [[20, 30], [30, 30], [20, 40], [30, 40]], all_chips.call {_1[ 9, 19] = nil}
+    assert_equal [[20, 30], [30, 30], [20, 40], [30, 40]], all_chips.call {_1[40, 50] = nil}
+
+    assert_equal [], all_chips.call {_1[20, 30] = nil}
+    assert_equal [], all_chips.call {_1[29, 30] = nil}
+    assert_equal [], all_chips.call {_1[20, 39] = nil}
+    assert_equal [], all_chips.call {_1[29, 39] = nil}
+    assert_equal [], all_chips.call {_1[30, 30] = nil}
+    assert_equal [], all_chips.call {_1[20, 40] = nil}
+    assert_equal [], all_chips.call {_1[30, 40] = nil}
   end
 
   def test_restore()

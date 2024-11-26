@@ -16,9 +16,17 @@ class Reight::Map
     @chunks                 = {}
   end
 
-  def each_chip(x, y, w, h, &block)
+  def each_chip(x = nil, y = nil, w = nil, h = nil, &block)
     return enum_for :each_chip, x, y, w, h unless block
-    each_chunk(x, y, w, h) {|chunk| chunk.each_chip(&block)}
+    enum =
+      case [x, y, w, h]
+      in [nil,     nil,     nil,     nil]     then @chunks.values.each
+      in [Numeric, Numeric, Numeric, Numeric] then each_chunk x, y, w, h
+      else raise ArgumentError, "Invalid bounds"
+      end
+    enum.each do |chunk|
+      chunk.each_chip {|chip, x, y| block.call chip}
+    end
   end
 
   def to_hash()
@@ -29,7 +37,18 @@ class Reight::Map
   end
 
   def []=(x, y, chip)
-    each_chunk(x, y, chip.w, chip.h, create: true) {|chunk| chunk[x, y] = chip}
+    if current_chip = self[x, y]
+      cx, cy, cw, ch = current_chip.then {[_1.pos.x, _1.pos.y, _1.w, _1.h]}
+      each_chunk cx, cy, cw, ch, create: false do |chunk|
+        each_chip_pos(cx, cy, cw, ch) {|xx, yy| chunk[xx, yy] = nil}
+      end
+    end
+    if chip
+      each_chunk x, y, chip.w, chip.h, create: true do |chunk|
+        each_chip_pos(x, y, chip.w, chip.h) {|xx, yy| chunk[xx, yy] = nil}
+        chunk[x, y] = chip
+      end
+    end
   end
 
   def [](x, y)
@@ -57,8 +76,11 @@ class Reight::Map
   private
 
   def each_chunk(x, y, w = 0, h = 0, create: false, &block)
-    x1, x2 = [x, x + w].sort
-    y1, y2 = [y, y + h].sort
+    return enum_for :each_chunk, x, y, w, h, create: create unless block
+    x, w   = x + w, -w if w < 0
+    y, h   = y + h, -h if h < 0
+    x1, x2 = x, x + w
+    y1, y2 = y, y + h
     x2    -= 1 if x2 >= x1 + 1
     y2    -= 1 if y2 >= y1 + 1
     x1, y1 = align_chunk_pos x1, y1
@@ -81,9 +103,27 @@ class Reight::Map
     end
   end
 
+  def each_chip_pos(x, y, w, h, &block)
+    x, w           = x + w, -w if w < 0
+    y, h           = y + h, -h if h < 0
+    x1, y1         = align_chip_pos x, y
+    x2, y2         = align_chip_pos x + w + @chip_size - 1, y + h + @chip_size - 1
+    x1, y1, x2, y2 = [x1, y1, x2, y2].map {_1.clamp 0..}
+    (y1...y2).step @chip_size do |yy|
+      (x1...x2).step @chip_size do |xx|
+        block.call xx, yy
+      end
+    end
+  end
+
   def align_chunk_pos(x, y)
-    cs = @chunk_size
-    [x.to_i / cs * cs, y.to_i / cs * cs]
+    s = @chunk_size
+    [x.to_i / s * s, y.to_i / s * s]
+  end
+
+  def align_chip_pos(x, y)
+    s = @chip_size
+    [x.to_i / s * s, y.to_i / s * s]
   end
 
 end# Map
@@ -104,13 +144,28 @@ class Reight::Map::Chunk
 
   attr_reader :x, :y, :w, :h
 
-  def each_chip(&block)
-    return enum_for :each_chip unless block
+  def each_chip(all: false, &block)
+    return enum_for :each_chip, all: all unless block
     @chips.each.with_index do |chip, index|
       next unless chip
       x, y = index2pos index
       pos  = chip.pos
-      block.call chip if x == pos.x && y == pos.y
+      block.call chip, x, y if all || (x == pos.x && y == pos.y)
+    end
+  end
+
+  def each_chip_pos(x, y, w, h, &block)
+    return enum_for :each_chip_pos, x, y, w, h unless block
+    x, w   = x + w, -w if w < 0
+    y, h   = y + h, -h if h < 0
+    x1, y1 = align_chip_pos x, y
+    x2, y2 = align_chip_pos x + w + @chip_size - 1, y + h + @chip_size - 1
+    x1, x2 = [x1, x2].map {_1.clamp @x, @x + @w}
+    y1, y2 = [y1, y2].map {_1.clamp @y, @y + @h}
+    (y1...y2).step @chip_size do |yy|
+      (x1...x2).step @chip_size do |xx|
+        block.call xx, yy
+      end
     end
   end
 
@@ -124,23 +179,27 @@ class Reight::Map::Chunk
   end
 
   def []=(x, y, chip)
-    raise "Invalid chip size" if
-      chip.w % @chip_size != 0 || chip.h % @chip_size != 0
+    if chip
+      raise "Invalid chip size" if
+        chip.w % @chip_size != 0 || chip.h % @chip_size != 0
 
-    x1, y1 = align_chip_pos x, y
-    x2, y2 = x1 + chip.w, y1 + chip.h
-    chip2  = nil
-    (y1...y2).step @chip_size do |yy|
-      next if yy < @y || @y + @h <= yy
-      (x1...x2).step @chip_size do |xx|
-        next if xx < @x || @x + @w <= xx
-        @chips[pos2index xx, yy] = (chip2 ||= chip.with pos: create_vector(x1, y1))
+      new_chip = nil
+      get_chip = -> {new_chip ||= chip.with pos: create_vector(*align_chip_pos(x, y))}
+      each_chip_pos x, y, chip.w, chip.h do |xx, yy|
+        @chips[pos2index xx, yy] = get_chip.call
+      end
+    elsif ch = self[x, y]
+      each_chip_pos ch.pos.x, ch.pos.y, ch.w, ch.h do |xx, yy|
+        index         = pos2index xx, yy
+        @chips[index] = nil if @chips[index]&.id == ch.id
       end
     end
   end
 
   def [](x, y)
-    @chips[pos2index x, y]
+    index = pos2index x, y
+    return nil if index < 0 || (@w * @h) <= index
+    @chips[index]
   end
 
   def <=>(o)
