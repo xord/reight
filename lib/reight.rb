@@ -4,7 +4,7 @@ require 'reight/all'
 
 
 begin
-  w, c = Reight::WINDOW, Reight::CONTEXT
+  w, c = Reight::WINDOW__, Reight::CONTEXT__
 
   c.class.constants.reject {_1 =~ /__$/}.each do |const|
     self.class.const_set const, c.class.const_get(const)
