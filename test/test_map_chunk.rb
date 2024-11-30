@@ -23,20 +23,117 @@ class TestMapChunk < Test::Unit::TestCase
     assert_raise(ArgumentError) {chunk 1, 3, 4,   6.6, chip_size: 2}
   end
 
+  def test_put()
+    img             = image
+    count_all_chips = -> chunk_ {chunk_.each_chip(all: true).to_a.size}
+    new_chip        = -> id, size, pos: nil {
+      chip 0, 0, size, size, id: id, image: img, pos: pos
+    }
+
+    chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+      assert_nil                                            c[20, 30]
+      assert_equal 0, count_all_chips[c]
+    end
+
+    chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+      c.put 20, 30,     new_chip[1,  10]
+      assert_equal      new_chip[1,  10, pos: vec(20, 30)], c[20, 30]
+      assert_equal 1, count_all_chips[c]
+    end
+
+    chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+      c.put 25, 35,     new_chip[2,  10]
+      assert_equal      new_chip[2,  10, pos: vec(20, 30)], c[25, 35]
+      assert_equal      new_chip[2,  10, pos: vec(20, 30)], c[20, 30]
+      assert_equal 1, count_all_chips[c]
+    end
+
+    chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+      c.put 20.2, 30.3, new_chip[3,  10]
+      assert_equal      new_chip[3,  10, pos: vec(20, 30)], c[20.2, 30.3]
+      assert_equal      new_chip[3,  10, pos: vec(20, 30)], c[20,   30]
+      assert_equal 1, count_all_chips[c]
+    end
+
+    chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+      c.put 25, 35,     new_chip[4,  20]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[25, 35]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[20, 30]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[35, 35]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[30, 30]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[35, 45]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[30, 40]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[25, 45]
+      assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[20, 40]
+      assert_equal 4, count_all_chips[c]
+
+      assert_equal c[20, 30].object_id, c[30, 30].object_id
+      assert_equal c[20, 30].object_id, c[30, 40].object_id
+      assert_equal c[20, 30].object_id, c[20, 40].object_id
+    end
+
+    chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+      assert_nothing_raised {c.put 20, 30, chip(0, 0, 10, 10)}
+      assert_raise          {c.put 20, 30, chip(0, 0, 10, 10)}
+    end
+  end
+
+  def test_delete()
+    count_all_chips = -> chunk_ {chunk_.each_chip(all: true).to_a.size}
+
+    [
+      [0, 0], [20, 30], [90, 90]
+    ].each do |xx, yy|
+      chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+        assert_nothing_raised {c.delete xx, yy}
+        assert_equal 0, count_all_chips[c]
+      end
+    end
+
+    [
+      [20, 30, 0], [21, 31, 0], [25, 35, 0], [29, 39, 0],
+      [19, 29, 1], [30, 40, 1],
+      [29.999, 39.999, 0],
+      [19.999, 29.999, 1]
+    ].each do |xx, yy, count|
+      chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+        c.put 20, 30, chip(0, 0, 10, 10)
+        assert_equal 1,     count_all_chips[c]
+        assert_nothing_raised {c.delete xx, yy}
+        assert_equal count, count_all_chips[c]
+      end
+    end
+
+    [
+      [20, 30, 0], [30, 30, 0], [20, 40, 0], [30, 40, 0],
+      [39, 40, 0], [30, 49, 0], [39, 49, 0],
+      [19, 29, 4], [40, 50, 4],
+      [39.999, 49.999, 0], [39.999, 40, 0], [30, 49.999, 0],
+      [19.999, 29.999, 4],
+    ].each do |xx, yy, count|
+      chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
+        c.put 20, 30, chip(0, 0, 20, 20)
+        assert_equal 4,     count_all_chips[c]
+        assert_nothing_raised {c.delete xx, yy}
+        assert_equal count, count_all_chips[c]
+      end
+    end
+  end
+
   def test_each_chip()
     c         = chunk 10, 20, 30, 40, chip_size: 10
-    c[10, 20] = chip 0, 0, 10, 10, id: 1
-    c[20, 30] = chip 0, 0, 20, 20, id: 2
+    c.put 10, 20, chip(0, 0, 10, 10, id: 1)
+    c.put 20, 30, chip(0, 0, 20, 20, id: 2)
 
     assert_equal(
       [[1, 10,20, 10,20], [2, 20,30, 20,30]],
-      c.each_chip(all: false).map {|chip, x, y| [chip.id, chip.pos.x, chip.pos.y, x, y]})
+      c.each_chip(all: false).map {|chip, x, y| [chip.id, chip.pos.x,chip.pos.y, x,y]})
     assert_equal(
       [
         [1, 10,20, 10,20],
         [2, 20,30, 20,30], [2, 20,30, 30,30], [2, 20,30, 20,40], [2, 20,30, 30,40]
       ],
-      c.each_chip(all: true) .map {|chip, x, y| [chip.id, chip.pos.x, chip.pos.y, x, y]})
+      c.each_chip(all: true) .map {|chip, x, y| [chip.id, chip.pos.x,chip.pos.y, x,y]})
   end
 
   def test_each_chip_pos()
@@ -55,8 +152,8 @@ class TestMapChunk < Test::Unit::TestCase
   end
 
   def test_to_hash()
-    c         = chunk 10, 20, 30, 40, chip_size: 10
-    c[20, 30] = chip 0, 0, 10, 10, id: 1
+    c = chunk 10, 20, 30, 40, chip_size: 10
+    c.put 20, 30, chip(0, 0, 10, 10, id: 1)
     assert_equal(
       {
         x: 10, y: 20, w: 30, h: 40, chip_size: 10,
@@ -64,7 +161,7 @@ class TestMapChunk < Test::Unit::TestCase
       },
       c.to_hash)
 
-    c[30, 40] = chip 0, 0, 10, 20, id: 2
+    c.put 30, 40, chip(0, 0, 10, 20, id: 2)
     assert_equal(
       {
         x: 10, y: 20, w: 30, h: 40, chip_size: 10,
@@ -84,53 +181,10 @@ class TestMapChunk < Test::Unit::TestCase
     assert_equal c1, c2
 
     img      = image
-    c1[10, 20] = chip 0, 0, 10, 10, id: 1, image: img; assert_not_equal c1, c2
-    c2[10, 20] = chip 0, 0, 10, 10, id: 1, image: img; assert_equal     c1, c2
-    c2[10, 20] = chip 0, 0, 10, 10, id: 2, image: img; assert_not_equal c1, c2
-  end
-
-  def test_index_accessor()
-    img = image
-
-    c = chunk 10, 20, 30, 40, chip_size: 10
-    assert_nil c[20, 30]
-
-    c[20, 30]     = chip 0, 0, 10, 10, id: 1, image: img, pos: nil
-    assert_equal    chip(0, 0, 10, 10, id: 1, image: img, pos: vec(20, 30)), c[20, 30]
-
-    c[20.2, 30.3] = chip 0, 0, 10, 10, id: 2, image: img, pos: nil
-    assert_equal    chip(0, 0, 10, 10, id: 2, image: img, pos: vec(20, 30)), c[20, 30]
-
-    c[20, 30]     = chip 0, 0, 20, 20, id: 3, image: img, pos: nil
-    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[20, 30]
-    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[30, 30]
-    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[30, 40]
-    assert_equal    chip(0, 0, 20, 20, id: 3, image: img, pos: vec(20, 30)), c[20, 40]
-
-    assert_equal c[20, 30].object_id, c[30, 30].object_id
-    assert_equal c[20, 30].object_id, c[30, 40].object_id
-    assert_equal c[20, 30].object_id, c[20, 40].object_id
-  end
-
-  def test_index_accessor_assign_nil()
-    all_chips = -> &block {
-      chunk(10, 20, 30, 40, chip_size: 10).tap {|c|
-        c[20, 30] = chip 0, 0, 20, 20
-        block.call c
-      }.each_chip(all: true).map {|_, x, y| [x, y]}
-    }
-
-    assert_equal [[20, 30], [30, 30], [20, 40], [30, 40]], all_chips.call {}
-    assert_equal [[20, 30], [30, 30], [20, 40], [30, 40]], all_chips.call {_1[ 9, 19] = nil}
-    assert_equal [[20, 30], [30, 30], [20, 40], [30, 40]], all_chips.call {_1[40, 50] = nil}
-
-    assert_equal [], all_chips.call {_1[20, 30] = nil}
-    assert_equal [], all_chips.call {_1[29, 30] = nil}
-    assert_equal [], all_chips.call {_1[20, 39] = nil}
-    assert_equal [], all_chips.call {_1[29, 39] = nil}
-    assert_equal [], all_chips.call {_1[30, 30] = nil}
-    assert_equal [], all_chips.call {_1[20, 40] = nil}
-    assert_equal [], all_chips.call {_1[30, 40] = nil}
+    c1.put    10, 20, chip(0, 0, 10, 10, id: 1, image: img); assert_not_equal c1, c2
+    c2.put    10, 20, chip(0, 0, 10, 10, id: 1, image: img); assert_equal     c1, c2
+    c2.delete 10, 20
+    c2.put    10, 20, chip(0, 0, 10, 10, id: 2, image: img); assert_not_equal c1, c2
   end
 
   def test_restore()
@@ -148,8 +202,8 @@ class TestMapChunk < Test::Unit::TestCase
 
     assert_equal(
       chunk(10, 20, 30, 40, chip_size: 10).tap {
-        _1[20, 30] = chip 0, 0, 10, 10, id: 1, image: img
-        _1[30, 40] = chip 0, 0, 10, 20, id: 2, image: img
+        _1.put 20, 30, chip(0, 0, 10, 10, id: 1, image: img)
+        _1.put 30, 40, chip(0, 0, 10, 20, id: 2, image: img)
       },
       restored)
     assert_equal restored[30, 40].object_id, restored[30, 50].object_id

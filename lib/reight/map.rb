@@ -144,6 +144,28 @@ class Reight::Map::Chunk
 
   attr_reader :x, :y, :w, :h
 
+  def put(x, y, chip)
+    raise "Invalid chip size" if
+      chip.w % @chip_size != 0 || chip.h % @chip_size != 0
+    raise "Conflicts with other chips" if
+      each_chip_pos(x, y, chip.w, chip.h).any? {|xx, yy| self[xx, yy]}
+
+    x, y     = align_chip_pos x, y
+    new_chip = nil
+    get_chip = -> {new_chip ||= chip.with pos: create_vector(x, y)}
+    each_chip_pos x, y, chip.w, chip.h do |xx, yy|
+      @chips[pos2index xx, yy] = get_chip.call
+    end
+  end
+
+  def delete(x, y)
+    chip = self[x, y] or return
+    each_chip_pos chip.pos.x, chip.pos.y, chip.w, chip.h do |xx, yy|
+      index         = pos2index xx, yy
+      @chips[index] = nil if @chips[index]&.id == chip.id
+    end
+  end
+
   def each_chip(all: false, &block)
     return enum_for :each_chip, all: all unless block
     @chips.each.with_index do |chip, index|
@@ -176,24 +198,6 @@ class Reight::Map::Chunk
       x: @x, y: @y, w: @w, h: @h, chip_size: @chip_size,
       chips: @chips.map {|chip| chip ? [chip.id, chip.pos.x, chip.pos.y] : nil}
     }
-  end
-
-  def []=(x, y, chip)
-    if chip
-      raise "Invalid chip size" if
-        chip.w % @chip_size != 0 || chip.h % @chip_size != 0
-
-      new_chip = nil
-      get_chip = -> {new_chip ||= chip.with pos: create_vector(*align_chip_pos(x, y))}
-      each_chip_pos x, y, chip.w, chip.h do |xx, yy|
-        @chips[pos2index xx, yy] = get_chip.call
-      end
-    elsif ch = self[x, y]
-      each_chip_pos ch.pos.x, ch.pos.y, ch.w, ch.h do |xx, yy|
-        index         = pos2index xx, yy
-        @chips[index] = nil if @chips[index]&.id == ch.id
-      end
-    end
   end
 
   def [](x, y)
