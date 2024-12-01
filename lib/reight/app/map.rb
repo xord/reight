@@ -104,21 +104,24 @@ class Reight::MapEditor::Canvas
 
   attr_reader :map, :cursor
 
+  def save()
+    @app.project.save
+  end
+
   def set_cursor(x, y, w, h)
     @cursor = correct_bounds x, y, w, h
   end
 
   def begin_editing(&block)
-    app.history.group
+    @app.history.begin_grouping
     block.call if block
   ensure
     end_editing if block
   end
 
   def end_editing()
-    return unless @before
-    # save
-    # @app.history.push [:capture, @before, capture_frame, x, y]
+    @app.history.end_grouping
+    save
   end
 
   def sprite()
@@ -299,13 +302,13 @@ class Reight::MapEditor::Brush < Reight::MapEditor::Tool
 
   def canvas_pressed(x, y, button)
     return unless button == LEFT
-    history.begin_grouping
+    canvas.begin_editing
     brush
   end
 
   def canvas_released(x, y, button)
     return unless button == LEFT
-    history.end_grouping
+    canvas.end_editing
   end
 
   def canvas_moved(x, y)
