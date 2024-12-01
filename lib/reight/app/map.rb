@@ -85,10 +85,11 @@ class Reight::MapEditor < Reight::App
   end
 
   def tools()
-    @tools ||= group brush
+    @tools ||= group brush, eraser
   end
 
-  def brush = @brush ||= Brush.new(self) {canvas.tool = _1}
+  def brush  = @brush  ||= Brush.new(self)  {canvas.tool = _1}
+  def eraser = @eraser ||= Eraser.new(self) {canvas.tool = _1}
 
 end# MapEditor
 
@@ -326,3 +327,47 @@ class Reight::MapEditor::Brush < Reight::MapEditor::Tool
   end
 
 end# Brush
+
+
+class Reight::MapEditor::Eraser < Reight::MapEditor::Tool
+
+  def initialize(app, &block)
+    super app, label: 'E', &block
+    set_help left: 'Eraser'
+  end
+
+  def erase()
+    map_, cursor = canvas.map, canvas.cursor
+    return unless cursor
+    map_.each_chip(*cursor) do |chip|
+      map_.delete_chip chip
+      history.append [:delete_chip, chip.pos.x, chip.pos.y, chip.id]
+    end
+  end
+
+  def update_cursor(x, y)
+    canvas.set_cursor x, y, chips.size, chips.size
+  end
+
+  def canvas_pressed(x, y, button)
+    return unless button == LEFT
+    canvas.begin_editing
+    erase
+  end
+
+  def canvas_released(x, y, button)
+    return unless button == LEFT
+    canvas.end_editing
+  end
+
+  def canvas_moved(x, y)
+    update_cursor x, y
+  end
+
+  def canvas_dragged(x, y, button)
+    return unless button == LEFT
+    update_cursor x, y
+    erase
+  end
+
+end# Eraser
