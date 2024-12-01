@@ -31,6 +31,10 @@ class Reight::Map
     end
   end
 
+  def delete_chip(chip)
+    delete chip.pos.x, chip.pos.y
+  end
+
   def each_chip(x = nil, y = nil, w = nil, h = nil, &block)
     return enum_for :each_chip, x, y, w, h unless block
     enum =

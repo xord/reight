@@ -121,6 +121,15 @@ class TestMap < Test::Unit::TestCase
     end
   end
 
+  def test_delete_chip()
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      m.put           10, 20, chip(0, 0, 10, 10)
+      assert_equal 1, count_all_chips(m)
+      m.delete_chip m[10, 20]
+      assert_equal 0, count_all_chips(m)
+    end
+  end
+
   def test_each_chip()
     m           = map chip_size: 10, chunk_size: 30
     m.put 10,  20,  chip(0, 0, 10, 10, id: 1)
