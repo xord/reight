@@ -135,13 +135,13 @@ class TestMapChunk < Test::Unit::TestCase
 
     assert_equal(
       [[1, 10,20, 10,20], [2, 20,30, 20,30]],
-      c.each_chip(all: false).map {|chip, x, y| [chip.id, chip.pos.x,chip.pos.y, x,y]})
+      c.each_chip(include_hidden: false).map {|chip, x, y| [chip.id, chip.pos.x,chip.pos.y, x,y]})
     assert_equal(
       [
         [1, 10,20, 10,20],
         [2, 20,30, 20,30], [2, 20,30, 30,30], [2, 20,30, 20,40], [2, 20,30, 30,40]
       ],
-      c.each_chip(all: true) .map {|chip, x, y| [chip.id, chip.pos.x,chip.pos.y, x,y]})
+      c.each_chip(include_hidden: true) .map {|chip, x, y| [chip.id, chip.pos.x,chip.pos.y, x,y]})
   end
 
   def test_each_chip_pos()
@@ -220,7 +220,7 @@ class TestMapChunk < Test::Unit::TestCase
   private
 
   def count_all_chips(chunk)
-    chunk.each_chip(all: true).to_a.size
+    chunk.each_chip(include_hidden: true).to_a.size
   end
 
 end# TestMapChunk

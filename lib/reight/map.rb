@@ -35,16 +35,19 @@ class Reight::Map
     delete chip.pos.x, chip.pos.y
   end
 
-  def each_chip(x = nil, y = nil, w = nil, h = nil, &block)
-    return enum_for :each_chip, x, y, w, h unless block
+  def each_chip(x = nil, y = nil, w = nil, h = nil, clip_by_chunk: false, &block)
+    return enum_for :each_chip, x, y, w, h, clip_by_chunk: clip_by_chunk unless block
+    x, w = x + w, -w if w < 0
+    y, h = y + h, -h if h < 0
     enum =
       case [x, y, w, h]
       in [nil,     nil,     nil,     nil]     then @chunks.values.each
       in [Numeric, Numeric, Numeric, Numeric] then each_chunk x, y, w, h
       else raise ArgumentError, "Invalid bounds"
       end
+    x = y = w = h = nil if clip_by_chunk
     enum.each do |chunk|
-      chunk.each_chip {|chip, x, y| block.call chip}
+      chunk.each_chip(x, y, w, h) {|chip, _, _| block.call chip}
     end
   end
 
@@ -170,13 +173,14 @@ class Reight::Map::Chunk
     delete_last_nils
   end
 
-  def each_chip(all: false, &block)
-    return enum_for :each_chip, all: all unless block
+  def each_chip(x = nil, y = nil, w = nil, h = nil, include_hidden: false, &block)
+    return enum_for(:each_chip, x, y, w, h, include_hidden: include_hidden) unless block
     @chips.each.with_index do |chip, index|
       next unless chip
-      x, y = index2pos index
-      pos  = chip.pos
-      block.call chip, x, y if all || (x == pos.x && y == pos.y)
+      xx, yy = index2pos index
+      pos    = chip.pos
+      next if x && !intersect?(x, y, w, h, pos.x, pos.y, chip.w, chip.h)
+      block.call chip, xx, yy if include_hidden || (xx == pos.x && yy == pos.y)
     end
   end
 
@@ -247,6 +251,12 @@ class Reight::Map::Chunk
   def delete_last_nils()
     last   = @chips.rindex {_1 != nil}
     @chips = @chips[..last] if last
+  end
+
+  def intersect?(ax, ay, aw, ah, bx, by, bw, bh)
+    ax2, ay2 = ax + aw - 1, ay + ah - 1
+    bx2, by2 = bx + bw - 1, by + bh - 1
+    ax <= bx2 && bx < ax2 && ay <= by2 && by < ay2
   end
 
 end# Chunk

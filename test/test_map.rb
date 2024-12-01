@@ -137,6 +137,12 @@ class TestMap < Test::Unit::TestCase
     m.put 100, 200, chip(0, 0, 10, 10, id: 3)
 
     assert_equal(
+      [],
+      m.each_chip(0, 0, 10, 19).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+    assert_equal(
+      [[1, 10, 20]],
+      m.each_chip(0, 0, 10, 20).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+    assert_equal(
       [[1, 10, 20]],
       m.each_chip(0, 0, 30, 30).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
     assert_equal(
