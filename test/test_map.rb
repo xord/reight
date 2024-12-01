@@ -86,7 +86,7 @@ class TestMap < Test::Unit::TestCase
       [0, 0], [10, 20], [90, 90]
     ].each do |xx, yy|
       map(chip_size: 10, chunk_size: 30).tap do |m|
-        assert_nothing_raised {m.delete xx, yy}
+        m.delete xx, yy
         assert_equal 0, count_all_chips(m)
       end
     end
@@ -100,7 +100,7 @@ class TestMap < Test::Unit::TestCase
       map(chip_size: 10, chunk_size: 30).tap do |m|
         m.put 10, 20, chip(0, 0, 10, 10)
         assert_equal 1,     count_all_chips(m)
-        assert_nothing_raised {m.delete xx, yy}
+        m.delete xx, yy
         assert_equal count, count_all_chips(m)
       end
     end
@@ -115,7 +115,7 @@ class TestMap < Test::Unit::TestCase
       map(chip_size: 10, chunk_size: 30).tap do |m|
         m.put 10, 20, chip(0, 0, 20, 20)
         assert_equal 4,     count_all_chips(m)
-        assert_nothing_raised {m.delete xx, yy}
+        m.delete xx, yy
         assert_equal count, count_all_chips(m)
       end
     end
