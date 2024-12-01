@@ -24,35 +24,34 @@ class TestMapChunk < Test::Unit::TestCase
   end
 
   def test_put()
-    img             = image
-    count_all_chips = -> chunk_ {chunk_.each_chip(all: true).to_a.size}
-    new_chip        = -> id, size, pos: nil {
+    img      = image
+    new_chip = -> id, size, pos: nil {
       chip 0, 0, size, size, id: id, image: img, pos: pos
     }
 
     chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
       assert_nil                                            c[20, 30]
-      assert_equal 0, count_all_chips[c]
+      assert_equal 0, count_all_chips(c)
     end
 
     chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
       c.put 20, 30,     new_chip[1,  10]
       assert_equal      new_chip[1,  10, pos: vec(20, 30)], c[20, 30]
-      assert_equal 1, count_all_chips[c]
+      assert_equal 1, count_all_chips(c)
     end
 
     chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
       c.put 25, 35,     new_chip[2,  10]
       assert_equal      new_chip[2,  10, pos: vec(20, 30)], c[25, 35]
       assert_equal      new_chip[2,  10, pos: vec(20, 30)], c[20, 30]
-      assert_equal 1, count_all_chips[c]
+      assert_equal 1, count_all_chips(c)
     end
 
     chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
       c.put 20.2, 30.3, new_chip[3,  10]
       assert_equal      new_chip[3,  10, pos: vec(20, 30)], c[20.2, 30.3]
       assert_equal      new_chip[3,  10, pos: vec(20, 30)], c[20,   30]
-      assert_equal 1, count_all_chips[c]
+      assert_equal 1, count_all_chips(c)
     end
 
     chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
@@ -65,7 +64,7 @@ class TestMapChunk < Test::Unit::TestCase
       assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[30, 40]
       assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[25, 45]
       assert_equal      new_chip[4,  20, pos: vec(20, 30)], c[20, 40]
-      assert_equal 4, count_all_chips[c]
+      assert_equal 4, count_all_chips(c)
 
       assert_equal c[20, 30].object_id, c[30, 30].object_id
       assert_equal c[20, 30].object_id, c[30, 40].object_id
@@ -79,14 +78,12 @@ class TestMapChunk < Test::Unit::TestCase
   end
 
   def test_delete()
-    count_all_chips = -> chunk_ {chunk_.each_chip(all: true).to_a.size}
-
     [
       [0, 0], [20, 30], [90, 90]
     ].each do |xx, yy|
       chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
         assert_nothing_raised {c.delete xx, yy}
-        assert_equal 0, count_all_chips[c]
+        assert_equal 0, count_all_chips(c)
       end
     end
 
@@ -98,9 +95,9 @@ class TestMapChunk < Test::Unit::TestCase
     ].each do |xx, yy, count|
       chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
         c.put 20, 30, chip(0, 0, 10, 10)
-        assert_equal 1,     count_all_chips[c]
+        assert_equal 1,     count_all_chips(c)
         assert_nothing_raised {c.delete xx, yy}
-        assert_equal count, count_all_chips[c]
+        assert_equal count, count_all_chips(c)
       end
     end
 
@@ -113,9 +110,9 @@ class TestMapChunk < Test::Unit::TestCase
     ].each do |xx, yy, count|
       chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
         c.put 20, 30, chip(0, 0, 20, 20)
-        assert_equal 4,     count_all_chips[c]
+        assert_equal 4,     count_all_chips(c)
         assert_nothing_raised {c.delete xx, yy}
-        assert_equal count, count_all_chips[c]
+        assert_equal count, count_all_chips(c)
       end
     end
   end
@@ -218,6 +215,12 @@ class TestMapChunk < Test::Unit::TestCase
       },
       restored)
     assert_equal restored[30, 40].object_id, restored[30, 50].object_id
+  end
+
+  private
+
+  def count_all_chips(chunk)
+    chunk.each_chip(all: true).to_a.size
   end
 
 end# TestMapChunk
