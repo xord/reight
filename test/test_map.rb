@@ -34,34 +34,40 @@ class TestMap < Test::Unit::TestCase
 
     map(chip_size: 10, chunk_size: 30).tap do |m|
       m.put 10, 20,     new_chip[1, 10]
-      assert_equal      new_chip[1, 10, pos: vec(10, 20)], m[10, 20]
+      assert_equal      new_chip[1, 10, pos: vec(10, 20)],   m[10, 20]
+      assert_equal 1, count_all_chips(m)
+    end
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      m.put -10, -20,   new_chip[1, 10]
+      assert_equal      new_chip[1, 10, pos: vec(-10, -20)], m[-10, -20]
       assert_equal 1, count_all_chips(m)
     end
 
     map(chip_size: 10, chunk_size: 30).tap do |m|
       m.put 15, 25,     new_chip[2, 10]
-      assert_equal      new_chip[2, 10, pos: vec(10, 20)], m[15, 25]
-      assert_equal      new_chip[2, 10, pos: vec(10, 20)], m[10, 20]
+      assert_equal      new_chip[2, 10, pos: vec(10, 20)],   m[15, 25]
+      assert_equal      new_chip[2, 10, pos: vec(10, 20)],   m[10, 20]
       assert_equal 1, count_all_chips(m)
     end
 
     map(chip_size: 10, chunk_size: 30).tap do |m|
       m.put 10.1, 20.2, new_chip[3, 10]
-      assert_equal      new_chip[3, 10, pos: vec(10, 20)], m[10.1, 20.2]
-      assert_equal      new_chip[3, 10, pos: vec(10, 20)], m[10,   20]
+      assert_equal      new_chip[3, 10, pos: vec(10, 20)],   m[10.1, 20.2]
+      assert_equal      new_chip[3, 10, pos: vec(10, 20)],   m[10,   20]
       assert_equal 1, count_all_chips(m)
     end
 
     map(chip_size: 10, chunk_size: 30).tap do |m|
       m.put 15, 25,     new_chip[4, 20]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[15, 25]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[10, 20]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[25, 25]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[20, 20]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[15, 35]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[10, 30]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[25, 35]
-      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[20, 30]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[15, 25]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[10, 20]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[25, 25]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[20, 20]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[15, 35]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[10, 30]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[25, 35]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)],   m[20, 30]
       assert_equal 4, count_all_chips(m)
 
       assert_equal     m[10, 20].object_id, m[20, 20].object_id
@@ -190,7 +196,7 @@ class TestMap < Test::Unit::TestCase
   private
 
   def count_all_chips(map_, map_size = 90, chip_size: 10)
-    range = (0...map_size).step(chip_size).to_a
+    range = (-map_size...map_size).step(chip_size).to_a
     range.product(range)
       .map {|x, y| map_[x, y]}
       .count {_1 != nil}

@@ -104,11 +104,10 @@ class Reight::Map
   end
 
   def each_chip_pos(x, y, w, h, &block)
-    x, w           = x + w, -w if w < 0
-    y, h           = y + h, -h if h < 0
-    x1, y1         = align_chip_pos x, y
-    x2, y2         = align_chip_pos x + w + @chip_size - 1, y + h + @chip_size - 1
-    x1, y1, x2, y2 = [x1, y1, x2, y2].map {_1.clamp 0..}
+    x, w   = x + w, -w if w < 0
+    y, h   = y + h, -h if h < 0
+    x1, y1 = align_chip_pos x, y
+    x2, y2 = align_chip_pos x + w + @chip_size - 1, y + h + @chip_size - 1
     (y1...y2).step @chip_size do |yy|
       (x1...x2).step @chip_size do |xx|
         block.call xx, yy
