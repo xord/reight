@@ -268,7 +268,7 @@ class Reight::SpriteEditor::Canvas
     new            = correct_bounds x, y, w, h
     return if new == old
     @x, @y, @w, @h = new
-    @app.history.push [:frame, old, new]
+    @app.history.append [:frame, old, new]
   end
 
   def frame = [x, y, w, h]
@@ -284,7 +284,7 @@ class Reight::SpriteEditor::Canvas
     new        = correct_bounds x, y, w, h
     return if new == old
     @selection = new
-    @app.history.push [:select, old, new]
+    @app.history.append [:select, old, new]
   end
 
   def selection()
@@ -299,7 +299,7 @@ class Reight::SpriteEditor::Canvas
   def deselect()
     return if @selection == nil
     old, @selection = @selection, nil
-    @app.history.push [:deselect, old]
+    @app.history.append [:deselect, old]
   end
 
   def paint(&block)
@@ -351,7 +351,7 @@ class Reight::SpriteEditor::Canvas
   def end_editing()
     return unless @before
     save
-    @app.history.push [:capture, @before, capture_frame, x, y]
+    @app.history.append [:capture, @before, capture_frame, x, y]
   end
 
   def capture_frame(frame = self.frame)

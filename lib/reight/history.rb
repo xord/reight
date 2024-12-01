@@ -6,7 +6,7 @@ class Reight::History
     @group, @enabled = nil, true
   end
 
-  def push(*actions)
+  def append(*actions)
     return if actions.empty? || disabled?
     if @group
       @group.push(*actions)
@@ -17,14 +17,20 @@ class Reight::History
     end
   end
 
-  def group(&block)
-    @group = group = [] unless @group
-    block.call
+  def begin_grouping(&block)
+    raise "Grouping cannot be nested" if @group
+    @group = []
+    block.call if block
   ensure
-    if group
-      @group = nil
-      push(*group)
-    end
+    end_grouping if block
+  end
+
+  alias group begin_grouping
+
+  def end_grouping()
+    raise "'begin_grouping' is missing" unless @group
+    actions, @group = @group, nil
+    append(*actions) unless actions.empty?
   end
 
   def undo(&block)
