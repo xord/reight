@@ -16,6 +16,21 @@ class Reight::Map
     @chunks                 = {}
   end
 
+  def put(x, y, chip)
+    return unless chip
+    each_chunk x, y, chip.w, chip.h, create: true do |chunk|
+      chunk.put x, y, chip
+    end
+  end
+
+  def delete(x, y)
+    chip           = self[x, y] or return
+    cx, cy, cw, ch = chip.then {[_1.pos.x, _1.pos.y, _1.w, _1.h]}
+    each_chunk cx, cy, cw, ch, create: false do |chunk|
+      each_chip_pos(cx, cy, cw, ch) {|xx, yy| chunk.delete xx, yy}
+    end
+  end
+
   def each_chip(x = nil, y = nil, w = nil, h = nil, &block)
     return enum_for :each_chip, x, y, w, h unless block
     enum =
@@ -34,21 +49,6 @@ class Reight::Map
       chip_size: @chip_size, chunk_size: @chunk_size,
       chunks: @chunks.values.map(&:to_hash)
     }
-  end
-
-  def []=(x, y, chip)
-    if current_chip = self[x, y]
-      cx, cy, cw, ch = current_chip.then {[_1.pos.x, _1.pos.y, _1.w, _1.h]}
-      each_chunk cx, cy, cw, ch, create: false do |chunk|
-        each_chip_pos(cx, cy, cw, ch) {|xx, yy| chunk[xx, yy] = nil}
-      end
-    end
-    if chip
-      each_chunk x, y, chip.w, chip.h, create: true do |chunk|
-        each_chip_pos(x, y, chip.w, chip.h) {|xx, yy| chunk[xx, yy] = nil}
-        chunk[x, y] = chip
-      end
-    end
   end
 
   def [](x, y)
@@ -81,8 +81,8 @@ class Reight::Map
     y, h   = y + h, -h if h < 0
     x1, x2 = x, x + w
     y1, y2 = y, y + h
-    x2    -= 1 if x2 >= x1 + 1
-    y2    -= 1 if y2 >= y1 + 1
+    x2    -= 1 if x2 > x1
+    y2    -= 1 if y2 > y1
     x1, y1 = align_chunk_pos x1, y1
     x2, y2 = align_chunk_pos x2, y2
     (y1..y2).step @chunk_size do |yy|
@@ -145,12 +145,12 @@ class Reight::Map::Chunk
   attr_reader :x, :y, :w, :h
 
   def put(x, y, chip)
+    x, y = align_chip_pos x, y
     raise "Invalid chip size" if
       chip.w % @chip_size != 0 || chip.h % @chip_size != 0
     raise "Conflicts with other chips" if
       each_chip_pos(x, y, chip.w, chip.h).any? {|xx, yy| self[xx, yy]}
 
-    x, y     = align_chip_pos x, y
     new_chip = nil
     get_chip = -> {new_chip ||= chip.with pos: create_vector(x, y)}
     each_chip_pos x, y, chip.w, chip.h do |xx, yy|

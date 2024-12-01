@@ -22,11 +22,104 @@ class TestMap < Test::Unit::TestCase
     assert_raise(ArgumentError) {map chip_size: 2,   chunk_size: 6.6}
   end
 
+  def test_put()
+    img      = image
+    new_chip = -> id, size, pos: nil {
+      chip 0, 0, size, size, id: id, image: img, pos: pos
+    }
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      assert_equal 0, count_all_chips(m)
+    end
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      m.put 10, 20,     new_chip[1, 10]
+      assert_equal      new_chip[1, 10, pos: vec(10, 20)], m[10, 20]
+      assert_equal 1, count_all_chips(m)
+    end
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      m.put 15, 25,     new_chip[2, 10]
+      assert_equal      new_chip[2, 10, pos: vec(10, 20)], m[15, 25]
+      assert_equal      new_chip[2, 10, pos: vec(10, 20)], m[10, 20]
+      assert_equal 1, count_all_chips(m)
+    end
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      m.put 10.1, 20.2, new_chip[3, 10]
+      assert_equal      new_chip[3, 10, pos: vec(10, 20)], m[10.1, 20.2]
+      assert_equal      new_chip[3, 10, pos: vec(10, 20)], m[10,   20]
+      assert_equal 1, count_all_chips(m)
+    end
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      m.put 15, 25,     new_chip[4, 20]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[15, 25]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[10, 20]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[25, 25]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[20, 20]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[15, 35]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[10, 30]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[25, 35]
+      assert_equal      new_chip[4, 20, pos: vec(10, 20)], m[20, 30]
+      assert_equal 4, count_all_chips(m)
+
+      assert_equal     m[10, 20].object_id, m[20, 20].object_id
+      assert_equal     m[10, 30].object_id, m[20, 30].object_id
+      assert_not_equal m[10, 20].object_id, m[10, 30].object_id
+    end
+
+    map(chip_size: 10, chunk_size: 30).tap do |m|
+      assert_nothing_raised {m.put 10, 20, chip(0, 0, 10, 10)}
+      assert_raise          {m.put 10, 20, chip(0, 0, 10, 10)}
+    end
+  end
+
+  def test_delete()
+    [
+      [0, 0], [10, 20], [90, 90]
+    ].each do |xx, yy|
+      map(chip_size: 10, chunk_size: 30).tap do |m|
+        assert_nothing_raised {m.delete xx, yy}
+        assert_equal 0, count_all_chips(m)
+      end
+    end
+
+    [
+      [10, 20, 0], [11, 21, 0], [15, 25, 0], [19, 29, 0],
+      [ 9, 19, 1], [20, 30, 1],
+      [19.999, 29.999, 0],
+      [ 9.999, 19.999, 1]
+    ].each do |xx, yy, count|
+      map(chip_size: 10, chunk_size: 30).tap do |m|
+        m.put 10, 20, chip(0, 0, 10, 10)
+        assert_equal 1,     count_all_chips(m)
+        assert_nothing_raised {m.delete xx, yy}
+        assert_equal count, count_all_chips(m)
+      end
+    end
+
+    [
+      [10, 20, 0], [20, 20, 0], [10, 30, 0], [20, 30, 0],
+      [29, 30, 0], [20, 39, 0], [29, 39, 0],
+      [ 9, 19, 4], [30, 40, 4],
+      [29.999, 39.999, 0], [29.999, 30, 0], [20, 39.999, 0],
+      [ 9.999, 19.999, 4],
+    ].each do |xx, yy, count|
+      map(chip_size: 10, chunk_size: 30).tap do |m|
+        m.put 10, 20, chip(0, 0, 20, 20)
+        assert_equal 4,     count_all_chips(m)
+        assert_nothing_raised {m.delete xx, yy}
+        assert_equal count, count_all_chips(m)
+      end
+    end
+  end
+
   def test_each_chip()
     m           = map chip_size: 10, chunk_size: 30
-    m[10,  20]  = chip 0, 0, 10, 10, id: 1
-    m[20,  30]  = chip 0, 0, 20, 20, id: 2
-    m[100, 200] = chip 0, 0, 10, 10, id: 3
+    m.put 10,  20,  chip(0, 0, 10, 10, id: 1)
+    m.put 20,  30,  chip(0, 0, 20, 20, id: 2)
+    m.put 100, 200, chip(0, 0, 10, 10, id: 3)
 
     assert_equal(
       [[1, 10, 20]],
@@ -45,7 +138,7 @@ class TestMap < Test::Unit::TestCase
         chip_size: 10, chunk_size: 30,
         chunks: [{x: 30, y: 30, w: 30, h: 30, chip_size: 10, chips: [nil,nil,nil, [1, 30, 40]]}]
       },
-      map(chip_size: 10, chunk_size: 30).tap {_1[30, 40] = chip 0, 0, 10, 10, id: 1}.to_hash)
+      map(chip_size: 10, chunk_size: 30).tap {_1.put 30, 40, chip(0, 0, 10, 10, id: 1)}.to_hash)
   end
 
   def test_compare()
@@ -56,63 +149,10 @@ class TestMap < Test::Unit::TestCase
     assert_equal m1, m2
 
     img        = image
-    m1[10, 20] = chip 0, 0, 10, 10, id: 1, image: img; assert_not_equal m1, m2
-    m2[10, 20] = chip 0, 0, 10, 10, id: 1, image: img; assert_equal     m1, m2
-    m2[10, 20] = chip 0, 0, 10, 10, id: 2, image: img; assert_not_equal m1, m2
-  end
-
-  def test_index_accessor()
-    get_id_and_pos = -> map_ {map_&.then {[_1.id, _1.pos.x, _1.pos.y]}}
-
-    m = map chip_size: 10, chunk_size: 30
-    assert_equal 0, count_all_chips(m)
-
-    img       = image
-    m[10, 20] =  chip 0, 0, 10, 10, id: 1, image: img
-    assert_equal chip(0, 0, 10, 10, id: 1, image: img, pos: vec(10, 20)), m[10, 20]
-    assert_equal 1, count_all_chips(m)
-
-    m[10, 20] =  chip 0, 0, 20, 10, id: 2, image: img
-    assert_equal chip(0, 0, 20, 10, id: 2, image: img, pos: vec(10, 20)), m[10, 20]
-    assert_equal chip(0, 0, 20, 10, id: 2, image: img, pos: vec(10, 20)), m[20, 20]
-    assert_equal 2, count_all_chips(m)
-
-    m[20, 20] =  chip 0, 0, 10, 10, id: 3, image: img
-    assert_nil                                                            m[10, 20]
-    assert_equal chip(0, 0, 10, 10, id: 3, image: img, pos: vec(20, 20)), m[20, 20]
-    assert_equal 1, count_all_chips(m)
-
-    m[20, 20] =  chip 0, 0, 10, 20, id: 4, image: img
-    assert_equal chip(0, 0, 10, 20, id: 4, image: img, pos: vec(20, 20)), m[20, 20]
-    assert_equal chip(0, 0, 10, 20, id: 4, image: img, pos: vec(20, 20)), m[20, 30]
-    assert_equal 2, count_all_chips(m)
-
-    m[20, 30] = chip 0, 0, 10, 10, id: 5, image: img
-    assert_nil                                                            m[20, 20]
-    assert_equal chip(0, 0, 10, 10, id: 5, image: img, pos: vec(20, 30)), m[20, 30]
-    assert_equal 1, count_all_chips(m)
-  end
-
-  def test_index_accessor_assign_nil()
-    m         = map chip_size: 10, chunk_size: 30
-    m[10, 20] = chip 0, 0, 10, 10; assert_equal 1, count_all_chips(m)
-    m[10, 20] = nil;               assert_equal 0, count_all_chips(m)
-
-    m         = map chip_size: 10, chunk_size: 30
-    m[20, 20] = chip 0, 0, 20, 20; assert_equal 4, count_all_chips(m)
-    m[20, 20] = nil;               assert_equal 0, count_all_chips(m)
-
-    m         = map chip_size: 10, chunk_size: 30
-    m[20, 20] = chip 0, 0, 20, 20; assert_equal 4, count_all_chips(m)
-    m[30, 20] = nil;               assert_equal 0, count_all_chips(m)
-
-    m         = map chip_size: 10, chunk_size: 30
-    m[20, 20] = chip 0, 0, 20, 20; assert_equal 4, count_all_chips(m)
-    m[20, 30] = nil;               assert_equal 0, count_all_chips(m)
-
-    m         = map chip_size: 10, chunk_size: 30
-    m[20, 20] = chip 0, 0, 20, 20; assert_equal 4, count_all_chips(m)
-    m[30, 30] = nil;               assert_equal 0, count_all_chips(m)
+    m1.put    10, 20, chip(0, 0, 10, 10, id: 1, image: img); assert_not_equal m1, m2
+    m2.put    10, 20, chip(0, 0, 10, 10, id: 1, image: img); assert_equal     m1, m2
+    m2.delete 10, 20
+    m2.put    10, 20, chip(0, 0, 10, 10, id: 2, image: img); assert_not_equal m1, m2
   end
 
   def test_restore()
@@ -138,8 +178,8 @@ class TestMap < Test::Unit::TestCase
 
     assert_equal(
       map(chip_size: 10, chunk_size: 30).tap {
-        _1[10, 20] = chip 0, 0, 10, 10, id: 1, image: img
-        _1[20, 10] = chip 0, 0, 20, 20, id: 2, image: img
+        _1.put 10, 20, chip(0, 0, 10, 10, id: 1, image: img)
+        _1.put 20, 10, chip(0, 0, 20, 20, id: 2, image: img)
       },
       restored)
     assert_equal     restored[20, 10].object_id, restored[20, 20].object_id
@@ -149,8 +189,8 @@ class TestMap < Test::Unit::TestCase
 
   private
 
-  def count_all_chips(map_)
-    range = (0...90).step(10).to_a
+  def count_all_chips(map_, map_size = 90, chip_size: 10)
+    range = (0...map_size).step(chip_size).to_a
     range.product(range)
       .map {|x, y| map_[x, y]}
       .count {_1 != nil}
