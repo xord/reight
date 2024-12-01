@@ -21,12 +21,7 @@ class Reight::Project
   def chips_path = "#{project_dir}/chips.json"
 
   def chips()
-    @chips ||=
-      if File.file? chips_path
-        Reight::ChipList.restore JSON.parse(File.read chips_path), chips_image
-      else
-        Reight::ChipList.new chips_image
-      end
+    @chips ||= load_chips
   end
 
   def chips_image_width  = 1024
@@ -52,7 +47,7 @@ class Reight::Project
   def maps_path = "#{project_dir}/maps.json"
 
   def maps()
-    @maps ||= [Reight::Map.new]
+    @maps ||= load_maps
   end
 
   def palette_colors = %w[
@@ -60,14 +55,42 @@ class Reight::Project
     #FF004D #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
   ]
 
+  def save()
+    File.write project_path, @settings.to_json
+    save_chips
+    save_maps
+  end
+
   private
 
   def load()
-    @settings = JSON.parse File.read project_path
+    @settings = JSON.parse File.read(project_path), symbolize_names: true
   end
 
-  def save()
-    File.write project_path, @settings.to_json
+  def save_chips()
+    File.write chips_path, chips.to_hash.to_json
+  end
+
+  def load_chips()
+    if File.file? chips_path
+      json = JSON.parse File.read(chips_path), symbolize_names: true
+      Reight::ChipList.restore json, chips_image
+    else
+      Reight::ChipList.new chips_image
+    end
+  end
+
+  def save_maps()
+    File.write maps_path, maps.map {_1.to_hash}.to_json
+  end
+
+  def load_maps()
+    if File.file? maps_path
+      json = JSON.parse File.read(maps_path), symbolize_names: true
+      json.map {Reight::Map.restore _1, chips}
+    else
+      [Reight::Map.new]
+    end
   end
 
 end# Project
