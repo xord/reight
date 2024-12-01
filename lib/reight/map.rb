@@ -164,6 +164,7 @@ class Reight::Map::Chunk
       index         = pos2index xx, yy
       @chips[index] = nil if @chips[index]&.id == chip.id
     end
+    delete_last_nils
   end
 
   def each_chip(all: false, &block)
@@ -227,11 +228,6 @@ class Reight::Map::Chunk
 
   private
 
-  def align_chip_pos(x, y)
-    cs = @chip_size
-    [x.to_i / cs * cs, y.to_i / cs * cs]
-  end
-
   def pos2index(x, y) =
     (y.to_i - @y) / @chip_size * @ncolumn + (x.to_i - @x) / @chip_size
 
@@ -239,5 +235,15 @@ class Reight::Map::Chunk
     @x + (index % @ncolumn) * @chip_size,
     @y + (index / @ncolumn) * @chip_size
   ]
+
+  def align_chip_pos(x, y)
+    s = @chip_size
+    [x.to_i / s * s, y.to_i / s * s]
+  end
+
+  def delete_last_nils()
+    last   = @chips.rindex {_1 != nil}
+    @chips = @chips[..last] if last
+  end
 
 end# Chunk

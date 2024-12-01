@@ -120,6 +120,17 @@ class TestMapChunk < Test::Unit::TestCase
     end
   end
 
+  def test_delete_last_nils()
+    chunk(0, 0, 30, 30, chip_size: 10).tap do |c|
+      c.put 10, 10, chip(0, 0, 10, 10)
+      c.put 10, 20, chip(0, 0, 10, 10)
+      assert_equal 8, c.to_hash[:chips].size
+
+      c.delete 10, 20
+      assert_equal 5, c.to_hash[:chips].size
+    end
+  end
+
   def test_each_chip()
     c         = chunk 10, 20, 30, 40, chip_size: 10
     c.put 10, 20, chip(0, 0, 10, 10, id: 1)
