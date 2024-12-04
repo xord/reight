@@ -1,7 +1,7 @@
 require 'reight'
 using Reight
 
-def r8 = $r8
+def r8 = $r8__
 
 Reight::CONTEXT__.tap do |c|
   c.setup          {Reight::R8.new.setup}

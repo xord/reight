@@ -4,8 +4,8 @@ using Reight
 class Reight::R8
 
   def initialize()
-    raise if $r8
-    $r8 = self
+    raise if $r8__
+    $r8__ = self
 
     navigator.activate
   end
