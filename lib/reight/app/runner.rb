@@ -6,7 +6,7 @@ class Reight::Runner < Reight::App
   TEMPORARY_HASH = {}
 
   def activate()
-    run
+    run force: true
     @context&.activated
     super
   end
@@ -14,30 +14,81 @@ class Reight::Runner < Reight::App
   def deactivated()
     super
     @context&.call_deactivated__
+    pause
   end
 
-  def draw()           = @context&.call_draw__
-  def key_pressed()    = @context&.key_pressed
-  def key_released()   = @context&.key_released
-  def key_typed()      = @context&.key_typed
-  def mouse_pressed()  = @context&.mouse_pressed
-  def mouse_released() = @context&.mouse_released
-  def mouse_moved()    = @context&.mouse_moved
-  def mouse_dragged()  = @context&.mouse_dragged
-  def mouse_clicked()  = @context&.mouse_clicked
-  def double_clicked() = @context&.double_clicked
-  def mouse_wheel()    = @context&.mouse_wheel
-  def touch_started()  = @context&.touch_started
-  def touch_ended()    = @context&.touch_ended
-  def touch_moved()    = @context&.touch_moved
-  def window_moved()   = @context&.window_moved
-  def window_resized() = @context&.window_resized
+  def draw()
+    @context&.call_draw__ unless paused?
+  end
+
+  def key_pressed()
+    @context&.key_pressed unless paused?
+  end
+
+  def key_released()
+    @context&.key_released unless paused?
+  end
+
+  def key_typed()
+    @context&.key_typed unless paused?
+  end
+
+  def mouse_pressed()
+    @context&.mouse_pressed unless paused?
+  end
+
+  def mouse_released()
+    @context&.mouse_released unless paused?
+  end
+
+  def mouse_moved()
+    @context&.mouse_moved unless paused?
+  end
+
+  def mouse_dragged()
+    @context&.mouse_dragged unless paused?
+  end
+
+  def mouse_clicked()
+    @context&.mouse_clicked unless paused?
+  end
+
+  def double_clicked()
+    @context&.double_clicked unless paused?
+  end
+
+  def mouse_wheel()
+    @context&.mouse_wheel unless paused?
+  end
+
+  def touch_started()
+    @context&.touch_started unless paused?
+  end
+
+  def touch_ended()
+    @context&.touch_ended unless paused?
+  end
+
+  def touch_moved()
+    @context&.touch_moved unless paused?
+  end
+
+  def window_moved()
+    @context&.window_moved
+  end
+
+  def window_resized()
+    @context&.window_resized
+  end
 
   private
 
-  def running? = @context
+  def running? = @context && !@paused
 
-  def run()
+  def paused?  = @context && @paused
+
+  def run(force: false)
+    return pause false if paused? && !force
     cleanup
     backup_global_vars
     @context = create_context.new
@@ -54,8 +105,13 @@ class Reight::Runner < Reight::App
     TEMPORARY_HASH.delete :params
   end
 
+  def pause(state = true)
+    @paused = state
+  end
+
   def cleanup()
     @context = nil
+    @paused  = false
     restore_global_vars
     GC.enable
     GC.start
