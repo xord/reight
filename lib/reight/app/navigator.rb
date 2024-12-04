@@ -17,6 +17,14 @@ class Reight::Navigator < Reight::App
     sprite *sprites
   end
 
+  def key_pressed()
+    case key_code
+    when F1 then        runner_button.click
+    when F2 then sprite_editor_button.click
+    when F3 then    map_editor_button.click
+    end
+  end
+
   def window_resized()
     margin = (NAVIGATOR_HEIGHT - BUTTON_SIZE) / 2
     app_buttons.map {_1.sprite}.each.with_index do |sp, index|
@@ -34,14 +42,6 @@ class Reight::Navigator < Reight::App
       sp.y     = history_buttons.last.sprite.y
       sp.right = width - margin
       sp.h     = NAVIGATOR_HEIGHT
-    end
-  end
-
-  def key_pressed()
-    case key_code
-    when F1 then        runner_button.click
-    when F2 then sprite_editor_button.click
-    when F3 then    map_editor_button.click
     end
   end
 

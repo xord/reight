@@ -28,6 +28,31 @@ class Reight::SpriteEditor < Reight::App
     sprite *sprites
   end
 
+  def key_pressed()
+    pressing_keys.add key_code
+    shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
+    ch               = chips
+    case key_code
+    when LEFT  then ch.set_frame ch.x - ch.size, ch.y, ch.size, ch.size
+    when RIGHT then ch.set_frame ch.x + ch.size, ch.y, ch.size, ch.size
+    when UP    then ch.set_frame ch.x, ch.y - ch.size, ch.size, ch.size
+    when DOWN  then ch.set_frame ch.x, ch.y + ch.size, ch.size, ch.size
+    when :c    then copy  if ctrl || cmd
+    when :x    then cut   if ctrl || cmd
+    when :v    then paste if ctrl || cmd
+    when :z    then shift ? self.redo : undo if ctrl || cmd
+    when :s    then select.click
+    when :b    then  brush.click
+    when :f    then   fill.click
+    when :r    then (shift ? fill_rect    : stroke_rect   ).click
+    when :e    then (shift ? fill_ellipse : stroke_ellipse).click
+    end
+  end
+
+  def key_released()
+    pressing_keys.delete key_code
+  end
+
   def window_resized()
     colors.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
@@ -68,63 +93,6 @@ class Reight::SpriteEditor < Reight::App
     end
   end
 
-  def key_pressed()
-    pressing_keys.add key_code
-    shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
-    ch               = chips
-    case key_code
-    when LEFT  then ch.set_frame ch.x - ch.size, ch.y, ch.size, ch.size
-    when RIGHT then ch.set_frame ch.x + ch.size, ch.y, ch.size, ch.size
-    when UP    then ch.set_frame ch.x, ch.y - ch.size, ch.size, ch.size
-    when DOWN  then ch.set_frame ch.x, ch.y + ch.size, ch.size, ch.size
-    when :c    then copy  if ctrl || cmd
-    when :x    then cut   if ctrl || cmd
-    when :v    then paste if ctrl || cmd
-    when :z    then shift ? self.redo : undo if ctrl || cmd
-    when :s    then select.click
-    when :b    then  brush.click
-    when :f    then   fill.click
-    when :r    then (shift ? fill_rect    : stroke_rect   ).click
-    when :e    then (shift ? fill_ellipse : stroke_ellipse).click
-    end
-  end
-
-  def key_released()
-    pressing_keys.delete key_code
-  end
-
-  def copy(flash: true)
-    sel   = canvas.selection || canvas.frame
-    image = canvas.capture_frame(sel) || return
-    x, y, = sel
-    @copy = [image, x - canvas.x, y - canvas.y]
-    self.flash 'Copy!' if flash
-  end
-
-  def cut(flash: true)
-    copy flash: false
-    image, x, y = @copy || return
-    canvas.begin_editing do
-      clear_canvas x, y, image.width, image.height
-    end
-    self.flash 'Cut!' if flash
-  end
-
-  def paste(flash: true)
-    image, x, y = @copy || return
-    w, h        = image.width, image.height
-    history.group do
-      canvas.deselect
-      canvas.begin_editing do
-        canvas.paint do |g|
-          g.copy image, 0, 0, w, h, x, y, w, h
-        end
-      end
-      canvas.select canvas.x + x, canvas.y + y, w, h
-    end
-    self.flash 'Paste!' if flash
-  end
-
   def undo(flash: true)
     history.undo do |action|
       case action
@@ -159,14 +127,6 @@ class Reight::SpriteEditor < Reight::App
   end
 
   private
-
-  def pressing_keys()
-    @pressing_keys ||= Set.new
-  end
-
-  def pressing?(key)
-    pressing_keys.include? key
-  end
 
   def sprites()
     [canvas, chips, *chip_sizes, *colors, *edit_buttons, *tools, *brush_sizes]
@@ -229,6 +189,46 @@ class Reight::SpriteEditor < Reight::App
         .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
       Color.new(rgb) {canvas.color = rgb}
     }
+  end
+
+  def pressing_keys()
+    @pressing_keys ||= Set.new
+  end
+
+  def pressing?(key)
+    pressing_keys.include? key
+  end
+
+  def copy(flash: true)
+    sel   = canvas.selection || canvas.frame
+    image = canvas.capture_frame(sel) || return
+    x, y, = sel
+    @copy = [image, x - canvas.x, y - canvas.y]
+    self.flash 'Copy!' if flash
+  end
+
+  def cut(flash: true)
+    copy flash: false
+    image, x, y = @copy || return
+    canvas.begin_editing do
+      clear_canvas x, y, image.width, image.height
+    end
+    self.flash 'Cut!' if flash
+  end
+
+  def paste(flash: true)
+    image, x, y = @copy || return
+    w, h        = image.width, image.height
+    history.group do
+      canvas.deselect
+      canvas.begin_editing do
+        canvas.paint do |g|
+          g.copy image, 0, 0, w, h, x, y, w, h
+        end
+      end
+      canvas.select canvas.x + x, canvas.y + y, w, h
+    end
+    self.flash 'Paste!' if flash
   end
 
   def update_active_color()
