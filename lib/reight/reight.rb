@@ -45,7 +45,9 @@ class Reight::R8
   end
 
   def setup()
-    size 256, 224
+    size = [256, 224]
+    createCanvas(*size)
+    window_resize(*size.map {_1 * 2})
     text_font r8.project.font, r8.project.font_size
   end
 
