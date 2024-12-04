@@ -58,14 +58,14 @@ class Reight::R8
     apps.each {_1.window_resized}
   end
 
-  def key_pressed(key)
-    navigator.key_pressed key
-    current.key_pressed key
+  def key_pressed()
+    navigator.key_pressed
+    current.key_pressed
   end
 
-  def key_released(key)
-    navigator.key_released key
-    current.key_released key
+  def key_released()
+    navigator.key_released
+    current.key_released
   end
 
   private

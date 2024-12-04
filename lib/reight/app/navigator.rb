@@ -37,8 +37,8 @@ class Reight::Navigator < Reight::App
     end
   end
 
-  def key_pressed(key)
-    case key
+  def key_pressed()
+    case key_code
     when F1 then sprite_editor_button.click
     when F2 then    map_editor_button.click
     end

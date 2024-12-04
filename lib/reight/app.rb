@@ -52,10 +52,10 @@ class Reight::App
   def window_resized()
   end
 
-  def key_pressed(key)
+  def key_pressed()
   end
 
-  def key_released(key)
+  def key_released()
   end
 
   def undo(flash: true)

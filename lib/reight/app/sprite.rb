@@ -68,11 +68,11 @@ class Reight::SpriteEditor < Reight::App
     end
   end
 
-  def key_pressed(key)
-    pressing_keys.add key
+  def key_pressed()
+    pressing_keys.add key_code
     shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
     ch               = chips
-    case key
+    case key_code
     when LEFT  then ch.set_frame ch.x - ch.size, ch.y, ch.size, ch.size
     when RIGHT then ch.set_frame ch.x + ch.size, ch.y, ch.size, ch.size
     when UP    then ch.set_frame ch.x, ch.y - ch.size, ch.size, ch.size
@@ -89,8 +89,8 @@ class Reight::SpriteEditor < Reight::App
     end
   end
 
-  def key_released(key)
-    pressing_keys.delete key
+  def key_released()
+    pressing_keys.delete key_code
   end
 
   def copy(flash: true)
