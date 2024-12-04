@@ -148,7 +148,7 @@ class Reight::MapEditor::Canvas
     clip sp.x, sp.y, sp.w, sp.h
 
     fill 0, 0, 0
-    noStroke
+    no_stroke
     rect 0, 0, sp.w, sp.h
 
     map.each_chip(0, 0, sp.w, sp.h, clip_by_chunk: true).each do |chip|
@@ -157,9 +157,9 @@ class Reight::MapEditor::Canvas
     end
 
     if @cursor
-      noFill
+      no_fill
       stroke 255, 255, 255
-      strokeWeight 1
+      stroke_weight 1
       rect *@cursor
     end
   end
