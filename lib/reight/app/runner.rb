@@ -91,7 +91,7 @@ class Reight::Runner < Reight::App
     return pause false if paused? && !force
     cleanup
     backup_global_vars
-    @context = create_context.new
+    @context = create_context
     TEMPORARY_HASH[:params] = {
       context: @context,
       codes:   project.code_paths.zip(project.codes).to_h
@@ -118,7 +118,9 @@ class Reight::Runner < Reight::App
   end
 
   def create_context()
-    c = Class.new do
+    klass = Class.new do
+      def project = @project__
+
       def call_deactivated__()
         deactivated
         @background_cleared__ = false
@@ -144,7 +146,7 @@ class Reight::Runner < Reight::App
       touch_started touch_ended touch_moved
       window_moved window_resized
     ].each do |name|
-      c.class_eval <<~END
+      klass.class_eval <<~END
         def #{name}(&block)
           if block
             @#{name}_block__ = block
@@ -154,9 +156,11 @@ class Reight::Runner < Reight::App
         end
       END
       camelCase = name.to_s.gsub(/_([a-z])/) {$1.upcase}
-      c.alias_method camelCase, name if camelCase != name
+      klass.alias_method camelCase, name if camelCase != name
     end
-    c
+    klass.new.tap do |context|
+      context.instance_variable_set :@project__, project
+    end
   end
 
   def backup_global_vars()
