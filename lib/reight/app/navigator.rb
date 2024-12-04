@@ -17,7 +17,7 @@ class Reight::Navigator < Reight::App
     sprite *sprites
   end
 
-  def resized()
+  def window_resized()
     margin = (NAVIGATOR_HEIGHT - BUTTON_SIZE) / 2
     app_buttons.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE

@@ -53,9 +53,9 @@ class Reight::R8
     navigator.draw
   end
 
-  def resized()
-    navigator.resized
-    apps.each {_1.resized}
+  def window_resized()
+    navigator.window_resized
+    apps.each {_1.window_resized}
   end
 
   def key_pressed(key)

@@ -49,7 +49,7 @@ class Reight::App
   def draw()
   end
 
-  def resized()
+  def window_resized()
   end
 
   def key_pressed(key)

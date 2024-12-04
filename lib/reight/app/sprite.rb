@@ -28,7 +28,7 @@ class Reight::SpriteEditor < Reight::App
     sprite *sprites
   end
 
-  def resized()
+  def window_resized()
     colors.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
       sp.x = SPACE + sp.w * (index % 8)
