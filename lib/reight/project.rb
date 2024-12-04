@@ -18,6 +18,12 @@ class Reight::Project
 
   def font_size = 8
 
+  def code_paths = ['game.rb']
+
+  def codes()
+    code_paths.map {File.read _1 rescue nil}
+  end
+
   def chips_path = "#{project_dir}/chips.json"
 
   def chips()

@@ -46,23 +46,25 @@ class Reight::App
     sprites.each {|sp| remove_sprite sp}
   end
 
-  def draw()
-  end
+  def draw()           = nil
+  def key_pressed()    = nil
+  def key_released()   = nil
+  def key_typed()      = nil
+  def mouse_pressed()  = nil
+  def mouse_released() = nil
+  def mouse_moved()    = nil
+  def mouse_dragged()  = nil
+  def mouse_clicked()  = nil
+  def double_clicked() = nil
+  def mouse_wheel()    = nil
+  def touch_started()  = nil
+  def touch_ended()    = nil
+  def touch_moved()    = nil
+  def window_moved()   = nil
+  def window_resized() = nil
 
-  def window_resized()
-  end
-
-  def key_pressed()
-  end
-
-  def key_released()
-  end
-
-  def undo(flash: true)
-  end
-
-  def redo(flash: true)
-  end
+  def undo(flash: true) = nil
+  def redo(flash: true) = nil
 
   def inspect()
     "#<#{self.class.name}:#{object_id}>"

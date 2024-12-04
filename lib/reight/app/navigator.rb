@@ -39,8 +39,9 @@ class Reight::Navigator < Reight::App
 
   def key_pressed()
     case key_code
-    when F1 then sprite_editor_button.click
-    when F2 then    map_editor_button.click
+    when F1 then        runner_button.click
+    when F2 then sprite_editor_button.click
+    when F3 then    map_editor_button.click
     end
   end
 
@@ -51,7 +52,13 @@ class Reight::Navigator < Reight::App
   end
 
   def app_buttons()
-    @app_buttons ||= [sprite_editor_button, map_editor_button]
+    @app_buttons ||= [runner_button, sprite_editor_button, map_editor_button]
+  end
+
+  def runner_button()
+    @runner_button ||= Reight::Button.new(name: 'Run', label: 'R') do
+      switch_app Reight::Runner
+    end
   end
 
   def sprite_editor_button()
