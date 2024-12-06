@@ -213,9 +213,9 @@ class Reight::Runner < Reight::App
   end
 
   def backup_global_vars()
-    @global_vars = global_variables.each.with_object({}) {|name, hash|
-      hash[name] = eval name.to_s
-    }.freeze
+    @global_vars = global_variables
+      .each.with_object({}) {|name, hash| hash[name] = eval name.to_s}
+      .freeze
   end
 
   def restore_global_vars()
@@ -233,8 +233,7 @@ class Reight::Runner < Reight::App
 
   def global_var_set(name, value)
     TEMPORARY_HASH[:value] = value
-    eval "#{name.to_s} = ::Reight::Runner::TEMPORARY_HASH[:value]"
-  #rescue StandardError, SyntaxError
+    eval "#{name} = ::Reight::Runner::TEMPORARY_HASH[:value]"
   ensure
     TEMPORARY_HASH.delete :value
   end
