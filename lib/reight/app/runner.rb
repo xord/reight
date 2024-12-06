@@ -96,17 +96,8 @@ class Reight::Runner < Reight::App
     cleanup
     backup_global_vars
     @context = create_context
-    TEMPORARY_HASH[:params] = {
-      context: @context,
-      codes:   project.code_paths.zip(project.codes).to_h
-    }
-    @context.class.class_eval <<~END
-      ::Reight::Runner::TEMPORARY_HASH[:params] => {context:, codes:}
-      codes
-        .select {|_,    code| code}
-        .each   {|path, code| context.instance_eval code, path}
-    END
-    TEMPORARY_HASH.delete :params
+    begin_wrapping_user_classes @context
+    eval_user_script @context, project.code_paths.zip(project.codes).to_h
   end
 
   def pause(state = true)
@@ -116,6 +107,7 @@ class Reight::Runner < Reight::App
   def cleanup()
     @context = nil
     @paused  = false
+    end_wrapping_user_classes
     restore_global_vars
     GC.enable
     GC.start
@@ -165,6 +157,59 @@ class Reight::Runner < Reight::App
     klass.new.tap do |context|
       context.instance_variable_set :@project__, project
     end
+  end
+
+  def begin_wrapping_user_classes(context)
+    prefix       = get_user_class_prefix context
+    wrapper      = create_user_class_wrapper context
+    @trace_point = TracePoint.trace :class do |tp|
+      tp.self.include wrapper if tp.self.name&.start_with? prefix
+    end
+  end
+
+  def end_wrapping_user_classes()
+    @trace_point&.disable
+    @trace_point = nil
+  end
+
+  def get_user_class_prefix(context)
+    prefix = nil
+    context.instance_eval <<~EVAL
+      class Reight_Dummy__; end
+      prefix = Reight_Dummy__.name[/^#<Class:0x[0-9a-zA-Z]+>::/]
+      singleton_class.__send__ :remove_const, :Reight_Dummy__
+    EVAL
+    prefix
+  end
+
+  def create_user_class_wrapper(context)
+    Module.new.tap do |wrapper|
+      wrap_methods context, wrapper
+    end
+  end
+
+  def wrap_methods(context, klass)
+    klass.define_method :respond_to_missing? do |name, include_private = false|
+      context.respond_to?(name, false) || super(name, include_private)
+    end
+    klass.define_method :method_missing do |name, *args, **kwargs, &block|
+      if context.respond_to? name
+        klass.define_method(name) {|*a, **k, &b| context.public_send name, *a, **k, &b}
+        context.public_send name, *args, **kwargs, &block
+      else
+        super name, *args, **kwargs, &block
+      end
+    end
+  end
+
+  def eval_user_script(context, codes)
+    TEMPORARY_HASH[:params] = {context: context, codes: codes}
+    context.class.class_eval <<~END
+      ::Reight::Runner::TEMPORARY_HASH[:params] => {context:, codes:}
+      codes.each {|path, code| context.instance_eval code, path if code}
+    END
+  ensure
+    TEMPORARY_HASH.delete :params
   end
 
   def backup_global_vars()
