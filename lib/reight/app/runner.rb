@@ -18,6 +18,7 @@ class Reight::Runner < Reight::App
   end
 
   def draw()
+    return if paused?
     push_matrix do
       translate 0, NAVIGATOR_HEIGHT
       @context&.call_draw__
