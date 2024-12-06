@@ -37,8 +37,6 @@ class Reight::Map
 
   def each_chip(x = nil, y = nil, w = nil, h = nil, clip_by_chunk: false, &block)
     return enum_for :each_chip, x, y, w, h, clip_by_chunk: clip_by_chunk unless block
-    x, w = x + w, -w if w < 0
-    y, h = y + h, -h if h < 0
     enum =
       case [x, y, w, h]
       in [nil,     nil,     nil,     nil]     then @chunks.values.each
@@ -175,6 +173,8 @@ class Reight::Map::Chunk
 
   def each_chip(x = nil, y = nil, w = nil, h = nil, include_hidden: false, &block)
     return enum_for(:each_chip, x, y, w, h, include_hidden: include_hidden) unless block
+    x, w = x + w, -w if x && w && w < 0
+    y, h = y + h, -h if y && h && h < 0
     @chips.each.with_index do |chip, index|
       next unless chip
       xx, yy = index2pos index

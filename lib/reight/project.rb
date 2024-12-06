@@ -14,17 +14,13 @@ class Reight::Project
 
   def project_path = "#{project_dir}/project.json"
 
-  def font      = @font ||= create_font(nil, font_size)
-
-  def font_size = 8
-
-  def code_paths = ['game.rb']
+  def code_paths   = ['game.rb']
 
   def codes()
     code_paths.map {File.read _1 rescue nil}
   end
 
-  def chips_path = "#{project_dir}/chips.json"
+  def chips_path   = "#{project_dir}/chips.json"
 
   def chips()
     @chips ||= load_chips
@@ -55,6 +51,10 @@ class Reight::Project
   def maps()
     @maps ||= load_maps
   end
+
+  def font           = @font ||= create_font(nil, font_size)
+
+  def font_size      = 8
 
   def palette_colors = %w[
     #000000 #1D2B53 #7E2553 #008751 #AB5236 #5F574F #C2C3C7 #FFF1E8
