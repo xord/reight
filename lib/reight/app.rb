@@ -7,6 +7,9 @@ class Reight::App
   BUTTON_SIZE      = 12
   NAVIGATOR_HEIGHT = BUTTON_SIZE + 2
 
+  SCREEN_WIDTH     = 256
+  SCREEN_HEIGHT    = 224 + NAVIGATOR_HEIGHT
+
   def initialize(project)
     @project = project
   end

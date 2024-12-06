@@ -18,7 +18,10 @@ class Reight::Runner < Reight::App
   end
 
   def draw()
-    @context&.call_draw__ unless paused?
+    push_matrix do
+      translate 0, NAVIGATOR_HEIGHT
+      @context&.call_draw__
+    end
   end
 
   def key_pressed()
