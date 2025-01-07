@@ -138,10 +138,22 @@ class TestMap < Test::Unit::TestCase
 
     assert_equal(
       [],
-      m.each_chip(0, 0, 10, 19).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+      m.each_chip( 0,  0, 10, 20).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
     assert_equal(
       [[1, 10, 20]],
-      m.each_chip(0, 0, 10, 20).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+      m.each_chip( 0,  0, 11, 21).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+    assert_equal(
+      [],
+      m.each_chip(20, 20, 10, 10).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+    assert_equal(
+      [[1, 10, 20]],
+      m.each_chip(19, 20, 10, 10).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+    assert_equal(
+      [],
+      m.each_chip(10, 30, 10, 10).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
+    assert_equal(
+      [[1, 10, 20]],
+      m.each_chip(10, 29, 10, 10).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
     assert_equal(
       [[1, 10, 20]],
       m.each_chip(0, 0, 30, 30).map {|chip| [chip.id, chip.pos.x, chip.pos.y]})
@@ -180,8 +192,8 @@ class TestMap < Test::Unit::TestCase
     img      = image
     chips    = R8::ChipList.restore({
       next_id: 3, chips: [
-        {id: 1, x: 0, y: 0, w: 10, h: 10, pos: nil},
-        {id: 2, x: 0, y: 0, w: 20, h: 20, pos: nil},
+        {id: 1, x: 0, y: 0, w: 10, h: 10},
+        {id: 2, x: 0, y: 0, w: 20, h: 20},
       ]
     }, img)
     restored = R8::Map.restore({

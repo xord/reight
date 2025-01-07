@@ -49,6 +49,8 @@ class Reight::Map
     end
   end
 
+  def each(&block) = each_chip(&block)
+
   def to_hash()
     {
       chip_size: @chip_size, chunk_size: @chunk_size,
@@ -254,9 +256,9 @@ class Reight::Map::Chunk
   end
 
   def intersect?(ax, ay, aw, ah, bx, by, bw, bh)
-    ax2, ay2 = ax + aw - 1, ay + ah - 1
-    bx2, by2 = bx + bw - 1, by + bh - 1
-    ax <= bx2 && bx < ax2 && ay <= by2 && by < ay2
+    ax2, ay2 = ax + aw, ay + ah
+    bx2, by2 = bx + bw, by + bh
+    ax < bx2 && bx < ax2 && ay < by2 && by < ay2
   end
 
 end# Chunk

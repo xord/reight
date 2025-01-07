@@ -5,83 +5,98 @@ class Reight::Runner < Reight::App
 
   TEMPORARY_HASH = {}
 
-  def activate()
-    run force: true
-    @context&.activated
+  def activated()
     super
+    run force: true
+    @context.call_activated__
   end
 
   def deactivated()
     super
-    @context&.call_deactivated__
+    @context.call_deactivated__
     pause
   end
 
   def draw()
-    return if paused?
-    push_matrix do
-      translate 0, NAVIGATOR_HEIGHT
-      @context&.call_draw__
+    push do
+      @context&.call_draw__ unless paused?
     end
+    super
   end
 
   def key_pressed()
+    super
     @context&.key_pressed unless paused?
   end
 
   def key_released()
+    super
     @context&.key_released unless paused?
   end
 
   def key_typed()
+    super
     @context&.key_typed unless paused?
   end
 
   def mouse_pressed()
+    super
     @context&.mouse_pressed unless paused?
   end
 
   def mouse_released()
+    super
     @context&.mouse_released unless paused?
   end
 
   def mouse_moved()
+    super
     @context&.mouse_moved unless paused?
+    navigator.visible = mouse_y < NAVIGATOR_HEIGHT
   end
 
   def mouse_dragged()
+    super
     @context&.mouse_dragged unless paused?
   end
 
   def mouse_clicked()
+    super
     @context&.mouse_clicked unless paused?
   end
 
   def double_clicked()
+    super
     @context&.double_clicked unless paused?
   end
 
   def mouse_wheel()
+    super
     @context&.mouse_wheel unless paused?
   end
 
   def touch_started()
+    super
     @context&.touch_started unless paused?
   end
 
   def touch_ended()
+    super
     @context&.touch_ended unless paused?
   end
 
   def touch_moved()
+    super
     @context&.touch_moved unless paused?
   end
 
   def window_moved()
+    super
     @context&.window_moved
   end
 
   def window_resized()
+    super
     @context&.window_resized
   end
 
@@ -96,6 +111,7 @@ class Reight::Runner < Reight::App
     cleanup
     backup_global_vars
     @context = create_context
+    @paused  = false
     begin_wrapping_user_classes @context
     eval_user_script @context, project.code_paths.zip(project.codes).to_h
   end
@@ -105,8 +121,8 @@ class Reight::Runner < Reight::App
   end
 
   def cleanup()
+    remove_world @context.sprite_world__ if @context
     @context = nil
-    @paused  = false
     end_wrapping_user_classes
     restore_global_vars
     GC.enable
@@ -115,10 +131,18 @@ class Reight::Runner < Reight::App
 
   def create_context()
     klass = Class.new do
-      def project = @project__
+      def project        = @project__
+
+      def sprite_world__ = @sprite_world__ ||= create_world(pixels_per_meter: 5)
+
+      def call_activated__()
+        add_world sprite_world__
+        activated
+      end
 
       def call_deactivated__()
         deactivated
+        remove_world sprite_world__
         @background_cleared__ = false
       end
 
@@ -133,26 +157,30 @@ class Reight::Runner < Reight::App
         end
         draw
       end
+
+      def createSprite(...) = sprite_world__.createSprite(...)
+      def addSprite(...)    = sprite_world__.addSprite(...)
+      def removeSprite(...) = sprite_world__.removeSprite(...)
+      def gravity(...)      = sprite_world__.gravity(...)
     end
-    %i[
+    Reight.to_snake_case(%i[
       activated deactivated setup draw
-      key_pressed key_released key_typed
-      mouse_pressed mouse_released mouse_moved mouse_dragged
-      mouse_clicked double_clicked mouse_wheel
-      touch_started touch_ended touch_moved
-      window_moved window_resized
-    ].each do |name|
+      keyPressed keyReleased keyRyped
+      mousePressed mouseReleased mouseMoved mouseDragged
+      mouseClicked doubleClicked mouseWheel
+      touchStarted touchEnded touchMoved
+      windowMoved windowResized
+    ]).each do |camel, snake|
       klass.class_eval <<~END
-        def #{name}(&block)
+        def #{camel}(&block)
           if block
-            @#{name}_block__ = block
+            @#{camel}_block__ = block
           else
-            @#{name}_block__&.call
+            @#{camel}_block__&.call
           end
         end
       END
-      camelCase = name.to_s.gsub(/_([a-z])/) {$1.upcase}
-      klass.alias_method camelCase, name if camelCase != name
+      klass.alias_method snake, camel if snake != camel
     end
     klass.new.tap do |context|
       context.instance_variable_set :@project__, project
@@ -199,6 +227,12 @@ class Reight::Runner < Reight::App
       else
         super name, *args, **kwargs, &block
       end
+    end
+    Reight.to_snake_case(%i[
+      project createSprite addSprite removeSprite gravity
+    ]).each do |camel, snake|
+      klass.define_method(camel) {|*a, **k, &b| context.public_send camel, *a, **k, &b}
+      klass.alias_method snake, camel if snake != camel
     end
   end
 

@@ -9,27 +9,29 @@ class Reight::SpriteEditor < Reight::App
       project.chips_image,
       project.chips_image_path
     ).tap do |canvas|
+      canvas. tool_changed {update_active_tool}
       canvas.color_changed {update_active_color}
     end
   end
 
-  def activate()
+  def activated()
     super
     history.disable do
-      chip_sizes[0].click
       colors[7].click
       tools[1].click
+      chip_sizes[0].click
       brush_sizes[0].click
     end
   end
 
   def draw()
-    background 100, 100, 100
+    background 200
     sprite *sprites
+    super
   end
 
   def key_pressed()
-    pressing_keys.add key_code
+    super
     shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
     ch               = chips
     case key_code
@@ -43,53 +45,59 @@ class Reight::SpriteEditor < Reight::App
     when :z    then shift ? self.redo : undo if ctrl || cmd
     when :s    then select.click
     when :b    then  brush.click
+    when :l    then   line.click
     when :f    then   fill.click
     when :r    then (shift ? fill_rect    : stroke_rect   ).click
     when :e    then (shift ? fill_ellipse : stroke_ellipse).click
     end
   end
 
-  def key_released()
-    pressing_keys.delete key_code
-  end
-
   def window_resized()
-    colors.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
-      sp.x = SPACE + sp.w * (index % 8)
-      sp.y = height - (SPACE + sp.h * (2 - index / 8))
+    super
+    [colors, tools, chip_sizes, brush_sizes].flatten.map(&:sprite)
+      .each {|sp| sp.w = sp.h = BUTTON_SIZE}
+
+    chips.sprite.tap do |sp|
+      sp.x      = SPACE
+      sp.y      = NAVIGATOR_HEIGHT + SPACE
+      sp.w      = CHIPS_WIDTH
+      sp.bottom = height - SPACE
     end
-    edit_buttons.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
-      sp.x = colors.last.sprite.right + SPACE + (sp.w + 1) * index
-      sp.y = colors.first.sprite.y
+    colors.map {_1.sprite}.each.with_index do |sp, index|
+      sp.x = chips.sprite.right + SPACE + sp.w * (index % 4)
+      sp.y = height - (SPACE + sp.h * (4 - index / 4))
     end
     tools.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
-      sp.x = edit_buttons.last.sprite.right + SPACE + (sp.w + 1) * index
-      sp.y = edit_buttons.first.sprite.y
-    end
-    brush_sizes.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
-      sp.x = tools.first.sprite.x + (sp.w + 1) * index
-      sp.y = tools.first.sprite.bottom + 2
-    end
-    chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
-      sp.x = width - (SPACE + sp.w * (index + 1) + index)
-      sp.y = tools.first.sprite.y - (sp.h + SPACE)
-    end
-    chips.sprite.tap do |sp|
-      sp.w      = 80
-      sp.x      = width - (SPACE + sp.w)
-      sp.y      = NAVIGATOR_HEIGHT + SPACE
-      sp.bottom = chip_sizes.first.sprite.y - SPACE / 2
+      line   = index < 3 ? 0 : 1
+      index -= 3 if line == 1
+      sp.x   = colors.last.sprite.right + SPACE + (sp.w + 1) * index
+      sp.y   = colors.first.sprite.y + (sp.h + 1) * line
     end
     canvas.sprite.tap do |sp|
-      sp.x     = SPACE
-      sp.y     = chips.sprite.y
-      sp.right = chips.sprite.x - SPACE
-      sp.h     = sp.w
+      sp.x      = chips.sprite.right + SPACE
+      sp.y      = chips.sprite.y
+      sp.bottom = colors.first.sprite.top - SPACE
+      sp.w      = sp.h
+    end
+    chip_sizes.map {_1.sprite}.each.with_index do |sp, index|
+      sp.x = canvas.sprite.right + SPACE + (sp.w + 1) * index
+      sp.y = canvas.sprite.y
+    end
+    brush_sizes.map {_1.sprite}.each.with_index do |sp, index|
+      sp.x = chip_sizes.first.sprite.x + (sp.w + 1) * index
+      sp.y = chip_sizes.last.sprite.bottom + SPACE
+    end
+    shapes.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = 30
+      sp.h = BUTTON_SIZE
+      sp.x = brush_sizes.first.sprite.x + (sp.w + 1) * index
+      sp.y = brush_sizes.last.sprite.bottom + SPACE
+    end
+    types.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = 50
+      sp.h = BUTTON_SIZE
+      sp.x = shapes.first.sprite.x + (sp.w + 1) * index
+      sp.y = shapes.last.sprite.bottom + SPACE
     end
   end
 
@@ -99,7 +107,7 @@ class Reight::SpriteEditor < Reight::App
       in [:frame, [x, y, w, h], _]       then chips.set_frame x, y, w, h
       in [:capture, before, after, x, y] then canvas.apply_frame before, x, y
       in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
-      in [:deselect, sel]                then canvas.select *sel
+      in [:deselect, sel]                then       canvas.select(*sel)
       end
       self.flash 'Undo!' if flash
     end
@@ -110,101 +118,11 @@ class Reight::SpriteEditor < Reight::App
       case action
       in [:frame, _, [x, y, w, h]]       then chips.set_frame x, y, w, h
       in [:capture, before, after, x, y] then canvas.apply_frame after, x, y
-      in [  :select, _, sel]             then canvas.select *sel
+      in [  :select, _, sel]             then canvas.select(*sel)
       in [:deselect, _]                  then canvas.deselect
       end
       self.flash 'Redo!' if flash
     end
-  end
-
-  def clear_canvas(x, y, w, h)
-    canvas.clear [x, y, w, h], color: colors.first.color
-  end
-
-  def set_brush_size(size)
-    brush.size = size
-    flash "Brush Size #{size}"
-  end
-
-  private
-
-  def sprites()
-    [canvas, chips, *chip_sizes, *colors, *edit_buttons, *tools, *brush_sizes]
-      .map &:sprite
-  end
-
-  def chips()
-    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
-      canvas.set_frame x, y, w, h
-    end
-  end
-
-  def chip_sizes()
-    @chip_sizes ||= group(*[8, 16, 32].map {|size|
-      Reight::Button.new name: "#{size}x#{size}", label: size do
-        chips.set_frame chips.x, chips.y, size, size
-      end
-    })
-  end
-
-  def edit_buttons()
-    @edit_buttons ||= [
-      Reight::Button.new(name: 'Copy',  label: 'Co') {copy  flash: false},
-      Reight::Button.new(name: 'Cut',   label: 'Cu') {cut   flash: false},
-      Reight::Button.new(name: 'Paste', label: 'Pa') {paste flash: false},
-    ]
-  end
-
-  def tools()
-    @tools ||= group(
-      select,
-      brush,
-      fill,
-      stroke_rect,
-        fill_rect,
-      stroke_ellipse,
-        fill_ellipse
-    )
-  end
-
-  def select         = @select         ||= Select.new(self)                 {canvas.tool = _1}
-  def brush          = @brush          ||= Brush.new(self)                  {canvas.tool = _1}
-  def fill           = @fill           ||= Fill.new(self)                   {canvas.tool = _1}
-  def stroke_rect    = @stroke_rect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
-  def   fill_rect    =   @fill_rect    ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
-  def stroke_ellipse = @stroke_ellipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
-  def   fill_ellipse =   @fill_ellipse ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
-
-  def brush_sizes()
-    @brush_sizes ||= group(*[1, 2, 3, 5, 10].map {|size|
-      Reight::Button.new name: "Button Size #{size}", label: size do
-        set_brush_size size
-      end
-    })
-  end
-
-  def colors()
-    @colors ||= project.palette_colors.map {|color|
-      rgb = self.color(color)
-        .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
-      Color.new(rgb) {canvas.color = rgb}
-    }
-  end
-
-  def pressing_keys()
-    @pressing_keys ||= Set.new
-  end
-
-  def pressing?(key)
-    pressing_keys.include? key
-  end
-
-  def copy(flash: true)
-    sel   = canvas.selection || canvas.frame
-    image = canvas.capture_frame(sel) || return
-    x, y, = sel
-    @copy = [image, x - canvas.x, y - canvas.y]
-    self.flash 'Copy!' if flash
   end
 
   def cut(flash: true)
@@ -214,6 +132,14 @@ class Reight::SpriteEditor < Reight::App
       clear_canvas x, y, image.width, image.height
     end
     self.flash 'Cut!' if flash
+  end
+
+  def copy(flash: true)
+    sel   = canvas.selection || canvas.frame
+    image = canvas.capture_frame(sel) || return
+    x, y, = sel
+    @copy = [image, x - canvas.x, y - canvas.y]
+    self.flash 'Copy!' if flash
   end
 
   def paste(flash: true)
@@ -231,6 +157,112 @@ class Reight::SpriteEditor < Reight::App
     self.flash 'Paste!' if flash
   end
 
+  def can_cut?   = true
+  def can_copy?  = true
+  def can_paste? = @copy
+
+  def clear_canvas(x, y, w, h)
+    canvas.clear [x, y, w, h], color: colors.first.color
+  end
+
+  private
+
+  def sprites()
+    [canvas, chips, *chip_sizes, *colors, *tools, *brush_sizes, *shapes, *types]
+      .map(&:sprite) + super
+  end
+
+  def chips()
+    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
+      canvas.set_frame x, y, w, h
+      chip_changed x, y, w, h
+    end
+  end
+
+  def chip_sizes()
+    @chip_sizes ||= group(*[8, 16, 32].map {|size|
+      Reight::Button.new name: "#{size}x#{size}", label: size do
+        chips.set_frame chips.x, chips.y, size, size
+      end
+    })
+  end
+
+  def tools()
+    @tools ||= group(
+      select,
+      brush,
+      fill,
+      stroke_line,
+      stroke_rect,
+        fill_rect,
+      stroke_ellipse,
+        fill_ellipse
+    )
+  end
+
+  def select         = @select         ||= Select.new(self)                 {canvas.tool = _1}
+  def brush          = @brush          ||= Brush.new(self)                  {canvas.tool = _1}
+  def fill           = @fill           ||= Fill.new(self)                   {canvas.tool = _1}
+  def stroke_line    = @stroke_line    ||= Line.new(self)                   {canvas.tool = _1}
+  def stroke_rect    = @stroke_rect    ||= Shape.new(self, :rect,    false) {canvas.tool = _1}
+  def   fill_rect    =   @fill_rect    ||= Shape.new(self, :rect,    true)  {canvas.tool = _1}
+  def stroke_ellipse = @stroke_ellipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
+  def   fill_ellipse =   @fill_ellipse ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
+
+  def brush_sizes()
+    @brush_sizes ||= group(*[1, 2, 3, 5, 10].map {|size|
+      Reight::Button.new name: "Button Size #{size}", label: size do
+        brush.size = size
+        flash "Brush Size #{size}"
+      end
+    })
+  end
+
+  def colors()
+    @colors ||= project.palette_colors.map {|color|
+      rgb = self.color(color)
+        .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
+      Color.new(rgb) {canvas.color = rgb}
+    }
+  end
+
+  def shapes()
+    @shapes ||= group(
+      Reight::Button.new(name: 'No Shape', label: 'None') {
+        project.chips.at(*canvas.frame).shape = nil
+      },
+      Reight::Button.new(name: 'Rect Shape', label: 'Rect') {
+        project.chips.at(*canvas.frame).shape = :rect
+      },
+      Reight::Button.new(name: 'Circle Shape', label: 'Circle') {
+        project.chips.at(*canvas.frame).shape = :circle
+      },
+    )
+  end
+
+  def types()
+    @types ||= group(
+      Reight::Button.new(name: 'Object', label: 'Object') {
+        project.chips.at(*canvas.frame).sensor = false
+      },
+      Reight::Button.new(name: 'Sensor', label: 'Sensor') {
+        project.chips.at(*canvas.frame).sensor = true
+      },
+    )
+  end
+
+  def chip_changed(x, y, w, h)
+    chip = project.chips.at x, y, w, h
+    shapes[[nil, :rect, :circle].index(chip.shape)].click
+    types[chip.sensor? ? 1 : 0].click
+  end
+
+  def update_active_tool()
+    tools.each do |tool|
+      tool.active = tool == canvas.tool
+    end
+  end
+
   def update_active_color()
     colors.each do |button|
       button.active = button.color == canvas.color
@@ -242,7 +274,11 @@ end# SpriteEditor
 
 class Reight::SpriteEditor::Canvas
 
+  include Reight::Hookable
+
   def initialize(app, image, path)
+    hook :tool_changed, :color_changed
+
     @app, @image, @path       = app, image, path
     @tool, @color, @selection = nil, [255, 255, 255], nil
 
@@ -251,9 +287,7 @@ class Reight::SpriteEditor::Canvas
     end
   end
 
-  attr_accessor :tool
-
-  attr_reader :x, :y, :w, :h, :color, :selection
+  attr_reader :x, :y, :w, :h, :tool, :color
 
   def width  = @image.width
 
@@ -261,6 +295,12 @@ class Reight::SpriteEditor::Canvas
 
   def save()
     @image.save @path
+    @app.project.save
+  end
+
+  def tool=(tool)
+    @tool = tool
+    tool_changed! tool
   end
 
   def set_frame(x, y, w, h)
@@ -276,7 +316,7 @@ class Reight::SpriteEditor::Canvas
   def color=(color)
     return if color == @color
     @color = color
-    color_changed!
+    color_changed! color
   end
 
   def select(x, y, w, h)
@@ -350,8 +390,8 @@ class Reight::SpriteEditor::Canvas
 
   def end_editing()
     return unless @before
-    save
     @app.history.append [:capture, @before, capture_frame, x, y]
+    save
   end
 
   def capture_frame(frame = self.frame)
@@ -368,20 +408,13 @@ class Reight::SpriteEditor::Canvas
       w, h = image.width, image.height
       g.copy image, 0, 0, w, h, x, y, w, h
     end
-  end
-
-  def color_changed(&block)
-    (@color_changeds ||= []).push block if block
-  end
-
-  def color_changed!()
-    @color_changeds&.each {_1.call color}
+    save
   end
 
   def sprite()
     @sprite ||= Sprite.new.tap do |sp|
       pos = -> {to_image sp.mouse_x, sp.mouse_y}
-      sp.draw          {draw}
+      sp.draw           {draw}
       sp.mouse_pressed  {tool&.canvas_pressed( *pos.call, sp.mouse_button)}
       sp.mouse_released {tool&.canvas_released(*pos.call, sp.mouse_button)}
       sp.mouse_moved    {tool&.canvas_moved(   *pos.call)}
@@ -433,7 +466,7 @@ class Reight::SpriteEditor::Canvas
   end
 
   def grid(interval)
-    (@grids ||= [])[interval] ||= create_shape.tap do |sh|
+    (@grids ||= {})[interval] ||= create_shape.tap do |sh|
       w, h = @image.width, @image.height
       sh.begin_shape LINES
       (0..w).step(interval).each do |x|
@@ -494,13 +527,19 @@ end# Canvas
 
 class Reight::SpriteEditor::Chips
 
-  def initialize(app, image, size = 8, &selected)
-    @app, @image, @selected = app, image, selected
-    @offset                 = create_vector
+  include Reight::Hookable
+
+  def initialize(app, image, size = 8, &block)
+    hook :frame_changed
+
+    @app, @image = app, image
+    @offset      = create_vector
 
     @app.history.disable do
       set_frame 0, 0, size, size
     end
+
+    frame_changed &block
   end
 
   attr_reader :x, :y, :size
@@ -510,7 +549,7 @@ class Reight::SpriteEditor::Chips
     @x    = align_to_grid(x).clamp(0..@image.width)
     @y    = align_to_grid(y).clamp(0..@image.height)
     @size = w
-    selected
+    frame_changed! @x, @y, @size, @size
   end
 
   def draw()
@@ -561,8 +600,8 @@ class Reight::SpriteEditor::Chips
 
   def clamp_offset(offset)
     sp = sprite
-    x  = offset.x.clamp(-(@image.width  - sp.w)..0)
-    y  = offset.y.clamp(-(@image.height - sp.h)..0)
+    x  = offset.x.clamp([-(@image.width  - sp.w), 0].min..0)
+    y  = offset.y.clamp([-(@image.height - sp.h), 0].min..0)
     create_vector align_to_grid(x), align_to_grid(y)
   end
 
@@ -594,20 +633,11 @@ class Reight::SpriteEditor::Tool < Reight::Button
     canvas.color = canvas.pixel_at x, y
   end
 
-  def canvas_pressed(x, y, button)
-  end
-
-  def canvas_released(x, y, button)
-  end
-
-  def canvas_moved(x, y)
-  end
-
-  def canvas_dragged(x, y, button)
-  end
-
-  def canvas_clicked(x, y, button)
-  end
+  def canvas_pressed( x, y, button) = nil
+  def canvas_released(x, y, button) = nil
+  def canvas_moved(   x, y)         = nil
+  def canvas_dragged( x, y, button) = nil
+  def canvas_clicked( x, y, button) = nil
 
 end# Tool
 
@@ -615,7 +645,7 @@ end# Tool
 class Reight::SpriteEditor::Select < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
-    super app, label: 'S', &block
+    super app, icon: app.icon(0, 2, 8), &block
     set_help left: 'Select or Move'
   end
 
@@ -672,7 +702,7 @@ end# Select
 class Reight::SpriteEditor::Brush < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
-    super app, label: 'B', &block
+    super app, icon: app.icon(1, 2, 8), &block
     @size = 1
     set_help left: 'Brush', right: 'Pick Color'
   end
@@ -714,7 +744,7 @@ end# Brush
 class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
 
   def initialize(app, &block)
-    super app, label: 'F', &block
+    super app, icon: app.icon(2, 2, 8), &block
     set_help left: 'Fill', right: 'Pick Color'
   end
 
@@ -755,11 +785,48 @@ class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
 end# Fill
 
 
+class Reight::SpriteEditor::Line < Reight::SpriteEditor::Tool
+
+  def initialize(app, &block)
+    super app, icon: app.icon(3, 2, 8), &block
+    set_help left: name, right: 'Pick Color'
+  end
+
+  def draw_line(x, y)
+    canvas.begin_editing do
+      canvas.paint do |g|
+        g.stroke(*canvas.color)
+        g.stroke_weight 0
+        g.line @x, @y, x, y
+      end
+    end
+  end
+
+  def canvas_pressed(x, y, button)
+    return unless button == LEFT
+    @x, @y = x, y
+    draw_line x, y
+  end
+
+  def canvas_dragged(x, y, button)
+    return unless button == LEFT
+    app.undo flash: false
+    draw_line x, y
+  end
+
+  def canvas_clicked(x, y, button)
+    pick_color x, y if button == RIGHT
+  end
+
+end# Line
+
+
 class Reight::SpriteEditor::Shape < Reight::SpriteEditor::Tool
 
   def initialize(app, shape, fill, &block)
     @shape, @fill = shape, fill
-    super app, label: "#{shape[0].capitalize}#{fill ? :f : :s}", &block
+    icon_index = [:rect, :ellipse].product([false, true]).index([shape, fill])
+    super app, icon: app.icon(icon_index + 4, 2, 8), &block
     set_help left: name, right: 'Pick Color'
   end
 

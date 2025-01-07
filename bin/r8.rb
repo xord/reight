@@ -3,8 +3,16 @@ using Reight
 
 def r8 = $r8__
 
+def usage()
+  <<~END
+    USAGE: r8 [path]
+  END
+end
+
 Reight::CONTEXT__.tap do |c|
-  c.setup          {Reight::R8.new.setup}
+  path = ARGV.shift or return puts usage
+  path = File.expant_path path, Dir.pwd if path.start_with?('/')
+  c.setup          {Reight::R8.new(path).setup}
   c.draw           {r8.draw}
   c.key_pressed    {r8.key_pressed}
   c.key_released   {r8.key_released}

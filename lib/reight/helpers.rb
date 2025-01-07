@@ -25,22 +25,21 @@ module Reight::Activatable
 end# Activatable
 
 
-module Reight::Clickable
+module Reight::Hookable
 
-  def initialize(...)
-    super
-    @clickeds = []
+  def hook(*names)
+    names.each do |name|
+      singleton_class.__send__ :define_method, name do |&block|
+        @hookable_hooks ||= {}
+        (@hookable_hooks[name] ||= []).push block
+      end
+      singleton_class.__send__ :define_method, "#{name}!" do |*args|
+        @hookable_hooks&.[](name)&.each {|block| block.call(*args)}
+      end
+    end
   end
 
-  def clicked(&block)
-    @clickeds.push block if block
-  end
-
-  def clicked!()
-    @clickeds.each {_1.call self}
-  end
-
-end# Clickable
+end# Hookable
 
 
 module Reight::HasHelp

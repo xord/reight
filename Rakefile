@@ -14,5 +14,5 @@ test_ruby_extension
 task :run do
   libs = %w[xot rucy beeps rays reflex processing rubysketch]
     .map {|lib| "-I#{ENV['ALL']}/#{lib}/lib"}
-  sh %( ruby #{libs.join ' '} -Ilib -e 'require_relative "bin/r8"' )
+  sh %( ruby #{libs.join ' '} -Ilib bin/r8.rb '#{ENV["path"] || "."}' )
 end

@@ -199,8 +199,8 @@ class TestMapChunk < Test::Unit::TestCase
     img      = image
     chips    = R8::ChipList.restore({
       next_id: 3, chips: [
-        {id: 1, x: 0, y: 0, w: 10, h: 10, pos: nil},
-        {id: 2, x: 0, y: 0, w: 10, h: 20, pos: nil},
+        {id: 1, x: 0, y: 0, w: 10, h: 10},
+        {id: 2, x: 0, y: 0, w: 10, h: 20},
       ]
     }, img)
     restored = R8::Map::Chunk.restore({

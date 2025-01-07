@@ -7,7 +7,7 @@ class Reight::History
   end
 
   def append(*actions)
-    return if actions.empty? || disabled?
+    return false if actions.empty? || disabled?
     if @group
       @group.push(*actions)
     else
@@ -15,6 +15,7 @@ class Reight::History
       @redos.clear
       update
     end
+    true
   end
 
   def begin_grouping(&block)
@@ -30,7 +31,7 @@ class Reight::History
   def end_grouping()
     raise "'begin_grouping' is missing" unless @group
     actions, @group = @group, nil
-    append(*actions) unless actions.empty?
+    append(*actions)
   end
 
   def undo(&block)

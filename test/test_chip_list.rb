@@ -18,9 +18,9 @@ class TestChipList < Test::Unit::TestCase
   def test_at()
     i  = image
     cs = chips i
-    assert_equal chip(1, i, 1, 2, 3, 4), cs.at(1, 2, 3, 4)
-    assert_equal chip(2, i, 5, 6, 7, 8), cs.at(5, 6, 7, 8)
-    assert_equal chip(1, i, 1, 2, 3, 4), cs.at(1, 2, 3, 4)
+    assert_equal chip(1, i, 1, 2, 3, 4, shape: :rect), cs.at(1, 2, 3, 4)
+    assert_equal chip(2, i, 5, 6, 7, 8, shape: :rect), cs.at(5, 6, 7, 8)
+    assert_equal chip(1, i, 1, 2, 3, 4, shape: :rect), cs.at(1, 2, 3, 4)
   end
 
   def test_to_hash()
@@ -33,8 +33,8 @@ class TestChipList < Test::Unit::TestCase
       {
         next_id: 3,
         chips: [
-          {id: 1, x: 1, y: 2, w: 3, h: 4, pos: nil},
-          {id: 2, x: 5, y: 6, w: 7, h: 8, pos: nil}
+          {id: 1, x: 1, y: 2, w: 3, h: 4, shape: :rect},
+          {id: 2, x: 5, y: 6, w: 7, h: 8, shape: :rect}
         ]
       },
       cs.to_hash)
@@ -62,7 +62,7 @@ class TestChipList < Test::Unit::TestCase
     img = image 8, 9
     assert_equal(
       chips(img).tap {                               _1.at 2,    3,    4,    5},
-      R8::ChipList.restore({next_id: 2, chips: [{id: 1, x: 2, y: 3, w: 4, h: 5, pos: nil}]}, img))
+      R8::ChipList.restore({next_id: 2, chips: [{id: 1, x: 2, y: 3, w: 4, h: 5, shape: :rect}]}, img))
   end
 
 end# TestChipList

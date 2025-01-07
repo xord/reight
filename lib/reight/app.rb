@@ -3,12 +3,13 @@ using Reight
 
 class Reight::App
 
-  SPACE            = 8
+  SCREEN_WIDTH     = 400
+  SCREEN_HEIGHT    = 224
+
+  SPACE            = 6
   BUTTON_SIZE      = 12
   NAVIGATOR_HEIGHT = BUTTON_SIZE + 2
-
-  SCREEN_WIDTH     = 256
-  SCREEN_HEIGHT    = 224 + NAVIGATOR_HEIGHT
+  CHIPS_WIDTH      = 128
 
   def initialize(project)
     @project = project
@@ -17,7 +18,7 @@ class Reight::App
   attr_reader :project
 
   def flash(...)
-    r8.flash(...) if history.enabled?
+    navigator.flash(...) if history.enabled?
   end
 
   def group(*buttons)
@@ -29,6 +30,10 @@ class Reight::App
     buttons
   end
 
+  def pressing?(key)
+    pressing_keys.include? key
+  end
+
   def name()
     self.class.name
   end
@@ -38,20 +43,43 @@ class Reight::App
   end
 
   def sprites()
-    []
+    navigator.sprites
   end
 
-  def activate()
-    sprites.each {|sp| add_sprite sp}
+  def icon(xi, yi, size)
+    (@icon ||= {})[[xi, yi, size]] ||= createGraphics(size, size).tap do |g|
+      g.beginDraw do
+        g.copy r8.icons, xi * size, yi * size, size, size, 0, 0, size, size
+      end
+    end
+    # TODO: ||= r8.icons.sub_image xi * size, yi * size, size, size
   end
 
-  def deactivate()
-    sprites.each {|sp| remove_sprite sp}
+  def activated()
+    add_world world if world
   end
 
-  def draw()           = nil
-  def key_pressed()    = nil
-  def key_released()   = nil
+  def deactivated()
+    remove_world world if world
+  end
+
+  def draw()
+    navigator.draw
+  end
+
+  def key_pressed()
+    navigator.key_pressed
+    pressing_keys.add key_code
+  end
+
+  def key_released()
+    pressing_keys.delete key_code
+  end
+
+  def window_resized()
+    navigator.window_resized
+  end
+
   def key_typed()      = nil
   def mouse_pressed()  = nil
   def mouse_released() = nil
@@ -64,13 +92,32 @@ class Reight::App
   def touch_ended()    = nil
   def touch_moved()    = nil
   def window_moved()   = nil
-  def window_resized() = nil
 
-  def undo(flash: true) = nil
-  def redo(flash: true) = nil
+  #def undo(flash: true) = nil
+  #def redo(flash: true) = nil
+
+  #def cut(  flash: true) = nil
+  #def copy( flash: true) = nil
+  #def paste(flash: true) = nil
 
   def inspect()
-    "#<#{self.class.name}:#{object_id}>"
+    "#<#{self.class.name}:0x#{object_id}>"
+  end
+
+  private
+
+  def navigator()
+    @navigator ||= Reight::Navigator.new self
+  end
+
+  def world()
+    @world ||= SpriteWorld.new.tap do |w|
+      w.add_sprite(*sprites)
+    end
+  end
+
+  def pressing_keys()
+    @pressing_keys ||= Set.new
   end
 
 end# App

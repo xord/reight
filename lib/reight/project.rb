@@ -20,33 +20,36 @@ class Reight::Project
     code_paths.map {File.read _1 rescue nil}
   end
 
-  def chips_path   = "#{project_dir}/chips.json"
+  def chips_json_name   = settings[__method__] || 'chips.json'
+
+  def chips_json_path   = "#{project_dir}/#{chips_json_name}"
 
   def chips()
     @chips ||= load_chips
   end
 
-  def chips_image_width  = 1024
+  def chips_image_name   = settings[__method__] || 'chips.png'
 
-  def chips_image_height = 1024
+  def chips_image_path   = "#{project_dir}/#{chips_image_name}"
 
-  def chips_image_path   = "#{project_dir}/chips.png"
+  def chips_image_width  = settings[__method__] || 1024
+
+  def chips_image_height = settings[__method__] || 1024
 
   def chips_image()
-    @chips_image ||=
-      begin
-        i = load_image chips_image_path
-        create_graphics(i.width, i.height).tap do |g|
-          g.begin_draw {g.image i, 0, 0}
-        end
-      rescue => e
-        create_graphics(chips_image_width, chips_image_height).tap do |g|
-          g.begin_draw {g.background 0, 0, 0}
-        end
+    @chips_image ||= -> {
+      create_graphics(chips_image_width, chips_image_height).tap do |g|
+        g.begin_draw {g.background 0, 0, 0}
+        img = load_image chips_image_path
+        g.begin_draw {g.image img, 0, 0}
+      rescue Errno::ENOENT
       end
+    }.call
   end
 
-  def maps_path = "#{project_dir}/maps.json"
+  def maps_json_name = settings[__method__] || 'maps.json'
+
+  def maps_json_path = "#{project_dir}/#{maps_json_name}"
 
   def maps()
     @maps ||= load_maps
@@ -62,7 +65,7 @@ class Reight::Project
   ]
 
   def save()
-    File.write project_path, @settings.to_json
+    File.write project_path, to_json_string(@settings)
     save_chips
     save_maps
   end
@@ -71,15 +74,17 @@ class Reight::Project
 
   def load()
     @settings = JSON.parse File.read(project_path), symbolize_names: true
+  rescue Errno::ENOENT
+    @settings = {}
   end
 
   def save_chips()
-    File.write chips_path, chips.to_hash.to_json
+    File.write chips_json_path, to_json_string(chips.to_hash)
   end
 
   def load_chips()
-    if File.file? chips_path
-      json = JSON.parse File.read(chips_path), symbolize_names: true
+    if File.file? chips_json_path
+      json = JSON.parse File.read(chips_json_path), symbolize_names: true
       Reight::ChipList.restore json, chips_image
     else
       Reight::ChipList.new chips_image
@@ -87,15 +92,23 @@ class Reight::Project
   end
 
   def save_maps()
-    File.write maps_path, maps.map {_1.to_hash}.to_json
+    File.write maps_json_path, to_json_string(maps.map {_1.to_hash})
   end
 
   def load_maps()
-    if File.file? maps_path
-      json = JSON.parse File.read(maps_path), symbolize_names: true
+    if File.file? maps_json_path
+      json = JSON.parse File.read(maps_json_path), symbolize_names: true
       json.map {Reight::Map.restore _1, chips}
     else
       [Reight::Map.new]
+    end
+  end
+
+  def to_json_string(obj, readable: true)
+    if readable
+      JSON.pretty_generate obj
+    else
+      JSON.generate obj
     end
   end
 
