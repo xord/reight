@@ -1,6 +1,6 @@
 # reight ChangeLog
 
 
-## [v0.1] - 2024-10-31
+## [v0.1] - 2025-01-13
 
-- Initial commit
+- Alpha version
