@@ -41,6 +41,7 @@ module Reight
 end# Reight
 
 
+require 'reight/extension'
 require 'reight/helpers'
 require 'reight/project'
 require 'reight/history'
