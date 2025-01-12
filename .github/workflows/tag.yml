@@ -1,0 +1,35 @@
+name: Tag
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ruby 3.2
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: setup dependencies
+        run: "ruby -I.github/workflows -rutils -e 'setup_dependencies only: :xot'"
+
+      - name: setup user name and email
+        run: |
+          git config --global user.email "xordog@gmail.com"
+          git config --global user.name "xord"
+
+      - name: tag versions
+        run: "ruby -I.github/workflows -rutils -e 'tag_versions'"
+
+      - name: push tags
+        run: git push origin --tags

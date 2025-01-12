@@ -1,0 +1,37 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+      - name: ruby 3.2
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup gems
+        run: bundle install
+
+      - name: setup dependencies
+        run: "ruby -I.github/workflows -rutils -e 'setup_dependencies'"
+
+      - name: packages
+        run: bundle exec rake packages
+
+      - name: lib
+        run: bundle exec rake lib
+
+      - name: ext
+        run: bundle exec rake ext
+
+      - name: test
+        run: bundle exec rake test

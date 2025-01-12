@@ -1,0 +1,62 @@
+name: Release Gem
+
+on:
+  push:
+    tags: ['v[0-9]*']
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    steps:
+      - name: ruby 3.2
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup gems
+        run: bundle install
+
+      - name: setup dependencies
+        run: "ruby -I.github/workflows -rutils -e 'setup_dependencies'"
+
+      - name: test
+        run: bundle exec rake quiet packages test
+
+      - name: create gem
+        id: gem
+        run: |
+          bundle exec rake gem
+          echo path=$(ruby -e 'print Dir.glob("*.gem").first') >> $GITHUB_OUTPUT
+
+      - name: create github release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+
+      - name: upload to github release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: ./${{ steps.gem.outputs.path }}
+          asset_name:   ${{ steps.gem.outputs.path }}
+          asset_content_type: application/zip
+
+      - name: upload to rubygems
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          bundle exec rake upload
