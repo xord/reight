@@ -14,7 +14,7 @@ class Reight::Project
 
   def project_path = "#{project_dir}/project.json"
 
-  def code_paths   = ['game.rb']
+  def code_paths   = settings[__method__]&.then {[_1].flatten} || ['game.rb']
 
   def codes()
     code_paths.map {File.read _1 rescue nil}
