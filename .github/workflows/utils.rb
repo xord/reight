@@ -20,7 +20,7 @@ def setup_dependencies(build: true, only: nil)
 
   exts.each do |ext|
     gem   = RENAMES[ext.to_sym].then {|s| s || ext}
-    ver   = gemspec[/add_runtime_dependency.*['"]#{gem}['"].*['"]\s*~>\s*([\d\.]+)\s*['"]/, 1]
+    ver   = gemspec[/add_dependency.*['"]#{gem}['"].*['"]\s*>=\s*([\d\.]+)\s*['"]/, 1]
     opts  = '-c advice.detachedHead=false --depth 1'
     clone = "git clone #{opts} https://github.com/xord/#{ext}.git ../#{ext}"
 
