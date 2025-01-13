@@ -1,5 +1,8 @@
+#!/usr/bin/env ruby
+
 require 'reight'
 using Reight
+
 
 def r8 = $r8__
 
