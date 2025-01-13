@@ -13,7 +13,7 @@ class Reight::Button
     super()
 
     hook :clicked
-    self.clicked &clicked
+    self.clicked(&clicked)
     self.clicked {r8.flash name}
   end
 

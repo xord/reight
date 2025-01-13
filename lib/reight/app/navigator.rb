@@ -27,7 +27,7 @@ class Reight::Navigator
     fill 220
     no_stroke
     rect 0, 0, width, Reight::App::NAVIGATOR_HEIGHT
-    sprite *sprites
+    sprite(*sprites)
   end
 
   def key_pressed()

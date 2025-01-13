@@ -26,7 +26,7 @@ class Reight::SpriteEditor < Reight::App
 
   def draw()
     background 200
-    sprite *sprites
+    sprite(*sprites)
     super
   end
 
@@ -104,10 +104,10 @@ class Reight::SpriteEditor < Reight::App
   def undo(flash: true)
     history.undo do |action|
       case action
-      in [:frame, [x, y, w, h], _]       then chips.set_frame x, y, w, h
-      in [:capture, before, after, x, y] then canvas.apply_frame before, x, y
-      in [  :select, sel, _]             then sel ? canvas.select(*sel) : canvas.deselect
-      in [:deselect, sel]                then       canvas.select(*sel)
+      in [:frame, [x, y, w, h], _]   then chips.set_frame x, y, w, h
+      in [:capture, before, _, x, y] then canvas.apply_frame before, x, y
+      in [  :select, sel, _]         then sel ? canvas.select(*sel) : canvas.deselect
+      in [:deselect, sel]            then       canvas.select(*sel)
       end
       self.flash 'Undo!' if flash
     end
@@ -116,10 +116,10 @@ class Reight::SpriteEditor < Reight::App
   def redo(flash: true)
     history.redo do |action|
       case action
-      in [:frame, _, [x, y, w, h]]       then chips.set_frame x, y, w, h
-      in [:capture, before, after, x, y] then canvas.apply_frame after, x, y
-      in [  :select, _, sel]             then canvas.select(*sel)
-      in [:deselect, _]                  then canvas.deselect
+      in [:frame, _, [x, y, w, h]]  then chips.set_frame x, y, w, h
+      in [:capture, _, after, x, y] then canvas.apply_frame after, x, y
+      in [  :select, _, sel]        then canvas.select(*sel)
+      in [:deselect, _]             then canvas.deselect
       end
       self.flash 'Redo!' if flash
     end
@@ -446,7 +446,7 @@ class Reight::SpriteEditor::Canvas
 
     sx, sy = sp.w / w, sp.h / h
     scale sx, sy
-    translate -x, -y
+    translate(-x, -y)
     no_fill
     stroke_weight 0
 
@@ -502,7 +502,7 @@ class Reight::SpriteEditor::Canvas
       vertex x,     y,     x + w, 0
       end_shape
 =end
-      rect *@selection
+      rect(*@selection)
     end
   end
 
@@ -539,7 +539,7 @@ class Reight::SpriteEditor::Chips
       set_frame 0, 0, size, size
     end
 
-    frame_changed &block
+    frame_changed(&block)
   end
 
   attr_reader :x, :y, :size
@@ -712,7 +712,7 @@ class Reight::SpriteEditor::Brush < Reight::SpriteEditor::Tool
   def brush(x, y, button)
     canvas.paint do |g|
       g.no_fill
-      g.stroke *canvas.color
+      g.stroke(*canvas.color)
       g.stroke_weight size
       g.point x, y
     end
@@ -751,7 +751,7 @@ class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
   def canvas_pressed(x, y, button)
     return unless button == LEFT
     x, y           = [x, y].map &:to_i
-    fx, fy, fw, fh = canvas.frame
+    fx, fy, fw,    = canvas.frame
     sx, sy, sw, sh = canvas.selection || canvas.frame
     sx -= fx
     sy -= fy
@@ -760,7 +760,7 @@ class Reight::SpriteEditor::Fill < Reight::SpriteEditor::Tool
     count = 0
     canvas.update_pixels do |pixels|
       from = pixels[y * fw + x]
-      to   = color *canvas.color
+      to   = color(*canvas.color)
       rest = [[x, y]]
       until rest.empty?
         xx, yy = rest.shift
@@ -875,7 +875,7 @@ class Reight::SpriteEditor::Color < Reight::Button
   def draw()
     sp = sprite
 
-    fill *color
+    fill(*color)
     no_stroke
     rect 0, 0, sp.w, sp.h
 

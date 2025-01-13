@@ -39,7 +39,7 @@ class TestMap < Test::Unit::TestCase
     end
 
     map(chip_size: 10, chunk_size: 30).tap do |m|
-      m.put -10, -20,   new_chip[1, 10]
+      m.put(-10, -20,   new_chip[1, 10])
       assert_equal      new_chip[1, 10, pos: vec(-10, -20)], m[-10, -20]
       assert_equal 1, count_all_chips(m)
     end

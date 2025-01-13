@@ -21,14 +21,13 @@ class Reight::MapEditor < Reight::App
 
   def draw()
     background 200
-    sprite *sprites
+    sprite(*sprites)
     super
   end
 
   def key_pressed()
     super
     shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
-    ch               = chips
     case key_code
     when LEFT  then canvas.x += SCREEN_WIDTH  / 2
     when RIGHT then canvas.x -= SCREEN_WIDTH  / 2
@@ -195,7 +194,7 @@ class Reight::MapEditor::Canvas
 
     fill 0, 0, 0
     no_stroke
-    rect -@x, -@y, sp.w, sp.h
+    rect(-@x, -@y, sp.w, sp.h)
 
     draw_grids
 
@@ -208,7 +207,7 @@ class Reight::MapEditor::Canvas
       no_fill
       stroke 255, 255, 255
       stroke_weight 1
-      rect *@cursor
+      rect(*@cursor)
     end
   end
 
