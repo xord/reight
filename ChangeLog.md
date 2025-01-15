@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.3] - 2025-01-15
+
+- Refactoring: create_world() -> SpriteWorld.new()
+
+
 ## [v0.1.2] - 2025-01-14
 
 - User can change the file name of user scripts
