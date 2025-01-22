@@ -14,7 +14,7 @@ end
 
 Reight::CONTEXT__.tap do |c|
   path = ARGV.shift or return puts usage
-  path = File.expant_path path, Dir.pwd if path.start_with?('/')
+  path = File.expand_path path, Dir.pwd unless path.start_with?('/')
   c.setup          {Reight::R8.new(path).setup}
   c.draw           {r8.draw}
   c.key_pressed    {r8.key_pressed}
