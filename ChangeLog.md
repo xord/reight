@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.4] - 2025-01-23
+
+- On Windows, the 'path' environment variable is confused with 'PATH', so change it
+
+
 ## [v0.1.3] - 2025-01-15
 
 - Refactoring: create_world() -> SpriteWorld.new()
