@@ -163,14 +163,9 @@ class Reight::Runner < Reight::App
       def removeSprite(...) = sprite_world__.removeSprite(...)
       def gravity(...)      = sprite_world__.gravity(...)
     end
-    Reight.to_snake_case(%i[
-      activated deactivated setup draw
-      keyPressed keyReleased keyRyped
-      mousePressed mouseReleased mouseMoved mouseDragged
-      mouseClicked doubleClicked mouseWheel
-      touchStarted touchEnded touchMoved
-      windowMoved windowResized
-    ]).each do |camel, snake|
+    Reight.to_snake_case(
+      %i[activated deactivated] + Processing::Context::EVENT_NAMES__
+    ).each do |camel, snake|
       klass.class_eval <<~END
         def #{camel}(&block)
           if block
