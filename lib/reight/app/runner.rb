@@ -163,8 +163,8 @@ class Reight::Runner < Reight::App
       def removeSprite(...) = sprite_world__.removeSprite(...)
       def gravity(...)      = sprite_world__.gravity(...)
     end
-    Reight.to_snake_case(
-      %i[activated deactivated] + Processing::Context::EVENT_NAMES__
+    Processing.to_snake_case__(
+      %i[activated deactivated] + Processing::EVENT_NAMES__
     ).each do |camel, snake|
       klass.class_eval <<~END
         def #{camel}(&block)
@@ -223,7 +223,7 @@ class Reight::Runner < Reight::App
         super name, *args, **kwargs, &block
       end
     end
-    Reight.to_snake_case(%i[
+    Processing.to_snake_case__(%i[
       project createSprite addSprite removeSprite gravity
     ]).each do |camel, snake|
       klass.define_method(camel) {|*a, **k, &b| context.public_send camel, *a, **k, &b}
