@@ -1,3 +1,7 @@
+require 'json'
+require 'rubysketch/all'
+
+
 module Reight
   Processing.alias_snake_case_methods__ Processing
   Processing.alias_snake_case_methods__ RubySketch

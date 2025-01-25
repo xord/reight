@@ -1,5 +1,3 @@
-require 'json'
-require 'rubysketch/all'
 require 'reight/all'
 
 
