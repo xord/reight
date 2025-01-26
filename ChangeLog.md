@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.5] - 2025-01-27
+
+- Update dependencies
+
+
 ## [v0.1.4] - 2025-01-23
 
 - On Windows, the 'path' environment variable is confused with 'PATH', so change it
