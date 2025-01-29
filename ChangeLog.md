@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.6] - 2025-01-30
+
+- Update dependencies: processing, rubysketch
+
+
 ## [v0.1.5] - 2025-01-27
 
 - Update dependencies

@@ -30,8 +30,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'beeps',      '~> 0.3.3', '>= 0.3.3'
   s.add_dependency 'rays',       '~> 0.3.3', '>= 0.3.3'
   s.add_dependency 'reflexion',  '~> 0.3.3', '>= 0.3.3'
-  s.add_dependency 'processing', '~> 1.1',   '>= 1.1.4'
-  s.add_dependency 'rubysketch', '~> 0.7.5', '>= 0.7.5'
+  s.add_dependency 'processing', '~> 1.1',   '>= 1.1.5'
+  s.add_dependency 'rubysketch', '~> 0.7.6', '>= 0.7.6'
 
   s.files            = `git ls-files`.split $/
   s.executables      = s.files.grep(%r{^bin/}) {|f| File.basename f}
