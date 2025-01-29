@@ -6,13 +6,13 @@ module Reight
   Processing.alias_snake_case_methods__ Processing
   Processing.alias_snake_case_methods__ RubySketch
 
-  WINDOW__, CONTEXT__, funcs, events = Processing.setup__ RubySketch
+  WINDOW__, CONTEXT__ = Processing.setup__ RubySketch
 
   refine Object do
-    events = Processing.to_snake_case__(Processing::EVENT_NAMES__).flatten.uniq
-    (funcs - events).each do |func|
+    context = CONTEXT__
+    (Processing.funcs__(context) - Processing.events__(context)).each do |func|
       define_method func do |*args, **kwargs, &block|
-        CONTEXT__.__send__ func, *args, **kwargs, &block
+        context.__send__ func, *args, **kwargs, &block
       end
     end
   end
