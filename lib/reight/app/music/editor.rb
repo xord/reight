@@ -90,4 +90,5 @@ class Reight::MusicEditor < Reight::App
 
   def brush  = @brush  ||= Brush.new(self)  {canvas.tool = _1}
   def eraser = @eraser ||= Eraser.new(self) {canvas.tool = _1}
+
 end# MusicEditor

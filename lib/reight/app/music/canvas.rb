@@ -29,7 +29,7 @@ class Reight::MusicEditor::Canvas
 
   def note_pos_at(x, y)
     sp         = sprite
-    notew      = sprite.w / NOTES_LEN
+    notew      = sp.w / NOTES_LEN
     noteh      = sp.h / (NOTE_MAX - NOTE_MIN)
     time_index = (x / notew).to_i
     note_index = NOTE_MIN + ((sp.h - y) / noteh).ceil.clamp(0, NOTE_MAX)
