@@ -80,8 +80,6 @@ class Reight::MusicEditor < Reight::App
       Reight::Button.new name: name, label: name do
         canvas.tone = tone
         flash "Tone: #{name}"
-      end.tap do |b|
-        canvas.tone_changed {b.active = _1 == tone}
       end
     })
   end

@@ -6,7 +6,7 @@ class Reight::SpriteEditor::Canvas
   include Reight::Hookable
 
   def initialize(app, image, path)
-    hook :tool_changed, :color_changed
+    hook :color_changed
 
     @app, @image, @path       = app, image, path
     @tool, @color, @selection = nil, [255, 255, 255], nil
@@ -16,7 +16,9 @@ class Reight::SpriteEditor::Canvas
     end
   end
 
-  attr_reader :x, :y, :w, :h, :tool, :color
+  attr_accessor :tool
+
+  attr_reader :x, :y, :w, :h, :color
 
   def width  = @image.width
 
@@ -25,11 +27,6 @@ class Reight::SpriteEditor::Canvas
   def save()
     @image.save @path
     @app.project.save
-  end
-
-  def tool=(tool)
-    @tool = tool
-    tool_changed! tool
   end
 
   def set_frame(x, y, w, h)

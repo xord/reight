@@ -7,11 +7,7 @@ class Reight::SpriteEditor < Reight::App
     @canvas ||= Canvas.new(
       self,
       project.chips_image,
-      project.chips_image_path
-    ).tap do |canvas|
-      canvas. tool_changed {update_active_tool}
-      canvas.color_changed {update_active_color}
-    end
+      project.chips_image_path)
   end
 
   def activated()
@@ -222,7 +218,11 @@ class Reight::SpriteEditor < Reight::App
     @colors ||= project.palette_colors.map {|color|
       rgb = self.color(color)
         .then {[red(_1), green(_1), blue(_1), alpha(_1)]}.map &:to_i
-      Color.new(rgb) {canvas.color = rgb}
+      Color.new(rgb) do
+        canvas.color = rgb
+      end.tap do |c|
+        canvas.color_changed {c.active = _1 == rgb}
+      end
     }
   end
 
@@ -255,18 +255,6 @@ class Reight::SpriteEditor < Reight::App
     chip = project.chips.at x, y, w, h
     shapes[[nil, :rect, :circle].index(chip.shape)].click
     types[chip.sensor? ? 1 : 0].click
-  end
-
-  def update_active_tool()
-    tools.each do |tool|
-      tool.active = tool == canvas.tool
-    end
-  end
-
-  def update_active_color()
-    colors.each do |button|
-      button.active = button.color == canvas.color
-    end
   end
 
 end# SpriteEditor

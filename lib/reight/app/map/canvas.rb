@@ -3,26 +3,17 @@ using Reight
 
 class Reight::MapEditor::Canvas
 
-  include Reight::Hookable
-
   def initialize(app, map, path)
-    hook :tool_changed
-
     @app, @map, @path      = app, map, path
     @x, @y, @tool, @cursor = 0, 0, nil, nil, nil
   end
 
-  attr_accessor :x, :y
+  attr_accessor :x, :y, :tool
 
-  attr_reader :map, :tool, :cursor
+  attr_reader :map, :cursor
 
   def save()
     @app.project.save
-  end
-
-  def tool=(tool)
-    @tool = tool
-    tool_changed! tool
   end
 
   def set_cursor(x, y, w, h)

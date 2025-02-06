@@ -3,28 +3,17 @@ using Reight
 
 class Reight::MusicEditor::Canvas
 
-  include Reight::Hookable
-
   NOTE_MIN   = 36
   NOTE_MAX   = NOTE_MIN + 64
   NOTES_LEN  = 32
 
   def initialize(app)
-    hook :tone_changed, :tool_changed
     @app, @music = app, Reight::Music.new(480)
   end
 
+  attr_accessor :tone, :tool
+
   attr_reader :music, :tone, :tool
-
-  def tone=(tone)
-    @tone = tone
-    tone_changed! tone
-  end
-
-  def tool=(tool)
-    @tool = tool
-    tool_changed! tool
-  end
 
   def begin_editing(&block)
     @app.history.begin_grouping
