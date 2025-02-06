@@ -136,7 +136,7 @@ class Reight::MusicEditor::Canvas
   end
 
   def note_name(y)
-    note_i, = note_pos_at 0, y
+    _, note_i = note_pos_at 0, y
     Reight::Music::Note.new(note_i).to_s.split(':').first.capitalize
   end
 
