@@ -25,6 +25,10 @@ class Reight::MusicEditor < Reight::App
     super
     case key_code
     when :space then canvas.music.play
+    when :b     then  brush.click
+    when :e     then eraser.click
+    when /^[#{(1..Reight::Music::TONES.size).to_a.join}]$/
+      tones[key_code.to_s.to_i - 1].click
     end
   end
 
