@@ -4,7 +4,7 @@ using Reight
 class Reight::MapEditor::Line < Reight::MapEditor::BrushBase
 
   def initialize(app, &block)
-    super app, icon: app.icon(3, 2, 8), &block
+    super app, icon: app.icon(4, 2, 8), &block
     set_help left: name, right: 'Pick Chip'
   end
 

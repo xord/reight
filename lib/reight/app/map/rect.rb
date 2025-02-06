@@ -5,7 +5,7 @@ class Reight::MapEditor::Rect < Reight::MapEditor::BrushBase
 
   def initialize(app, fill:, &block)
     @fill = fill
-    super app, icon: app.icon(fill ? 5 : 4, 2, 8), &block
+    super app, icon: app.icon(fill ? 6 : 5, 2, 8), &block
     set_help left: "#{fill ? 'Fill' : 'Stroke'} #{name}", right: 'Pick Chip'
   end
 

@@ -6,7 +6,7 @@ class Reight::SpriteEditor::Shape < Reight::SpriteEditor::Tool
   def initialize(app, shape, fill, &block)
     @shape, @fill = shape, fill
     icon_index = [:rect, :ellipse].product([false, true]).index([shape, fill])
-    super app, icon: app.icon(icon_index + 4, 2, 8), &block
+    super app, icon: app.icon(icon_index + 5, 2, 8), &block
     set_help left: name, right: 'Pick Color'
   end
 
