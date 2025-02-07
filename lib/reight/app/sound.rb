@@ -1,1 +1,5 @@
-require 'reight/app/sound/editor'
+require 'reight/app/music/editor'
+require 'reight/app/music/canvas'
+require 'reight/app/music/tool'
+require 'reight/app/music/brush'
+require 'reight/app/music/eraser'
