@@ -112,7 +112,7 @@ class Reight::Music
       sec  = self.class.seconds 4, bpm
       seq  = Beeps::Sequencer.new.tap {_1.add osc, 0, sec}
       gain = Beeps::Gain.new gain: 0.5
-      Sound.new Beeps::Sound.new(seq >> gain, sec)
+      RubySketch::Sound.new Beeps::Sound.new(seq >> gain, sec)
     end
 
     def self.oscillator(type, size, **kwargs)
@@ -149,7 +149,7 @@ class Reight::Music
   private
 
   def to_sound()
-    Sound.new Beeps::Sound.new(*sequencer)
+    RubySketch::Sound.new Beeps::Sound.new(*sequencer)
   end
 
   def sequencer()
