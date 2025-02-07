@@ -1,4 +1,4 @@
-class Reight::MusicEditor::Brush < Reight::MusicEditor::Tool
+class Reight::SoundEditor::Brush < Reight::SoundEditor::Tool
 
   def initialize(app, &block)
     super app, icon: app.icon(1, 2, 8), &block

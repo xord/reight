@@ -1,4 +1,4 @@
-class Reight::Music
+class Reight::Sound
 
   include Enumerable
 
@@ -168,4 +168,4 @@ class Reight::Music
     return seq >> Beeps::Gain.new(gain: 0.5), time
   end
 
-end# Music
+end# Sound

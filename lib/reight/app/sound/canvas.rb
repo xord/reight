@@ -1,19 +1,19 @@
 using Reight
 
 
-class Reight::MusicEditor::Canvas
+class Reight::SoundEditor::Canvas
 
   NOTE_MIN   = 36
   NOTE_MAX   = NOTE_MIN + 64
   NOTES_LEN  = 32
 
   def initialize(app)
-    @app, @music = app, app.project.musics.first
+    @app, @sound = app, app.project.sounds.first
   end
 
   attr_accessor :tone, :tool
 
-  attr_reader :music, :tone, :tool
+  attr_reader :sound, :tone, :tool
 
   def save()
     @app.project.save
@@ -43,7 +43,7 @@ class Reight::MusicEditor::Canvas
   def put(x, y)
     time_i, note_i = note_pos_at x, y
 
-    @music.each_note(time_index: time_i)
+    @sound.each_note(time_index: time_i)
       .select {|note,| (note.index == note_i) != (note.tone == tone)}
       .each   {|note,| remove_note time_i, note.index, note.tone}
     add_note time_i, note_i, tone
@@ -53,7 +53,7 @@ class Reight::MusicEditor::Canvas
 
   def delete(x, y)
     time_i, note_i = note_pos_at x, y
-    note           = @music.at time_i, note_i
+    note           = @sound.at time_i, note_i
     return unless note
 
     remove_note time_i, note_i, note.tone
@@ -76,15 +76,15 @@ class Reight::MusicEditor::Canvas
   private
 
   def add_note(ti, ni, tone)
-    return if @music.at(ti, ni)&.tone == tone
-    @music.add ti, ni, tone
-    @music.at(ti, ni)&.play @music.bpm
+    return if @sound.at(ti, ni)&.tone == tone
+    @sound.add ti, ni, tone
+    @sound.at(ti, ni)&.play @sound.bpm
     @app.history.append [:put_note, ti, ni, tone]
   end
 
   def remove_note(ti, ni, tone)
-    #@music.at(ti, ni)&.play @music.bpm
-    @music.remove ti, ni
+    #@sound.at(ti, ni)&.play @sound.bpm
+    @sound.remove ti, ni
     @app.history.append [:delete_note, ti, ni, tone]
   end
 
@@ -115,8 +115,8 @@ class Reight::MusicEditor::Canvas
   def draw_notes()
     sp           = sprite
     notew, noteh = sp.w / NOTES_LEN, sp.h / (NOTE_MAX - NOTE_MIN)
-    @music.each_note do |note, index|
-      fill @app.project.palette_colors[8 + Reight::Music::TONES.index(note.tone)]
+    @sound.each_note do |note, index|
+      fill @app.project.palette_colors[8 + Reight::Sound::TONES.index(note.tone)]
       rect index * notew, sp.h - (note.index - NOTE_MIN) * noteh, notew, noteh
     end
   end
@@ -144,7 +144,7 @@ class Reight::MusicEditor::Canvas
 
   def note_name(y)
     _, note_i = note_pos_at 0, y
-    Reight::Music::Note.new(note_i).to_s.split(':').first.capitalize
+    Reight::Sound::Note.new(note_i).to_s.split(':').first.capitalize
   end
 
 end# Canvas

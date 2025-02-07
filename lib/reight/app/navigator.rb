@@ -86,9 +86,6 @@ class Reight::Navigator
       Reight::Button.new(name: 'Sound Editor',  icon: @app.icon(3, 0, 8)) {
         switch_app Reight::SoundEditor
       },
-      Reight::Button.new(name: 'Music Editor',  icon: @app.icon(4, 0, 8)) {
-        switch_app Reight::MusicEditor
-      },
     ]
   end
 

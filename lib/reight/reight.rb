@@ -26,8 +26,7 @@ class Reight::R8
       Reight::Runner.new(project),
       Reight::SpriteEditor.new(project),
       Reight::MapEditor.new(project),
-      Reight::SoundEditor.new(project),
-      Reight::MusicEditor.new(project)
+      Reight::SoundEditor.new(project)
     ]
   end
 

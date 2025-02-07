@@ -1,7 +1,7 @@
 using Reight
 
 
-class Reight::MusicEditor::Tool < Reight::Button
+class Reight::SoundEditor::Tool < Reight::Button
 
   def initialize(app, *a, **k, &b)
     super(*a, **k, &b)

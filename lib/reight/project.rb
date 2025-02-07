@@ -55,12 +55,12 @@ class Reight::Project
     @maps ||= load_maps
   end
 
-  def musics_json_name = settings[__method__] || 'musics.json'
+  def sounds_json_name = settings[__method__] || 'sounds.json'
 
-  def musics_json_path = "#{project_dir}/#{musics_json_name}"
+  def sounds_json_path = "#{project_dir}/#{sounds_json_name}"
 
-  def musics()
-    @musics ||= load_musics
+  def sounds()
+    @sounds ||= load_sounds
   end
 
   def font           = @font ||= create_font(nil, font_size)
@@ -76,7 +76,7 @@ class Reight::Project
     File.write project_path, to_json_string(@settings)
     save_chips
     save_maps
-    save_musics
+    save_sounds
   end
 
   private
@@ -113,16 +113,16 @@ class Reight::Project
     end
   end
 
-  def save_musics()
-    File.write musics_json_path, to_json_string(musics.map {_1.to_hash})
+  def save_sounds()
+    File.write sounds_json_path, to_json_string(sounds.map {_1.to_hash})
   end
 
-  def load_musics()
-    if File.file? musics_json_path
-      json = JSON.parse File.read(musics_json_path), symbolize_names: true
-      json.map {Reight::Music.restore _1}
+  def load_sounds()
+    if File.file? sounds_json_path
+      json = JSON.parse File.read(sounds_json_path), symbolize_names: true
+      json.map {Reight::Sound.restore _1}
     else
-      [Reight::Music.new]
+      [Reight::Sound.new]
     end
   end
 
