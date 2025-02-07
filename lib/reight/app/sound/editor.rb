@@ -24,10 +24,10 @@ class Reight::SoundEditor < Reight::App
   def key_pressed()
     super
     case key_code
-    when :space then canvas.sound.play
-    when :b     then  brush.click
-    when :e     then eraser.click
-    when /^[#{(1..Reight::Sound::TONES.size).to_a.join}]$/
+    when ENTER then canvas.sound.play
+    when :b    then  brush.click
+    when :e    then eraser.click
+    when /^[#{(1..Reight::Sound::Note::TONES.size).to_a.join}]$/
       tones[key_code.to_s.to_i - 1].click
     end
   end
@@ -86,7 +86,7 @@ class Reight::SoundEditor < Reight::App
   def eraser = @eraser ||= Eraser.new(self) {canvas.tool = _1}
 
   def tones()
-    @tones ||= group(*Reight::Sound::TONES.map.with_index {|tone, index|
+    @tones ||= group(*Reight::Sound::Note::TONES.map.with_index {|tone, index|
       name  = tone.to_s.capitalize.gsub('_', '.')
       name += ' Wave' if name !~ /noise/i
       Reight::Button.new name: name, icon: icon(index, 3, 8) do

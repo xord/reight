@@ -3,12 +3,12 @@ using Reight
 
 class Reight::SoundEditor::Canvas
 
-  NOTE_MIN   = 36
-  NOTE_MAX   = NOTE_MIN + 64
-  NOTES_LEN  = 32
+  SEQUENCE_LEN = 32
+  NOTE_HEIGHT  = 3
 
   def initialize(app)
     @app, @sound = app, app.project.sounds.first
+    @scrolly     = NOTE_HEIGHT * Reight::Sound::Note::MAX / 3
   end
 
   attr_accessor :tone, :tool
@@ -33,10 +33,10 @@ class Reight::SoundEditor::Canvas
 
   def note_pos_at(x, y)
     sp         = sprite
-    notew      = sp.w / NOTES_LEN
-    noteh      = sp.h / (NOTE_MAX - NOTE_MIN)
+    notew      = sp.w / SEQUENCE_LEN
     time_index = (x / notew).to_i
-    note_index = NOTE_MIN + ((sp.h - y) / noteh).ceil.clamp(0, NOTE_MAX)
+    note_index = ((sp.h - y + @scrolly) / NOTE_HEIGHT)
+      .floor.clamp(0, Reight::Sound::Note::MAX)
     return time_index, note_index
   end
 
@@ -96,37 +96,39 @@ class Reight::SoundEditor::Canvas
     fill 0
     rect 0, 0, sp.w, sp.h
 
+    translate 0, @scrolly
     draw_grids
     draw_notes
   end
 
-  COLORS = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]
+  GRID_COLORS = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]
     .map.with_index {|n, i| i == 0 ? 100 : (n == 1 ? 80 : 60)}
 
   def draw_grids()
     sp    = sprite
-    noteh = sp.h / (NOTE_MAX - NOTE_MIN)
-    (0..sp.h).step(noteh).each.with_index do |y, index|
-      fill COLORS[(NOTE_MIN + index) % COLORS.size]
-      rect 0, sp.h - y, sp.w, -noteh
+    noteh = NOTE_HEIGHT
+    (0..Reight::Sound::Note::MAX).each.with_index do |y, index|
+      fill GRID_COLORS[index % GRID_COLORS.size]
+      rect 0, sp.h - y * noteh, sp.w, -noteh
     end
   end
 
   def draw_notes()
     sp           = sprite
-    notew, noteh = sp.w / NOTES_LEN, sp.h / (NOTE_MAX - NOTE_MIN)
+    notew, noteh = sp.w / SEQUENCE_LEN, NOTE_HEIGHT
     @sound.each_note do |note, index|
-      fill @app.project.palette_colors[8 + Reight::Sound::TONES.index(note.tone)]
-      rect index * notew, sp.h - (note.index - NOTE_MIN) * noteh, notew, noteh
+      palette = 8 + Reight::Sound::Note::TONES.index(note.tone)
+      fill @app.project.palette_colors[palette]
+      rect index * notew, sp.h - note.index * noteh, notew, noteh
     end
   end
 
   def mouse_pressed(...)
-    tool&.canvas_pressed(...)
+    tool&.canvas_pressed(...)  unless hand?
   end
 
   def mouse_released(...)
-    tool&.canvas_released(...)
+    tool&.canvas_released(...) unless hand?
   end
 
   def mouse_moved(x, y)
@@ -135,12 +137,19 @@ class Reight::SoundEditor::Canvas
   end
 
   def mouse_dragged(...)
-    tool&.canvas_dragged(...)
+    if hand?
+      sp        = sprite
+      @scrolly += sp.mouse_y - sp.pmouse_y
+    else
+      tool&.canvas_dragged(...)
+    end
   end
 
   def mouse_clicked(...)
-    tool&.canvas_clicked(...)
+    tool&.canvas_clicked(...) unless hand?
   end
+
+  def hand? = @app.pressing?(SPACE)
 
   def note_name(y)
     _, note_i = note_pos_at 0, y
