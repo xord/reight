@@ -34,19 +34,19 @@ class Reight::SoundEditor < Reight::App
 
   def window_resized()
     super
-    tones.map(&:sprite).each.with_index do |sp, index|
-      sp.w, sp.h = 30, BUTTON_SIZE
-      sp.x       = SPACE + (sp.w + 1) * index
-      sp.y       = NAVIGATOR_HEIGHT + SPACE
-    end
     tools.map(&:sprite).each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
       sp.x        = SPACE + (sp.w + 1) * index
       sp.y        = height - (SPACE + sp.h)
     end
+    tones.map(&:sprite).each.with_index do |sp, index|
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x        = tools.last.sprite.right + SPACE * 2 + (sp.w + 1) * index
+      sp.y        = tools.last.sprite.y
+    end
     canvas.sprite.tap do |sp|
       sp.x      = SPACE
-      sp.y      = tones.first.sprite.bottom + SPACE
+      sp.y      = NAVIGATOR_HEIGHT + SPACE
       sp.right  = width  - SPACE
       sp.bottom = tools.first.sprite.y - SPACE
     end
@@ -78,21 +78,21 @@ class Reight::SoundEditor < Reight::App
     [*tones, *tools, canvas].map(&:sprite) + super
   end
 
-  def tones()
-    @tones ||= group(*Reight::Sound::TONES.map {|tone|
-      name = tone.to_s.capitalize
-      Reight::Button.new name: name, label: name do
-        canvas.tone = tone
-        flash "Tone: #{name}"
-      end
-    })
-  end
-
   def tools()
     @tools ||= group brush, eraser
   end
 
   def brush  = @brush  ||= Brush.new(self)  {canvas.tool = _1}
   def eraser = @eraser ||= Eraser.new(self) {canvas.tool = _1}
+
+  def tones()
+    @tones ||= group(*Reight::Sound::TONES.map.with_index {|tone, index|
+      name  = tone.to_s.capitalize.gsub('_', '.')
+      name += ' Wave' if name !~ /noise/i
+      Reight::Button.new name: name, icon: icon(index, 3, 8) do
+        canvas.tone = tone
+      end
+    })
+  end
 
 end# SoundEditor
