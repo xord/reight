@@ -4,9 +4,9 @@ require 'reight/all'
 begin
   w, c = Reight::WINDOW__, Reight::CONTEXT__
 
-  c.class.constants.reject {_1 =~ /__$/}.each do |const|
-    self.class.const_set const, c.class.const_get(const)
-  end
+  c.class.constants
+    .reject {_1 =~ /__$/}
+    .each   {self.class.const_set _1, c.class.const_get(_1)}
 
   w.__send__ :begin_draw
   at_exit do
