@@ -9,8 +9,8 @@ class Reight::Music
   ]
 
   def initialize(bpm = 120)
-    @bpm   = bpm
-    @notes = [[]]
+    @bpm      = bpm
+    @sequence = [[]]
   end
 
   attr_accessor :bpm
@@ -21,25 +21,25 @@ class Reight::Music
 
   def add_note(time_index, note_index, tone)
     raise 'The note already exists' if note_at time_index, note_index
-    (@notes[time_index] ||= []) << Note.new(note_index, tone)
+    (@sequence[time_index] ||= []) << Note.new(note_index, tone)
   end
 
   def remove_note(time_index, note_index)
-    @notes[time_index]&.delete_if {_1.index == note_index}
+    @sequence[time_index]&.delete_if {_1.index == note_index}
   end
 
   def note_at(time_index, note_index)
-    @notes[time_index]&.find {_1.index == note_index}
+    @sequence[time_index]&.find {_1.index == note_index}
   end
 
   def each_note(time_index: nil, &block)
     return enum_for :each_note, time_index: time_index unless block
     if time_index
-      @notes[time_index]&.each do |note|
+      @sequence[time_index]&.each do |note|
         block.call note, time_index
       end
     else
-      @notes.each.with_index do |notes, time_i|
+      @sequence.each.with_index do |notes, time_i|
         notes&.each do |note|
           block.call note, time_i
         end
@@ -52,21 +52,21 @@ class Reight::Music
   alias     at        note_at
   alias   each   each_note
 
-  def empty? = @notes.all? {!_1 || _1.empty?}
+  def empty? = @sequence.all? {!_1 || _1.empty?}
 
   def to_hash()
     {
-      bpm:   @bpm,
-      notes: @notes.map {|notes| notes&.map {_1.to_hash}}
+      bpm:      @bpm,
+      sequence: @sequence.map {|notes| notes&.map {_1.to_hash}}
     }
   end
 
   def self.restore(hash)
-    hash => {bpm:, notes:}
+    hash => {bpm:, sequence:}
     new(bpm).tap do |obj|
       obj.instance_eval do
-        @notes = notes.map do |notes_|
-          notes_&.map {Note.restore _1}
+        @sequence = sequence.map do |notes|
+          notes&.map {Note.restore _1}
         end
       end
     end
@@ -155,7 +155,7 @@ class Reight::Music
   def sequencer()
     seq  = Beeps::Sequencer.new
     time = 0
-    @notes.each do |notes|
+    @sequence.each do |notes|
       sec   = Note.seconds 4, @bpm
       notes&.each do |note|
         osc       = Note.oscillator note.tone, 32
