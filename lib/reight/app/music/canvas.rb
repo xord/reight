@@ -44,7 +44,7 @@ class Reight::MusicEditor::Canvas
     time_i, note_i = note_pos_at x, y
 
     @music.each_note(time_index: time_i)
-      .select {|note,| note.index == note_i || note.tone == tone}
+      .select {|note,| (note.index == note_i) != (note.tone == tone)}
       .each   {|note,| remove_note time_i, note.index, note.tone}
     add_note time_i, note_i, tone
 
@@ -76,11 +76,14 @@ class Reight::MusicEditor::Canvas
   private
 
   def add_note(ti, ni, tone)
+    return if @music.at(ti, ni)&.tone == tone
     @music.add ti, ni, tone
+    @music.at(ti, ni)&.play @music.bpm
     @app.history.append [:put_note, ti, ni, tone]
   end
 
   def remove_note(ti, ni, tone)
+    #@music.at(ti, ni)&.play @music.bpm
     @music.remove ti, ni
     @app.history.append [:delete_note, ti, ni, tone]
   end
@@ -104,7 +107,7 @@ class Reight::MusicEditor::Canvas
     sp    = sprite
     noteh = sp.h / (NOTE_MAX - NOTE_MIN)
     (0..sp.h).step(noteh).each.with_index do |y, index|
-      fill COLORS[index % COLORS.size]
+      fill COLORS[(NOTE_MIN + index) % COLORS.size]
       rect 0, sp.h - y, sp.w, -noteh
     end
   end
