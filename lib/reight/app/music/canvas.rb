@@ -8,12 +8,16 @@ class Reight::MusicEditor::Canvas
   NOTES_LEN  = 32
 
   def initialize(app)
-    @app, @music = app, Reight::Music.new(480)
+    @app, @music = app, app.project.musics.first
   end
 
   attr_accessor :tone, :tool
 
   attr_reader :music, :tone, :tool
+
+  def save()
+    @app.project.save
+  end
 
   def begin_editing(&block)
     @app.history.begin_grouping
@@ -24,7 +28,7 @@ class Reight::MusicEditor::Canvas
 
   def end_editing()
     @app.history.end_grouping
-    #save
+    save
   end
 
   def note_pos_at(x, y)

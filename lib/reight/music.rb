@@ -54,6 +54,24 @@ class Reight::Music
 
   def empty? = @notes.all? {!_1 || _1.empty?}
 
+  def to_hash()
+    {
+      bpm:   @bpm,
+      notes: @notes.map {|notes| notes&.map {_1.to_hash}}
+    }
+  end
+
+  def self.restore(hash)
+    hash => {bpm:, notes:}
+    new(bpm).tap do |obj|
+      obj.instance_eval do
+        @notes = notes.map do |notes_|
+          notes_&.map {Note.restore _1}
+        end
+      end
+    end
+  end
+
   class Note
 
     def initialize(index, tone = TONES.first)
@@ -79,6 +97,15 @@ class Reight::Music
 
     def to_s()
       "#{INDEX2NOTE[@index]}:#{@tone}"
+    end
+
+    def to_hash()
+      {index: @index, tone: TONES.index(@tone)}
+    end
+
+    def self.restore(hash)
+      hash => {index:, tone:}
+      new index, TONES[tone]
     end
 
   end# Note
