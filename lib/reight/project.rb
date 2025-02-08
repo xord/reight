@@ -17,7 +17,9 @@ class Reight::Project
   def code_paths   = settings[__method__]&.then {[_1].flatten} || ['game.rb']
 
   def codes()
-    code_paths.map {File.read _1 rescue nil}
+    code_paths
+      .map {File.expand_path _1, project_dir}
+      .map {File.read _1 rescue nil}
   end
 
   def chips_json_name   = settings[__method__] || 'chips.json'
