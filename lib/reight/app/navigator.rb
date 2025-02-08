@@ -18,7 +18,7 @@ class Reight::Navigator
   def visible? = @visible
 
   def sprites()
-    [*app_buttons, *history_buttons, *edit_buttons, message]
+    [*app_buttons, *control_buttons, *history_buttons, *edit_buttons, message]
       .map &:sprite
   end
 
@@ -36,10 +36,11 @@ class Reight::Navigator
   end
 
   def window_resized()
-    [app_buttons, history_buttons, edit_buttons].flatten.map(&:sprite).each do |sp|
-      sp.w = sp.h = Reight::App::NAVIGATOR_HEIGHT
-      sp.y = 0
-    end
+    [app_buttons, control_buttons, history_buttons, edit_buttons]
+      .flatten.map(&:sprite).each do |sp|
+        sp.w = sp.h = Reight::App::NAVIGATOR_HEIGHT
+        sp.y = 0
+      end
 
     space = Reight::App::SPACE
     x     = space
@@ -47,20 +48,30 @@ class Reight::Navigator
     app_buttons.map {_1.sprite}.each do |sp|
       sp.x = x + 1
       x    = sp.right
+    end.tap do
+      x += space unless _1.empty?
     end
-    x += space
+
+    control_buttons.map {_1.sprite}.each do |sp|
+      sp.x = x + 1
+      x    = sp.right
+    end.tap do
+      x += space unless _1.empty?
+    end
 
     history_buttons.map {_1.sprite}.each do |sp|
       sp.x = x + 1
       x    = sp.right
+    end.tap do
+      x += space unless _1.empty?
     end
-    x += space unless history_buttons.empty?
 
     edit_buttons.map {_1.sprite}.each do |sp|
       sp.x = x + 1
       x    = sp.right
+    end.tap do
+      x += space unless _1.empty?
     end
-    x += space unless edit_buttons.empty?
 
     message.sprite.tap do |sp|
       sp.x     = x + space
@@ -89,43 +100,50 @@ class Reight::Navigator
     ]
   end
 
+  def control_buttons()
+    @control_buttons ||= [].tap do |buttons|
+      buttons << Reight::Button.new(name: 'Restart Game', label: 'Re') {
+        @app.restart
+      } if @app.respond_to? :restart
+    end
+  end
+
   def history_buttons()
-    @history_buttons ||= history_buttons? ? [
-      Reight::Button.new(name: 'Undo', icon: @app.icon(3, 1, 8)) {
+    @history_buttons ||= [].tap do |buttons|
+      next unless @app.respond_to? :undo
+      buttons << Reight::Button.new(name: 'Undo', icon: @app.icon(3, 1, 8)) {
         @app.undo flash: false
       }.tap {|b|
         b.enabled? {@app.history.can_undo?}
-      },
-      Reight::Button.new(name: 'Redo', icon: @app.icon(4, 1, 8)) {
+      }
+      buttons << Reight::Button.new(name: 'Redo', icon: @app.icon(4, 1, 8)) {
         @app.redo flash: false
       }.tap {|b|
         b.enabled? {@app.history.can_redo?}
       }
-    ] : []
+    end
   end
 
   def edit_buttons()
-    @edit_buttons ||= edit_buttons? ? [
-      Reight::Button.new(name: 'Cut',   icon: @app.icon(0, 1, 8)) {
+    @edit_buttons ||= [].tap do |buttons|
+      next unless @app.respond_to? :paste
+      buttons << Reight::Button.new(name: 'Cut',   icon: @app.icon(0, 1, 8)) {
         @app.cut   flash: false
       }.tap {|b|
         b.enabled? {@app.can_cut?}
-      },
-      Reight::Button.new(name: 'Copy',  icon: @app.icon(1, 1, 8)) {
+      }
+      buttons << Reight::Button.new(name: 'Copy',  icon: @app.icon(1, 1, 8)) {
         @app.copy  flash: false
       }.tap {|b|
         b.enabled? {@app.can_copy?}
-      },
-      Reight::Button.new(name: 'Paste', icon: @app.icon(2, 1, 8)) {
+      }
+      buttons << Reight::Button.new(name: 'Paste', icon: @app.icon(2, 1, 8)) {
         @app.paste flash: false
       }.tap {|b|
         b.enabled? {@app.can_paste?}
-      },
-    ] : []
+      }
+    end
   end
-
-  def history_buttons? = @app.respond_to? :undo
-  def    edit_buttons? = @app.respond_to? :cut
 
   def message()
     @message ||= Message.new

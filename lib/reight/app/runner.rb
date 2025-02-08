@@ -17,6 +17,11 @@ class Reight::Runner < Reight::App
     pause
   end
 
+  def restart()
+    deactivated
+    activated
+  end
+
   def draw()
     push do
       @context&.call_draw__ unless paused?
@@ -26,6 +31,7 @@ class Reight::Runner < Reight::App
 
   def key_pressed()
     super
+    return restart if key_code == F10
     @context&.key_pressed unless paused?
   end
 
