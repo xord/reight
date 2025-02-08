@@ -13,6 +13,10 @@ class Reight::Sound
     to_sound.play unless empty?
   end
 
+  def clear()
+    @sequence = [[]]
+  end
+
   def add_note(time_index, note_index, tone)
     raise 'The note already exists' if note_at time_index, note_index
     (@sequence[time_index] ||= []) << Note.new(note_index, tone)

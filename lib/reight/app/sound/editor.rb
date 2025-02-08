@@ -34,19 +34,29 @@ class Reight::SoundEditor < Reight::App
 
   def window_resized()
     super
-    tools.map(&:sprite).each.with_index do |sp, index|
+    index.sprite.tap do |sp|
+      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.x       = SPACE
+      sp.y       = NAVIGATOR_HEIGHT + SPACE
+    end
+    edits.map(&:sprite).each.with_index do |sp, i|
+      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.x       = index.sprite.right + SPACE + (sp.w + 1) * i
+      sp.y       = index.sprite.y
+    end
+    tools.map(&:sprite).each.with_index do |sp, i|
       sp.w = sp.h = BUTTON_SIZE
-      sp.x        = SPACE + (sp.w + 1) * index
+      sp.x        = SPACE + (sp.w + 1) * i
       sp.y        = height - (SPACE + sp.h)
     end
-    tones.map(&:sprite).each.with_index do |sp, index|
+    tones.map(&:sprite).each.with_index do |sp, i|
       sp.w = sp.h = BUTTON_SIZE
-      sp.x        = tools.last.sprite.right + SPACE * 2 + (sp.w + 1) * index
+      sp.x        = tools.last.sprite.right + SPACE * 2 + (sp.w + 1) * i
       sp.y        = tools.last.sprite.y
     end
     canvas.sprite.tap do |sp|
       sp.x      = SPACE
-      sp.y      = NAVIGATOR_HEIGHT + SPACE
+      sp.y      = index.sprite.bottom + SPACE
       sp.right  = width  - SPACE
       sp.bottom = tools.first.sprite.y - SPACE
     end
@@ -75,7 +85,27 @@ class Reight::SoundEditor < Reight::App
   private
 
   def sprites()
-    [*tones, *tools, canvas].map(&:sprite) + super
+    [index, *edits, *tones, *tools, canvas].map(&:sprite) + super
+  end
+
+  def index()
+    @index ||= Reight::Index.new do |index|
+      canvas.sound = project.sounds[index] ||= Reight::Sound.new
+    end
+  end
+
+  def edits()
+    @edits ||= group(
+      Reight::Button.new(name: 'Clear All Notes', label: 'Clear') {
+        canvas.sound.clear
+        canvas.save
+      },
+      Reight::Button.new(name: 'Delete Sound', label: 'Delete') {
+        project.sounds.delete_at index.index
+        canvas.sound = project.sounds[index.index] ||= Reight::Sound.new
+        canvas.save
+      },
+    )
   end
 
   def tools()

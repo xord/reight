@@ -11,9 +11,7 @@ class Reight::SoundEditor::Canvas
     @scrolly     = NOTE_HEIGHT * Reight::Sound::Note::MAX / 3
   end
 
-  attr_accessor :tone, :tool
-
-  attr_reader :sound, :tone, :tool
+  attr_accessor :sound, :tone, :tool
 
   def save()
     @app.project.save
