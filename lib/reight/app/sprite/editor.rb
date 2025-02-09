@@ -28,7 +28,7 @@ class Reight::SpriteEditor < Reight::App
 
   def key_pressed()
     super
-    shift, ctrl, cmd = %i[shift control command].map {pressing? _1}
+    shift, ctrl, cmd = [SHIFT, CONTROL, COMMAND].map {pressing? _1}
     ch               = chips
     case key_code
     when LEFT  then ch.set_frame ch.x - ch.size, ch.y, ch.size, ch.size
