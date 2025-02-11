@@ -138,7 +138,7 @@ class Reight::Runner < Reight::App
     klass = Class.new do
       def project        = @project__
 
-      def sprite_world__ = @sprite_world__ ||= SpriteWorld.new(pixels_per_meter: 5)
+      def sprite_world__ = @sprite_world__ ||= SpriteWorld.new#(pixels_per_meter: 5)
 
       def call_activated__()
         add_world sprite_world__
