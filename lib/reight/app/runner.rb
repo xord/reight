@@ -1,14 +1,13 @@
-using Reight
-
-
 class Reight::Runner < Reight::App
+
+  CONTEXT        = Reight::CONTEXT__
 
   TEMPORARY_HASH = {}
 
   def activated()
-    super
     run force: true
     @context.call_activated__
+    super
   end
 
   def deactivated()
@@ -23,7 +22,7 @@ class Reight::Runner < Reight::App
   end
 
   def draw()
-    push do
+    CONTEXT.push do
       @context&.call_draw__ unless paused?
     end
     super
@@ -31,7 +30,7 @@ class Reight::Runner < Reight::App
 
   def key_pressed()
     super
-    return restart if key_code == F10
+    return restart if CONTEXT.key_code == F10
     @context&.key_pressed unless paused?
   end
 
@@ -58,7 +57,7 @@ class Reight::Runner < Reight::App
   def mouse_moved()
     super
     @context&.mouse_moved unless paused?
-    navigator.visible = mouse_y < NAVIGATOR_HEIGHT
+    navigator.visible = CONTEXT.mouse_y < NAVIGATOR_HEIGHT
   end
 
   def mouse_dragged()
@@ -127,7 +126,7 @@ class Reight::Runner < Reight::App
   end
 
   def cleanup()
-    remove_world @context.sprite_world__ if @context
+    CONTEXT.remove_world @context.sprite_world__ if @context
     @context = nil
     end_wrapping_user_classes
     restore_global_vars
@@ -168,20 +167,31 @@ class Reight::Runner < Reight::App
       def addSprite(...)    = sprite_world__.addSprite(...)
       def removeSprite(...) = sprite_world__.removeSprite(...)
       def gravity(...)      = sprite_world__.gravity(...)
-    end
-    Processing.to_snake_case__(
-      %i[activated deactivated] + Processing::EVENT_NAMES__
-    ).each do |camel, snake|
-      klass.class_eval <<~END
-        def #{camel}(&block)
-          if block
-            @#{camel}_block__ = block
-          else
-            @#{camel}_block__&.call
+
+      methods = instance_methods(false).reject {_1.end_with? '__'}
+      Processing.to_snake_case__(methods).each do |camel, snake|
+        alias_method snake, camel if snake != camel
+      end
+
+      Processing.to_snake_case__(
+        %i[activated deactivated] + Processing::EVENT_NAMES__
+      ).each do |camel, snake|
+        class_eval <<~END
+          def #{camel}(&block)
+            if block
+              @#{camel}_block__ = block
+            else
+              @#{camel}_block__&.call
+            end
           end
-        end
-      END
-      klass.alias_method snake, camel if snake != camel
+        END
+        alias_method snake, camel if snake != camel
+      end
+
+      Processing.funcs__(CONTEXT).each do |func|
+        next if method_defined? func
+        define_method(func) {|*a, **k, &b| CONTEXT.__send__ func, *a, **k, &b}
+      end
     end
     klass.new.tap do |context|
       context.instance_variable_set :@project__, project
@@ -213,27 +223,17 @@ class Reight::Runner < Reight::App
 
   def create_user_class_wrapper(context)
     Module.new.tap do |wrapper|
-      wrap_methods context, wrapper
-    end
-  end
-
-  def wrap_methods(context, klass)
-    klass.define_method :respond_to_missing? do |name, include_private = false|
-      context.respond_to?(name, false) || super(name, include_private)
-    end
-    klass.define_method :method_missing do |name, *args, **kwargs, &block|
-      if context.respond_to? name
-        klass.define_method(name) {|*a, **k, &b| context.public_send name, *a, **k, &b}
-        context.public_send name, *args, **kwargs, &block
-      else
-        super name, *args, **kwargs, &block
+      wrapper.define_method :respond_to_missing? do |name, include_private = false|
+        context.respond_to?(name, false) || super(name, include_private)
       end
-    end
-    Processing.to_snake_case__(%i[
-      project createSprite addSprite removeSprite gravity
-    ]).each do |camel, snake|
-      klass.define_method(camel) {|*a, **k, &b| context.public_send camel, *a, **k, &b}
-      klass.alias_method snake, camel if snake != camel
+      wrapper.define_method :method_missing do |name, *args, **kwargs, &block|
+        if context.respond_to? name
+          wrapper.define_method(name) {|*a, **k, &b| context.public_send name, *a, **k, &b}
+          context.public_send name, *args, **kwargs, &block
+        else
+          super name, *args, **kwargs, &block
+        end
+      end
     end
   end
 
