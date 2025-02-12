@@ -17,13 +17,13 @@ class Reight::MapEditor::Line < Reight::MapEditor::BrushBase
       dy           = fromy < toy ? chip.h : -chip.h
       if (tox - fromx).abs > (toy - fromy).abs
         (fromx..tox).step(dx).each do |x|
-          y = map x, fromx, tox, fromy, toy
+          y = fromy == toy ? toy : map(x, fromx, tox, fromy, toy)
           y = y / chip.h * chip.h
           result |= put_or_delete_chip x, y, chip
         end
       else
         (fromy..toy).step(dy).each do |y|
-          x = map y, fromy, toy, fromx, tox
+          x = fromx == tox ? tox : map(y, fromy, toy, fromx, tox)
           x = x / chip.w * chip.w
           result |= put_or_delete_chip x, y, chip
         end
