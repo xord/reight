@@ -2,6 +2,8 @@ class Reight::Runner < Reight::App
 
   CONTEXT        = Reight::CONTEXT__
 
+  TIMER_PREFIX   = '__r8__'
+
   TEMPORARY_HASH = {}
 
   def activated()
@@ -14,6 +16,7 @@ class Reight::Runner < Reight::App
     super
     @context.call_deactivated__
     pause
+    cleanup
   end
 
   def restart()
@@ -113,7 +116,6 @@ class Reight::Runner < Reight::App
 
   def run(force: false)
     return pause false if paused? && !force
-    cleanup
     backup_global_vars
     @context = create_context
     @paused  = false
@@ -129,6 +131,7 @@ class Reight::Runner < Reight::App
     CONTEXT.remove_world @context.sprite_world__ if @context
     @context = nil
     end_wrapping_user_classes
+    clear_all_timers
     restore_global_vars
     GC.enable
     GC.start
@@ -167,6 +170,16 @@ class Reight::Runner < Reight::App
       def addSprite(...)    = sprite_world__.addSprite(...)
       def removeSprite(...) = sprite_world__.removeSprite(...)
       def gravity(...)      = sprite_world__.gravity(...)
+
+      def setTimeout( *a, id: CONTEXT.nextTimerID__, **k, &b) =
+        CONTEXT.setTimeout( *a, id: [TIMER_PREFIX, id], **k, &b)
+
+      def setInterval(*a, id: CONTEXT.nextTimerID__, **k, &b) =
+        CONTEXT.setInterval(*a, id: [TIMER_PREFIX, id], **k, &b)
+
+      def clearTimer(   id) = CONTEXT.clearTimer(   [TIMER_PREFIX, id])
+      def clearTimeout( id) = CONTEXT.clearTimeout( [TIMER_PREFIX, id])
+      def clearInterval(id) = CONTEXT.clearInterval([TIMER_PREFIX, id])
 
       methods = instance_methods(false).reject {_1.end_with? '__'}
       Processing.to_snake_case__(methods).each do |camel, snake|
@@ -251,6 +264,13 @@ class Reight::Runner < Reight::App
     @global_vars = global_variables
       .each.with_object({}) {|name, hash| hash[name] = eval name.to_s}
       .freeze
+  end
+
+  def clear_all_timers()
+    CONTEXT.instance_eval do
+      @timers__      .delete_if {|id| id in [TIMER_PREFIX, _]}
+      @firingTimers__.delete_if {|id| id in [TIMER_PREFIX, _]}
+    end
   end
 
   def restore_global_vars()
