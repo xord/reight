@@ -15,6 +15,7 @@ class Reight::SpriteEditor::Color < Reight::Button
 
     fill(*color)
     no_stroke
+    blend_mode REPLACE
     rect 0, 0, sp.w, sp.h
 
     if active?

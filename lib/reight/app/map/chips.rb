@@ -25,8 +25,12 @@ class Reight::MapEditor::Chips
 
   def draw()
     sp = sprite
-
     clip sp.x, sp.y, sp.w, sp.h
+
+    fill 0
+    no_stroke
+    rect 0, 0, sp.w, sp.h
+
     translate(*clamp_offset(@offset).to_a)
     image @chips.image, 0, 0
 

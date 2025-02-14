@@ -41,7 +41,7 @@ class Reight::Project
   def chips_image()
     @chips_image ||= -> {
       create_graphics(chips_image_width, chips_image_height).tap do |g|
-        g.begin_draw {g.background 0, 0, 0}
+        g.begin_draw {g.background 0, 0, 0, 0}
         img = load_image chips_image_path
         g.begin_draw {g.image img, 0, 0}
       rescue Rays::RaysError
@@ -70,8 +70,8 @@ class Reight::Project
   def font_size      = 8
 
   def palette_colors = %w[
-    #000000 #1D2B53 #7E2553 #008751 #AB5236 #5F574F #C2C3C7 #FFF1E8
-    #FF004D #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
+    #00000000 #1D2B53 #7E2553 #008751 #AB5236 #5F574F #C2C3C7 #FFF1E8
+    #FF004D   #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
   ]
 
   def save()

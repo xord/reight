@@ -9,7 +9,7 @@ class Reight::SpriteEditor::Canvas
     hook :color_changed
 
     @app, @image, @path       = app, image, path
-    @tool, @color, @selection = nil, [255, 255, 255], nil
+    @tool, @color, @selection = nil, [255, 255, 255, 255], nil
 
     @app.history.disable do
       set_frame 0, 0, 16, 16
@@ -73,6 +73,7 @@ class Reight::SpriteEditor::Canvas
       g.clip(*(selection || frame))
       g.push do
         g.translate x, y
+        g.blend_mode REPLACE
         block.call g
       end
     end
@@ -82,13 +83,13 @@ class Reight::SpriteEditor::Canvas
     tmp = sub_image x, y, w, h
     tmp.update_pixels {|pixels| block.call pixels}
     @image.begin_draw do |g|
-      g.copy tmp, 0, 0, w, h, x, y, w, h
+      g.blend tmp, 0, 0, w, h, x, y, w, h, REPLACE
     end
   end
 
   def sub_image(x, y, w, h)
     create_graphics(w, h).tap do |g|
-      g.begin_draw {g.copy @image, x, y, w, h, 0, 0, w, h}
+      g.begin_draw {g.blend @image, x, y, w, h, 0, 0, w, h, REPLACE}
     end
   end
 
@@ -99,7 +100,7 @@ class Reight::SpriteEditor::Canvas
     [red(c), green(c), blue(c), alpha(c)].map &:to_i
   end
 
-  def clear(frame, color: [0, 0, 0])
+  def clear(frame, color:)
     paint do |g|
       g.fill(*color)
       g.no_stroke
@@ -124,7 +125,7 @@ class Reight::SpriteEditor::Canvas
     x, y, w, h = frame
     create_graphics(w, h).tap do |g|
       g.begin_draw do
-        g.copy @image, x, y, w, h, 0, 0, w, h
+        g.blend @image, x, y, w, h, 0, 0, w, h, REPLACE
       end
     end
   end
@@ -132,7 +133,7 @@ class Reight::SpriteEditor::Canvas
   def apply_frame(image, x, y)
     @image.begin_draw do |g|
       w, h = image.width, image.height
-      g.copy image, 0, 0, w, h, x, y, w, h
+      g.blend image, 0, 0, w, h, x, y, w, h, REPLACE
     end
     save
   end
@@ -168,6 +169,11 @@ class Reight::SpriteEditor::Canvas
   def draw()
     sp = sprite
     clip sp.x, sp.y, sp.w, sp.h
+
+    fill 0
+    no_stroke
+    rect 0, 0, sp.w, sp.h
+
     copy @image, x, y, w, h, 0, 0, sp.w, sp.h if @image && x && y && w && h
 
     sx, sy = sp.w / w, sp.h / h

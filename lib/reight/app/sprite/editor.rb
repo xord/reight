@@ -145,7 +145,7 @@ class Reight::SpriteEditor < Reight::App
       canvas.deselect
       canvas.begin_editing do
         canvas.paint do |g|
-          g.copy image, 0, 0, w, h, x, y, w, h
+          g.blend image, 0, 0, w, h, x, y, w, h, REPLACE
         end
       end
       canvas.select canvas.x + x, canvas.y + y, w, h

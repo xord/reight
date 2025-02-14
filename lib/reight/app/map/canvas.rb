@@ -67,7 +67,7 @@ class Reight::MapEditor::Canvas
     clip sp.x, sp.y, sp.w, sp.h
     translate @x, @y
 
-    fill 0, 0, 0
+    fill 0
     no_stroke
     rect(-@x, -@y, sp.w, sp.h)
 
