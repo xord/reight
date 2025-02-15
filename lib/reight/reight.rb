@@ -42,7 +42,6 @@ class Reight::R8
   end
 
   def current=(app)
-    return if app == @current
     @current&.deactivated
     @current = app
     @current.activated
