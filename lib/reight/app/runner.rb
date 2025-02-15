@@ -1,5 +1,7 @@
 class Reight::Runner < Reight::App
 
+  include Xot::Inspectable
+
   CONTEXT        = Reight::CONTEXT__
 
   TIMER_PREFIX   = '__r8__'

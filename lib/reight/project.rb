@@ -3,6 +3,8 @@ using Reight
 
 class Reight::Project
 
+  include Xot::Inspectable
+
   def initialize(project_dir)
     raise 'the project directory is required' unless project_dir
     @project_dir = project_dir
