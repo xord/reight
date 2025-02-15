@@ -169,6 +169,9 @@ class Reight::Runner < Reight::App
         caller.call {draw}
       end
 
+      def size(*)         = raise 'size() is not supported'
+      def createCanvas(*) = raise 'createCanvas() is not supported'
+
       def createSprite(...) = sprite_world__.createSprite(...)
       def addSprite(...)    = sprite_world__.addSprite(...)
       def removeSprite(...) = sprite_world__.removeSprite(...)
