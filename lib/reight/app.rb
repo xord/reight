@@ -57,10 +57,14 @@ class Reight::App
 
   def activated()
     add_world world if world
+    @setup ||= true.tap {setup}
   end
 
   def deactivated()
     remove_world world if world
+  end
+
+  def setup()
   end
 
   def draw()

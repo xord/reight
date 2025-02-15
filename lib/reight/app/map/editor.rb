@@ -11,7 +11,7 @@ class Reight::MapEditor < Reight::App
     @chips ||= Chips.new self, project.chips
   end
 
-  def activated()
+  def setup()
     super
     history.disable do
       tools[0].click

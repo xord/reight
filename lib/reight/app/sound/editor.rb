@@ -7,7 +7,7 @@ class Reight::SoundEditor < Reight::App
     @canvas ||= Canvas.new self
   end
 
-  def activated()
+  def setup()
     super
     history.disable do
       tones[0].click

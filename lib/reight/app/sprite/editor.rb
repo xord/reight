@@ -10,7 +10,7 @@ class Reight::SpriteEditor < Reight::App
       project.chips_image_path)
   end
 
-  def activated()
+  def setup()
     super
     history.disable do
       colors[7].click
