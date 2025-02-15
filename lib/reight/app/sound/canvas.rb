@@ -32,10 +32,10 @@ class Reight::SoundEditor::Canvas
   def note_pos_at(x, y)
     sp         = sprite
     notew      = sp.w / SEQUENCE_LEN
-    time_index = (x / notew).to_i
-    note_index = ((sp.h - y + @scrolly) / NOTE_HEIGHT)
-      .floor.clamp(0, Reight::Sound::Note::MAX)
-    return time_index, note_index
+    max        = Reight::Sound::Note::MAX
+    time_index = (x / notew).floor
+    note_index = max - ((@scrolly + y) / NOTE_HEIGHT).floor
+    return time_index, note_index.clamp(0, max)
   end
 
   def put(x, y)
@@ -94,9 +94,10 @@ class Reight::SoundEditor::Canvas
     fill 0
     rect 0, 0, sp.w, sp.h
 
-    translate 0, @scrolly
+    translate 0, -@scrolly
     draw_grids
     draw_notes
+    draw_note_names
   end
 
   GRID_COLORS = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]
@@ -105,19 +106,31 @@ class Reight::SoundEditor::Canvas
   def draw_grids()
     sp    = sprite
     noteh = NOTE_HEIGHT
-    (0..Reight::Sound::Note::MAX).each.with_index do |y, index|
+    Reight::Sound::Note::MAX.downto(0).with_index do |y, index|
       fill GRID_COLORS[index % GRID_COLORS.size]
-      rect 0, sp.h - y * noteh, sp.w, -noteh
+      rect 0, y * noteh, sp.w, noteh
     end
   end
 
   def draw_notes()
     sp           = sprite
     notew, noteh = sp.w / SEQUENCE_LEN, NOTE_HEIGHT
+    tones, max   = Reight::Sound::Note::TONES, Reight::Sound::Note::MAX
     @sound.each_note do |note, index|
-      palette = 8 + Reight::Sound::Note::TONES.index(note.tone)
-      fill @app.project.palette_colors[palette]
-      rect index * notew, sp.h - note.index * noteh, notew, noteh
+      fill @app.project.palette_colors[8 + tones.index(note.tone)]
+      rect index * notew, (max - note.index) * noteh, notew, noteh
+    end
+  end
+
+  def draw_note_names()
+    fill 200
+    text_size 4
+    text_align LEFT, CENTER
+    sp    = sprite
+    noteh = NOTE_HEIGHT
+    max   = Reight::Sound::Note::MAX
+    (0..Reight::Sound::Note::MAX).step(12).with_index do |y, index|
+      text "C#{index}", 2, (max - y) * noteh, 10, noteh
     end
   end
 
@@ -137,7 +150,7 @@ class Reight::SoundEditor::Canvas
   def mouse_dragged(...)
     if hand?
       sp        = sprite
-      @scrolly += sp.mouse_y - sp.pmouse_y
+      @scrolly -= sp.mouse_y - sp.pmouse_y
     else
       tool&.canvas_dragged(...)
     end
