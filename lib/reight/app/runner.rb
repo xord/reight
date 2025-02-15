@@ -8,13 +8,13 @@ class Reight::Runner < Reight::App
 
   def activated()
     run force: true
-    @context.call_activated__
+    @context.call_activated__ {|&b| call_event(ignore_pause: true, &b)}
     super
   end
 
   def deactivated()
     super
-    @context.call_deactivated__
+    @context.call_deactivated__ {|&b| call_event(ignore_pause: true, &b)}
     pause
     cleanup
   end
@@ -26,7 +26,7 @@ class Reight::Runner < Reight::App
 
   def draw()
     CONTEXT.push do
-      @context&.call_draw__ unless paused?
+      @context&.call_draw__ {|&b| call_event(&b)}
     end
     super
   end
@@ -34,81 +34,87 @@ class Reight::Runner < Reight::App
   def key_pressed()
     super
     return restart if CONTEXT.key_code == F10
-    @context&.key_pressed unless paused?
+    call_event {@context&.key_pressed}
   end
 
   def key_released()
     super
-    @context&.key_released unless paused?
+    call_event {@context&.key_released}
   end
 
   def key_typed()
     super
-    @context&.key_typed unless paused?
+    call_event {@context&.key_typed}
   end
 
   def mouse_pressed()
     super
-    @context&.mouse_pressed unless paused?
+    call_event {@context&.mouse_pressed}
   end
 
   def mouse_released()
     super
-    @context&.mouse_released unless paused?
+    call_event {@context&.mouse_released}
   end
 
   def mouse_moved()
     super
-    @context&.mouse_moved unless paused?
     navigator.visible = CONTEXT.mouse_y < NAVIGATOR_HEIGHT
+    call_event {@context&.mouse_moved}
   end
 
   def mouse_dragged()
     super
-    @context&.mouse_dragged unless paused?
+    call_event {@context&.mouse_dragged}
   end
 
   def mouse_clicked()
     super
-    @context&.mouse_clicked unless paused?
+    call_event {@context&.mouse_clicked}
   end
 
   def double_clicked()
     super
-    @context&.double_clicked unless paused?
+    call_event {@context&.double_clicked}
   end
 
   def mouse_wheel()
     super
-    @context&.mouse_wheel unless paused?
+    call_event {@context&.mouse_wheel}
   end
 
   def touch_started()
     super
-    @context&.touch_started unless paused?
+    call_event {@context&.touch_started}
   end
 
   def touch_ended()
     super
-    @context&.touch_ended unless paused?
+    call_event {@context&.touch_ended}
   end
 
   def touch_moved()
     super
-    @context&.touch_moved unless paused?
+    call_event {@context&.touch_moved}
   end
 
   def window_moved()
     super
-    @context&.window_moved
+    call_event(ignore_pause: true) {@context&.window_moved}
   end
 
   def window_resized()
     super
-    @context&.window_resized
+    call_event(ignore_pause: true) {@context&.window_resized}
   end
 
   private
+
+  def call_event(ignore_pause: false,&block)
+    block.call unless paused?
+  rescue ScriptError, StandardError => e
+    puts e.full_message
+  end
 
   def running? = @context && !@paused
 
@@ -143,27 +149,27 @@ class Reight::Runner < Reight::App
 
       def sprite_world__ = @sprite_world__ ||= SpriteWorld.new#(pixels_per_meter: 5)
 
-      def call_activated__()
+      def call_activated__(&caller)
         add_world sprite_world__
-        activated
+        caller.call {activated}
       end
 
-      def call_deactivated__()
-        deactivated
+      def call_deactivated__(&caller)
+        caller.call {deactivated}
         remove_world sprite_world__
         @background_cleared__ = false
       end
 
-      def call_draw__()
+      def call_draw__(&caller)
         unless @setup_done__
                @setup_done__ = true
-          setup
+          caller.call {setup}
         end
         unless @background_cleared__
                @background_cleared__ = true
           background 100, 100, 100
         end
-        draw
+        caller.call {draw}
       end
 
       def createSprite(...) = sprite_world__.createSprite(...)
@@ -256,6 +262,8 @@ class Reight::Runner < Reight::App
       ::Reight::Runner::TEMPORARY_HASH[:params] => {context:, codes:}
       codes.each {|path, code| context.instance_eval code, path if code}
     END
+  rescue ScriptError, StandardError => e
+    puts e.full_message
   ensure
     TEMPORARY_HASH.delete :params
   end
