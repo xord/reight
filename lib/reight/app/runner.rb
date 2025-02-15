@@ -21,11 +21,6 @@ class Reight::Runner < Reight::App
     cleanup
   end
 
-  def restart()
-    deactivated
-    activated
-  end
-
   def draw()
     CONTEXT.push do
       @context&.call_draw__ {|&b| call_event(&b)}

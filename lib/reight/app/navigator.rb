@@ -18,7 +18,7 @@ class Reight::Navigator
   def visible? = @visible
 
   def sprites()
-    [*app_buttons, *control_buttons, *history_buttons, *edit_buttons, message]
+    [*app_buttons, *history_buttons, *edit_buttons, message]
       .map &:sprite
   end
 
@@ -36,7 +36,7 @@ class Reight::Navigator
   end
 
   def window_resized()
-    [app_buttons, control_buttons, history_buttons, edit_buttons]
+    [app_buttons, history_buttons, edit_buttons]
       .flatten.map(&:sprite).each do |sp|
         sp.w = sp.h = Reight::App::NAVIGATOR_HEIGHT
         sp.y = 0
@@ -46,13 +46,6 @@ class Reight::Navigator
     x     = space
 
     app_buttons.map {_1.sprite}.each do |sp|
-      sp.x = x + 1
-      x    = sp.right
-    end.tap do
-      x += space unless _1.empty?
-    end
-
-    control_buttons.map {_1.sprite}.each do |sp|
       sp.x = x + 1
       x    = sp.right
     end.tap do
@@ -98,14 +91,6 @@ class Reight::Navigator
         switch_app Reight::SoundEditor
       },
     ]
-  end
-
-  def control_buttons()
-    @control_buttons ||= [].tap do |buttons|
-      buttons << Reight::Button.new(name: 'Restart Game', label: 'Re') {
-        @app.restart
-      } if @app.respond_to? :restart
-    end
   end
 
   def history_buttons()
