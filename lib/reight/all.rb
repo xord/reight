@@ -21,12 +21,13 @@ end# Reight
 
 require 'reight/extension'
 require 'reight/helpers'
-require 'reight/project'
 require 'reight/history'
 require 'reight/button'
 require 'reight/index'
 
 require 'reight/reight'
+require 'reight/context'
+require 'reight/project'
 require 'reight/chip'
 require 'reight/map'
 require 'reight/sound'

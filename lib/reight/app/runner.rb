@@ -2,9 +2,7 @@ class Reight::Runner < Reight::App
 
   include Xot::Inspectable
 
-  CONTEXT        = Reight::CONTEXT__
-
-  TIMER_PREFIX   = '__r8__'
+  ROOT_CONTEXT   = Reight::CONTEXT__
 
   TEMPORARY_HASH = {}
 
@@ -22,15 +20,18 @@ class Reight::Runner < Reight::App
   end
 
   def draw()
-    CONTEXT.push do
-      @context&.call_draw__ {|&b| call_event(&b)}
+    @initial_resize ||= true.tap do
+      call_event {@context&.size ROOT_CONTEXT.width, ROOT_CONTEXT.height}
     end
+    @context&.call_draw__ {|&b| call_event(&b)}
+    ROOT_CONTEXT.background 0
+    ROOT_CONTEXT.image @context, *@context.canvasFrame__
     super
   end
 
   def key_pressed()
     super
-    return restart if CONTEXT.key_code == F10
+    return restart if ROOT_CONTEXT.key_code == F10
     call_event {@context&.key_pressed}
   end
 
@@ -56,7 +57,7 @@ class Reight::Runner < Reight::App
 
   def mouse_moved()
     super
-    navigator.visible = CONTEXT.mouse_y < NAVIGATOR_HEIGHT
+    navigator.visible = ROOT_CONTEXT.mouse_y < NAVIGATOR_HEIGHT
     call_event {@context&.mouse_moved}
   end
 
@@ -107,10 +108,13 @@ class Reight::Runner < Reight::App
 
   private
 
-  def call_event(ignore_pause: false,&block)
+  def call_event(ignore_pause: false, &block)
+    @context.beginDraw__
     block.call unless paused?
   rescue ScriptError, StandardError => e
     puts e.full_message
+  ensure
+    @context.endDraw__
   end
 
   def running? = @context && !@paused
@@ -131,7 +135,7 @@ class Reight::Runner < Reight::App
   end
 
   def cleanup()
-    CONTEXT.remove_world @context.sprite_world__ if @context
+    ROOT_CONTEXT.remove_world @context.spriteWorld__ if @context
     @context = nil
     end_wrapping_user_classes
     clear_all_timers
@@ -142,52 +146,27 @@ class Reight::Runner < Reight::App
 
   def create_context()
     klass = Class.new do
-      def project        = @project__
-
-      def sprite_world__ = @sprite_world__ ||= SpriteWorld.new(pixels_per_meter: 8)
+      include Reight::Context
 
       def call_activated__(&caller)
-        add_world sprite_world__
+        add_world spriteWorld__
         caller.call {activated}
       end
 
       def call_deactivated__(&caller)
         caller.call {deactivated}
-        remove_world sprite_world__
+        remove_world spriteWorld__
         @background_cleared__ = false
       end
 
       def call_draw__(&caller)
-        unless @setup_done__
-               @setup_done__ = true
-          caller.call {setup}
-        end
-        unless @background_cleared__
-               @background_cleared__ = true
-          background 100, 100, 100
-        end
+        @setup_done__         ||= true.tap {caller.call {setup}}
+        @background_cleared__ ||= true.tap {caller.call {background 100}}
         caller.call {draw}
       end
 
-      def size(*)         = raise 'size() is not supported'
-      def createCanvas(*) = raise 'createCanvas() is not supported'
-
-      def createSprite(...) = sprite_world__.createSprite(...)
-      def addSprite(...)    = sprite_world__.addSprite(...)
-      def removeSprite(...) = sprite_world__.removeSprite(...)
-      def gravity(...)      = sprite_world__.gravity(...)
-
-      def setTimeout( *a, id: CONTEXT.nextTimerID__, **k, &b) =
-        CONTEXT.setTimeout( *a, id: [TIMER_PREFIX, id], **k, &b)
-
-      def setInterval(*a, id: CONTEXT.nextTimerID__, **k, &b) =
-        CONTEXT.setInterval(*a, id: [TIMER_PREFIX, id], **k, &b)
-
-      def clearTimer(   id) = CONTEXT.clearTimer(   [TIMER_PREFIX, id])
-      def clearTimeout( id) = CONTEXT.clearTimeout( [TIMER_PREFIX, id])
-      def clearInterval(id) = CONTEXT.clearInterval([TIMER_PREFIX, id])
-
-      methods = instance_methods(false).reject {_1.end_with? '__'}
+      methods = (instance_methods - Object.instance_methods)
+        .reject {_1.end_with? '__'}
       Processing.to_snake_case__(methods).each do |camel, snake|
         alias_method snake, camel if snake != camel
       end
@@ -207,14 +186,12 @@ class Reight::Runner < Reight::App
         alias_method snake, camel if snake != camel
       end
 
-      Processing.funcs__(CONTEXT).each do |func|
+      Processing.funcs__(ROOT_CONTEXT).each do |func|
         next if method_defined? func
-        define_method(func) {|*a, **k, &b| CONTEXT.__send__ func, *a, **k, &b}
+        define_method(func) {|*a, **k, &b| ROOT_CONTEXT.__send__ func, *a, **k, &b}
       end
     end
-    klass.new.tap do |context|
-      context.instance_variable_set :@project__, project
-    end
+    klass.new(ROOT_CONTEXT, project)
   end
 
   def begin_wrapping_user_classes(context)
@@ -275,9 +252,10 @@ class Reight::Runner < Reight::App
   end
 
   def clear_all_timers()
-    CONTEXT.instance_eval do
-      @timers__      .delete_if {|id| id in [TIMER_PREFIX, _]}
-      @firingTimers__.delete_if {|id| id in [TIMER_PREFIX, _]}
+    prefix = Reight::Context::TIMER_PREFIX__
+    ROOT_CONTEXT.instance_eval do
+      @timers__      .delete_if {|id| id in [prefix, _]}
+      @firingTimers__.delete_if {|id| id in [prefix, _]}
     end
   end
 
