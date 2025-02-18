@@ -20,6 +20,7 @@ class Reight::Runner < Reight::App
   end
 
   def draw()
+    return unless @context
     @initial_resize ||= true.tap do
       call_event {@context.size ROOT_CONTEXT.width, ROOT_CONTEXT.height}
     end
@@ -36,17 +37,17 @@ class Reight::Runner < Reight::App
   def key_pressed()
     super
     return restart if ROOT_CONTEXT.key_code == F10
-    call_event {@context.key_pressed}  if @context
+    call_event {@context&.key_pressed}
   end
 
   def key_released()
     super
-    call_event {@context.key_released} if @context
+    call_event {@context&.key_released}
   end
 
   def key_typed()
     super
-    call_event {@context.key_typed}    if @context
+    call_event {@context&.key_typed}
   end
 
   def mouse_pressed()
