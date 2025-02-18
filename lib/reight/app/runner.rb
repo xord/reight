@@ -23,9 +23,13 @@ class Reight::Runner < Reight::App
     @initial_resize ||= true.tap do
       call_event {@context&.size ROOT_CONTEXT.width, ROOT_CONTEXT.height}
     end
-    @context&.call_draw__ {|&b| call_event(&b)}
-    ROOT_CONTEXT.background 0
-    ROOT_CONTEXT.image @context, *@context.canvasFrame__
+    @context.call_draw__ {|&b| call_event(&b)}
+    if canvasFrame = @context.canvasFrame__
+      ROOT_CONTEXT.background 0
+      ROOT_CONTEXT.image @context, *canvasFrame
+    else
+      ROOT_CONTEXT.image @context, 0, 0
+    end
     super
   end
 

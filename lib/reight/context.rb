@@ -21,6 +21,16 @@ module Reight::Context
 
   alias createCanvas size
 
+  def worldOffset(x, y)
+    cx, cy, = @canvasFrame__
+    if cx && cy
+      zoom = spriteWorld__.zoom
+      x   += cx / zoom
+      y   += cy / zoom
+    end
+    spriteWorld__.offset = [x, y]
+  end
+
   def createSprite(...)
     spriteWorld__.createSprite(...)
   end
@@ -38,23 +48,23 @@ module Reight::Context
   end
 
   def mouseX()
-    (cx, _, cw),    x = @canvasFrame__, @rootContext__.mouseX
-    cx && cw ? (x - cx) * (width  / cw) : x
+    x, (cx, _) = @rootContext__.mouseX,  @canvasFrame__
+    cx ? (x - cx) / spriteWorld__.zoom : x
   end
 
   def mouseY()
-    (_, cy, _, ch), y = @canvasFrame__, @rootContext__.mouseY
-    cy && ch ? (y - cy) * (height / ch) : y
+    y, (_, cy) = @rootContext__.mouseY,  @canvasFrame__
+    cy ? (y - cy) / spriteWorld__.zoom : y
   end
 
   def pmouseX()
-    (cx, _, cw),    x = @canvasFrame__, @rootContext__.mouseX
-    cx && cw ? (x - cx) * (width  / cw) : x
+    x, (cx, _) = @rootContext__.pmouseX, @canvasFrame__
+    cx ? (x - cx) / spriteWorld__.zoom : x
   end
 
   def pmouseY()
-    (_, cy, _, ch), y = @canvasFrame__, @rootContext__.mouseY
-    cy && ch ? (y - cy) * (height / ch) : y
+    y, (_, cy) = @rootContext__.pmouseY, @canvasFrame__
+    cy ? (y - cy) / spriteWorld__.zoom : y
   end
 
   def setTimeout( *a, id: @rootContext__.nextTimerID__, **k, &b)
@@ -119,6 +129,8 @@ module Reight::Context
         canvash
       ].map(&:to_i)
     end
+
+    spriteWorld__.zoom = wide ? rootw.to_f / w : rooth.to_f / h
   end
 
   # @private
