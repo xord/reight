@@ -126,7 +126,6 @@ class Reight::SoundEditor::Canvas
     fill 200
     text_size 4
     text_align LEFT, CENTER
-    sp    = sprite
     noteh = NOTE_HEIGHT
     max   = Reight::Sound::Note::MAX
     (0..Reight::Sound::Note::MAX).step(12).with_index do |y, index|
