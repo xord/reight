@@ -21,7 +21,7 @@ class Reight::Runner < Reight::App
 
   def draw()
     @initial_resize ||= true.tap do
-      call_event {@context&.size ROOT_CONTEXT.width, ROOT_CONTEXT.height}
+      call_event {@context.size ROOT_CONTEXT.width, ROOT_CONTEXT.height}
     end
     @context.call_draw__ {|&b| call_event(&b)}
     if canvasFrame = @context.canvasFrame__
@@ -36,78 +36,78 @@ class Reight::Runner < Reight::App
   def key_pressed()
     super
     return restart if ROOT_CONTEXT.key_code == F10
-    call_event {@context&.key_pressed}
+    call_event {@context.key_pressed}  if @context
   end
 
   def key_released()
     super
-    call_event {@context&.key_released}
+    call_event {@context.key_released} if @context
   end
 
   def key_typed()
     super
-    call_event {@context&.key_typed}
+    call_event {@context.key_typed}    if @context
   end
 
   def mouse_pressed()
     super
-    call_event {@context&.mouse_pressed}
+    call_event {@context.mouse_pressed}
   end
 
   def mouse_released()
     super
-    call_event {@context&.mouse_released}
+    call_event {@context.mouse_released}
   end
 
   def mouse_moved()
     super
     navigator.visible = ROOT_CONTEXT.mouse_y < NAVIGATOR_HEIGHT
-    call_event {@context&.mouse_moved}
+    call_event {@context.mouse_moved}
   end
 
   def mouse_dragged()
     super
-    call_event {@context&.mouse_dragged}
+    call_event {@context.mouse_dragged}
   end
 
   def mouse_clicked()
     super
-    call_event {@context&.mouse_clicked}
+    call_event {@context.mouse_clicked}
   end
 
   def double_clicked()
     super
-    call_event {@context&.double_clicked}
+    call_event {@context.double_clicked}
   end
 
   def mouse_wheel()
     super
-    call_event {@context&.mouse_wheel}
+    call_event {@context.mouse_wheel}
   end
 
   def touch_started()
     super
-    call_event {@context&.touch_started}
+    call_event {@context.touch_started}
   end
 
   def touch_ended()
     super
-    call_event {@context&.touch_ended}
+    call_event {@context.touch_ended}
   end
 
   def touch_moved()
     super
-    call_event {@context&.touch_moved}
+    call_event {@context.touch_moved}
   end
 
   def window_moved()
     super
-    call_event(ignore_pause: true) {@context&.window_moved}
+    call_event(ignore_pause: true) {@context.window_moved}
   end
 
   def window_resized()
     super
-    call_event(ignore_pause: true) {@context&.window_resized}
+    call_event(ignore_pause: true) {@context.window_resized}
   end
 
   private
