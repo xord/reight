@@ -116,7 +116,7 @@ class Reight::App
 
   def world()
     @world ||= SpriteWorld.new.tap do |w|
-      w.add_sprite(*sprites)
+      sprites.each {w.add_sprite _1}
     end
   end
 
