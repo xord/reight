@@ -7,7 +7,7 @@ class Reight::Chip
 
   def initialize(id, image, x, y, w, h, pos: nil, shape: nil, sensor: nil)
     @id, @image, @x, @y, @w, @h, @pos, @shape, @sensor =
-      id, image, x, y, w, h, pos, shape, (sensor || false)
+     id,  image,  x,  y,  w,  h,  pos,  shape, (sensor || false)
   end
 
   attr_accessor :shape
