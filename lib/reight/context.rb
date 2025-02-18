@@ -5,22 +5,19 @@ module Reight::Context
 
   TIMER_PREFIX__ = '__r8__'
 
+  # @private
   def initialize(rootContext, project)
     @rootContext__, @project__ = rootContext, project
     init__ Rays::Image.new(@rootContext__.width, @rootContext__.height)
   end
 
+  # Returns the project object.
+  #
   def project()
     @project__
   end
 
-  def size(width, height, **)
-    return if width == self.width || height == self.height
-    @resizeCanvas__ = [width, height]
-  end
-
-  alias createCanvas size
-
+  # @private
   def worldOffset(x, y)
     cx, cy, = @canvasFrame__
     if cx && cy
@@ -31,60 +28,82 @@ module Reight::Context
     spriteWorld__.offset = [x, y]
   end
 
-  def createSprite(...)
-    spriteWorld__.createSprite(...)
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#size-instance_method
+  def size(width, height, **)
+    return if width == self.width || height == self.height
+    @resizeCanvas__ = [width, height]
   end
 
-  def addSprite(...)
-    spriteWorld__.addSprite(...)
-  end
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#createCanvas-instance_method
+  alias createCanvas size
 
-  def removeSprite(...)
-    spriteWorld__.removeSprite(...)
-  end
-
-  def gravity(...)
-    spriteWorld__.gravity(...)
-  end
-
+  # @see https://www.rubydoc.info/gems/processing/Processing/Context#mouseX-instance_method
   def mouseX()
     x, (cx, _) = @rootContext__.mouseX,  @canvasFrame__
     cx ? (x - cx) / spriteWorld__.zoom : x
   end
 
+  # @see https://www.rubydoc.info/gems/processing/Processing/Context#mouseY-instance_method
   def mouseY()
     y, (_, cy) = @rootContext__.mouseY,  @canvasFrame__
     cy ? (y - cy) / spriteWorld__.zoom : y
   end
 
+  # @see https://www.rubydoc.info/gems/processing/Processing/Context#pmouseX-instance_method
   def pmouseX()
     x, (cx, _) = @rootContext__.pmouseX, @canvasFrame__
     cx ? (x - cx) / spriteWorld__.zoom : x
   end
 
+  # @see https://www.rubydoc.info/gems/processing/Processing/Context#pmouseY-instance_method
   def pmouseY()
     y, (_, cy) = @rootContext__.pmouseY, @canvasFrame__
     cy ? (y - cy) / spriteWorld__.zoom : y
   end
 
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#createSprite-instance_method
+  def createSprite(...)
+    spriteWorld__.createSprite(...)
+  end
+
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#addSprite-instance_method
+  def addSprite(...)
+    spriteWorld__.addSprite(...)
+  end
+
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#removeSprite-instance_method
+  def removeSprite(...)
+    spriteWorld__.removeSprite(...)
+  end
+
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#gravity-instance_method
+  def gravity(...)
+    spriteWorld__.gravity(...)
+  end
+
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#setTimeout-instance_method
   def setTimeout( *a, id: @rootContext__.nextTimerID__, **k, &b)
     id = [TIMER_PREFIX__, id]
     @root_context__.setTimeout(*a, id: id, **k, &b)
   end
 
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#setInterval-instance_method
   def setInterval(*a, id: @rootContext__.nextTimerID__, **k, &b)
     id = [TIMER_PREFIX__, id]
     @rootContext__.setInterval(*a, id: id, **k, &b)
   end
 
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#clearTimer-instance_method
   def clearTimer(id)
     @rootContext__.clearTimer [TIMER_PREFIX__, id]
   end
 
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#clearTimeout-instance_method
   def clearTimeout(id)
     @rootContext__.clearTimeout [TIMER_PREFIX__, id]
   end
 
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#clearInterval-instance_method
   def clearInterval(id)
     @rootContext__.clearInterval [TIMER_PREFIX__, id]
   end
