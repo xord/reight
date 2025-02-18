@@ -27,6 +27,7 @@ class Reight::Chip
   def with(**kwargs)
     id, image, x, y, w, h, pos, shape, sensor =
       kwargs.values_at :id, :image, :x, :y, :w, :h, :pos, :shape, :sensor
+    #kwargs => {id:, image:, x:, y:, w:, h:, pos:, shape:, sensor:}
     self.class.new(
       id    || @id,
       image || @image,
@@ -76,6 +77,7 @@ class Reight::Chip
   def self.restore(hash, image)
     id, x, y, w, h, pos, shape, sensor =
       hash.values_at :id, :x, :y, :w, :h, :pos, :shape, :sensor
+    #hash => {id:, x:, y:, w:, h:, pos:, shape:, sensor:}
     new(
       id, image, x, y, w, h, pos: pos&.then {create_vector(*_1)},
       shape: shape&.to_sym, sensor: sensor || false)
@@ -125,7 +127,8 @@ class Reight::ChipList
   end
 
   def self.restore(hash, image)
-    hash => {next_id:, chips:}
+    next_id, chips = hash.values_at :next_id, :chips
+    #hash => {next_id:, chips:}
     new(image).tap do |obj|
       obj.instance_eval do
         @next_id    = next_id

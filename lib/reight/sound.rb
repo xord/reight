@@ -60,7 +60,8 @@ class Reight::Sound
   end
 
   def self.restore(hash)
-    hash => {bpm:, sequence:}
+    bpm, sequence = hash.values_at :bpm, :sequence
+    #hash => {bpm:, sequence:}
     new(bpm).tap do |obj|
       obj.instance_eval do
         @sequence = sequence.map do |notes|
@@ -169,7 +170,8 @@ class Reight::Sound::Note
   end
 
   def self.restore(hash)
-    hash => {index:, tone:}
+    index, tone = hash.values_at :index, :tone
+    #hash => {index:, tone:}
     new index, TONES[tone]
   end
 

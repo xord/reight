@@ -69,11 +69,13 @@ class Reight::Map
   end
 
   def self.restore(hash, source_chips)
-    hash => {chip_size:, chunk_size:, chunks:}
+    chip_size, chunk_size, chunks = hash.values_at :chip_size, :chunk_size, :chunks
+    #hash => {chip_size:, chunk_size:, chunks:}
     new(chip_size: chip_size, chunk_size: chunk_size).tap do |obj|
       obj.instance_eval do
         @chunks = chunks.each.with_object({}) do |chunk_hash, result|
-          chunk_hash => {x:, y:}
+          x, y = chunk_hash.values_at :x, :y
+          #chunk_hash => {x:, y:}
           result[[x, y]] = Chunk.restore chunk_hash, source_chips
         end
       end
@@ -223,7 +225,8 @@ class Reight::Map::Chunk
   end
 
   def self.restore(hash, source_chips)
-    hash      => {x:, y:, w:, h:, chip_size: chip_size, chips: chip_ids}
+    x, y, w, h, chip_size, chip_ids = hash.values_at :x, :y, :w, :h, :chip_size, :chips
+    #hash      => {x:, y:, w:, h:, chip_size: chip_size, chips: chip_ids}
     tmp_chips = {}
     get_chip  = -> id, x, y {
       tmp_chips[[id, x, y]] ||= source_chips[id].with(pos: create_vector(x, y))
