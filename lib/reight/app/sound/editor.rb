@@ -24,7 +24,7 @@ class Reight::SoundEditor < Reight::App
   def key_pressed()
     super
     case key_code
-    when ENTER then canvas.sound.play
+    when ENTER then play_or_stop.click
     when :b    then  brush.click
     when :e    then eraser.click
     when /^[#{(1..Reight::Sound::Note::TONES.size).to_a.join}]$/
@@ -49,10 +49,15 @@ class Reight::SoundEditor < Reight::App
       sp.x       = bpm.sprite.right + SPACE + (sp.w + 1) * i
       sp.y       = bpm.sprite.y
     end
+    controls.map(&:sprite).each.with_index do |sp, i|
+      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.x       = SPACE + (sp.w + 1) * i
+      sp.y       = height - (SPACE + sp.h)
+    end
     tools.map(&:sprite).each.with_index do |sp, i|
       sp.w = sp.h = BUTTON_SIZE
-      sp.x        = SPACE + (sp.w + 1) * i
-      sp.y        = height - (SPACE + sp.h)
+      sp.x        = controls.last.sprite.right + SPACE * 2 + (sp.w + 1) * i
+      sp.y        = controls.last.sprite.y
     end
     tones.map(&:sprite).each.with_index do |sp, i|
       sp.w = sp.h = BUTTON_SIZE
@@ -90,7 +95,7 @@ class Reight::SoundEditor < Reight::App
   private
 
   def sprites()
-    [index, bpm, *edits, *tools, *tones, canvas]
+    [index, bpm, *edits, *controls, *tools, *tones, canvas]
       .map(&:sprite) + super
   end
 
@@ -113,7 +118,7 @@ class Reight::SoundEditor < Reight::App
   end
 
   def edits()
-    @edits ||= group(
+    @edits ||= [
       Reight::Button.new(name: 'Clear All Notes', label: 'Clear') {
         canvas.sound.clear
         canvas.save
@@ -123,7 +128,25 @@ class Reight::SoundEditor < Reight::App
         canvas.sound = project.sounds[index.index] ||= Reight::Sound.new
         canvas.save
       },
-    )
+    ]
+  end
+
+  def controls()
+    @controls ||= [play_or_stop]
+  end
+
+  def play_or_stop()
+    @play_or_stop ||= Reight::Button.new(name: 'Play Sound', label: 'Play') {|b|
+      played  = -> {b.name, b.label = 'Stop Sound', 'Stop'}
+      stopped = -> {b.name, b.label = 'Play Sound', 'Play'}
+      if canvas.sound.playing?
+        canvas.sound.stop
+        stopped.call
+      else
+        canvas.sound.play {stopped.call}
+        played.call
+      end
+    }
   end
 
   def tools()

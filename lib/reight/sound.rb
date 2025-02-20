@@ -1,3 +1,6 @@
+using Reight
+
+
 class Reight::Sound
 
   include Enumerable
@@ -17,8 +20,23 @@ class Reight::Sound
     @bpm = bpm
   end
 
-  def play()
-    to_sound.play unless empty?
+  def play(&block)
+    return block.call false if empty?
+    stop
+    @playing = sound = to_sound
+    sound.play
+
+    id = "__sound_playing_check_#{sound.object_id}"
+    set_interval 0.1, id: id do
+      next if sound.playing? == true
+      block.call true
+      clear_interval id
+    end
+  end
+
+  def stop()
+    @playing&.stop
+    @playing = nil
   end
 
   def clear()
@@ -57,6 +75,11 @@ class Reight::Sound
   alias remove remove_note
   alias     at        note_at
   alias   each   each_note
+
+  def playing?()
+    @playing = nil if @playing&.playing? == false
+    !!@playing
+  end
 
   def empty? = @sequence.all? {!_1 || _1.empty?}
 

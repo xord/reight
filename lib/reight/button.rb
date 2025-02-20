@@ -17,6 +17,8 @@ class Reight::Button
     self.clicked {r8.flash name}
   end
 
+  attr_accessor :name, :icon, :label
+
   def draw()
     sp = sprite
     no_stroke
