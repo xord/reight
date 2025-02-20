@@ -41,12 +41,13 @@ class Reight::Button
     end
 
     if @label
+      y = pressing? ? 1 : 0
       text_size r8.project.font_size - 1
       text_align CENTER, CENTER
       fill 100, 100, 100
-      text @label, 0, 1, sp.w, sp.h
+      text @label, 0, y + 1, sp.w, sp.h
       fill 255, 255, 255
-      text @label, 0, 0, sp.w, sp.h
+      text @label, 0, y,     sp.w, sp.h
     end
   end
 
