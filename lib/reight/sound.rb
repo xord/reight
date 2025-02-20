@@ -197,6 +197,8 @@ class Reight::Sound::Note
   end
 
   def self.seconds(length, bpm)
+    raise ArgumentError, "Invalid length: #{length}" if length <= 0
+    raise ArgumentError, "Invalid bpm: #{bpm}"       if bpm    <= 0
     60.0 / bpm / length
   end
 
