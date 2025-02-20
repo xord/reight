@@ -23,6 +23,7 @@ require 'reight/extension'
 require 'reight/helpers'
 require 'reight/history'
 require 'reight/button'
+require 'reight/text'
 require 'reight/index'
 
 require 'reight/reight'

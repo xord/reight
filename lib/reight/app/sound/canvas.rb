@@ -3,15 +3,26 @@ using Reight
 
 class Reight::SoundEditor::Canvas
 
+  include Reight::Hookable
+
   SEQUENCE_LEN = 32
   NOTE_HEIGHT  = 3
 
   def initialize(app)
+    hook :sound_changed
+
     @app, @sound = app, app.project.sounds.first
     @scrolly     = NOTE_HEIGHT * Reight::Sound::Note::MAX / 3
   end
 
-  attr_accessor :sound, :tone, :tool
+  attr_accessor :tone, :tool
+
+  attr_reader :sound
+
+  def sound=(sound)
+    @sound = sound
+    sound_changed! sound
+  end
 
   def save()
     @app.project.save

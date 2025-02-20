@@ -2,12 +2,20 @@ class Reight::Sound
 
   include Enumerable
 
+  BPM_MAX = 999
+
   def initialize(bpm = 120)
     @bpm      = bpm
     @sequence = [[]]
   end
 
-  attr_accessor :bpm
+  attr_reader :bpm
+
+  def bpm=(bpm)
+    raise ArgumentError, "Invalid bpm: #{bpm}"                            if bpm <= 0
+    raise ArgumentError, "bpm exceeds the max value (#{BPM_MAX}): #{bpm}" if bpm >  999
+    @bpm = bpm
+  end
 
   def play()
     to_sound.play unless empty?

@@ -39,10 +39,15 @@ class Reight::SoundEditor < Reight::App
       sp.x       = SPACE
       sp.y       = NAVIGATOR_HEIGHT + SPACE
     end
+    bpm.sprite.tap do |sp|
+      sp.w, sp.h = 40, BUTTON_SIZE
+      sp.x       = index.sprite.right + SPACE
+      sp.y       = index.sprite.y
+    end
     edits.map(&:sprite).each.with_index do |sp, i|
       sp.w, sp.h = 32, BUTTON_SIZE
-      sp.x       = index.sprite.right + SPACE + (sp.w + 1) * i
-      sp.y       = index.sprite.y
+      sp.x       = bpm.sprite.right + SPACE + (sp.w + 1) * i
+      sp.y       = bpm.sprite.y
     end
     tools.map(&:sprite).each.with_index do |sp, i|
       sp.w = sp.h = BUTTON_SIZE
@@ -85,12 +90,25 @@ class Reight::SoundEditor < Reight::App
   private
 
   def sprites()
-    [index, *edits, *tones, *tools, canvas].map(&:sprite) + super
+    [index, bpm, *edits, *tools, *tones, canvas]
+      .map(&:sprite) + super
   end
 
   def index()
     @index ||= Reight::Index.new do |index|
       canvas.sound = project.sounds[index] ||= Reight::Sound.new
+    end
+  end
+
+  def bpm()
+    @bpm ||= Reight::Text.new(
+      canvas.sound.bpm, label: 'BPM ', regexp: /^\-?\d+$/
+    ) do |str, text, &revert|
+      bpm = str.to_i.clamp(0, Reight::Sound::BPM_MAX)
+      next text.revert if bpm <= 0
+      text.value = canvas.sound.bpm = bpm
+    end.tap do |text|
+      canvas.sound_changed {text.value = _1.bpm}
     end
   end
 

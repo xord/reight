@@ -33,8 +33,8 @@ module Reight::Hookable
         @hookable_hooks ||= {}
         (@hookable_hooks[name] ||= []).push block
       end
-      singleton_class.__send__ :define_method, "#{name}!" do |*args|
-        @hookable_hooks&.[](name)&.each {|block| block.call(*args)}
+      singleton_class.__send__ :define_method, "#{name}!" do |*args, &block|
+        @hookable_hooks&.[](name)&.each {_1.call(*args, &block)}
       end
     end
   end
