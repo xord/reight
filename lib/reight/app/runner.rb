@@ -103,12 +103,12 @@ class Reight::Runner < Reight::App
 
   def window_moved()
     super
-    call_event(ignore_pause: true) {@context.window_moved}
+    call_event(ignore_pause: true) {@context.window_moved} if @context
   end
 
   def window_resized()
     super
-    call_event(ignore_pause: true) {@context.window_resized}
+    call_event(ignore_pause: true) {@context.window_resized} if @context
   end
 
   private
