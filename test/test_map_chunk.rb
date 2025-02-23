@@ -77,12 +77,12 @@ class TestMapChunk < Test::Unit::TestCase
     end
   end
 
-  def test_delete()
+  def test_remove()
     [
       [0, 0], [20, 30], [90, 90]
     ].each do |xx, yy|
       chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
-        assert_nothing_raised {c.delete xx, yy}
+        assert_nothing_raised {c.remove xx, yy}
         assert_equal 0, count_all_chips(c)
       end
     end
@@ -96,7 +96,7 @@ class TestMapChunk < Test::Unit::TestCase
       chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
         c.put 20, 30, chip(0, 0, 10, 10)
         assert_equal 1,     count_all_chips(c)
-        assert_nothing_raised {c.delete xx, yy}
+        assert_nothing_raised {c.remove xx, yy}
         assert_equal count, count_all_chips(c)
       end
     end
@@ -111,7 +111,7 @@ class TestMapChunk < Test::Unit::TestCase
       chunk(10, 20, 30, 40, chip_size: 10).tap do |c|
         c.put 20, 30, chip(0, 0, 20, 20)
         assert_equal 4,     count_all_chips(c)
-        assert_nothing_raised {c.delete xx, yy}
+        assert_nothing_raised {c.remove xx, yy}
         assert_equal count, count_all_chips(c)
       end
     end
@@ -123,7 +123,7 @@ class TestMapChunk < Test::Unit::TestCase
       c.put 10, 20, chip(0, 0, 10, 10)
       assert_equal 8, c.to_hash[:chips].size
 
-      c.delete 10, 20
+      c.remove 10, 20
       assert_equal 5, c.to_hash[:chips].size
     end
   end
@@ -191,7 +191,7 @@ class TestMapChunk < Test::Unit::TestCase
     img      = image
     c1.put    10, 20, chip(0, 0, 10, 10, id: 1, image: img); assert_not_equal c1, c2
     c2.put    10, 20, chip(0, 0, 10, 10, id: 1, image: img); assert_equal     c1, c2
-    c2.delete 10, 20
+    c2.remove 10, 20
     c2.put    10, 20, chip(0, 0, 10, 10, id: 2, image: img); assert_not_equal c1, c2
   end
 

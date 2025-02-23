@@ -5,15 +5,15 @@ class Reight::MapEditor::BrushBase < Reight::MapEditor::Tool
 
   def brush(cursor_from, cursor_to, chip) = nil
 
-  def put_or_delete_chip(x, y, chip)
+  def put_or_remove_chip(x, y, chip)
     return false unless x && y && chip
     m = canvas.map
     return false if !@deleting && m[x, y]&.id == chip.id
 
     result = false
     m.each_chip x, y, chip.w, chip.h do |ch|
-      m.delete_chip ch
-      result |= history.append [:delete_chip, ch.pos.x, ch.pos.y, ch.id]
+      m.remove_chip ch
+      result |= history.append [:remove_chip, ch.pos.x, ch.pos.y, ch.id]
     end
     unless @deleting
       m.put x, y, chip

@@ -69,8 +69,8 @@ class Reight::MapEditor < Reight::App
   def undo(flash: true)
     history.undo do |action|
       case action
-      in [:put_chip,    x, y, id] then canvas.map.delete x, y
-      in [:delete_chip, x, y, id] then canvas.map.put    x, y, project.chips[id]
+      in [:put_chip,    x, y, id] then canvas.map.remove x, y
+      in [:remove_chip, x, y, id] then canvas.map.put    x, y, project.chips[id]
       in [  :select, sel, _]      then sel ? canvas.select(*sel) : canvas.deselect
       in [:deselect, sel]         then       canvas.select(*sel)
       end
@@ -82,7 +82,7 @@ class Reight::MapEditor < Reight::App
     history.redo do |action|
       case action
       in [:put_chip,    x, y, id] then canvas.map.put    x, y, project.chips[id]
-      in [:delete_chip, x, y, id] then canvas.map.delete x, y
+      in [:remove_chip, x, y, id] then canvas.map.remove x, y
       in [  :select, _, sel]      then canvas.select(*sel)
       in [:deselect, _]           then canvas.deselect
       end

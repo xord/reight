@@ -19,13 +19,13 @@ class Reight::MapEditor::Line < Reight::MapEditor::BrushBase
         (fromx..tox).step(dx).each do |x|
           y = fromy == toy ? toy : map(x, fromx, tox, fromy, toy)
           y = y / chip.h * chip.h
-          result |= put_or_delete_chip x, y, chip
+          result |= put_or_remove_chip x, y, chip
         end
       else
         (fromy..toy).step(dy).each do |y|
           x = fromx == tox ? tox : map(y, fromy, toy, fromx, tox)
           x = x / chip.w * chip.w
-          result |= put_or_delete_chip x, y, chip
+          result |= put_or_remove_chip x, y, chip
         end
       end
     end

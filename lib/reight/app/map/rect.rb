@@ -19,7 +19,7 @@ class Reight::MapEditor::Rect < Reight::MapEditor::BrushBase
       (fromy..toy).step(chip.h).each do |y|
         (fromx..tox).step(chip.w).each do |x|
           next if !@fill && fromx < x && x < tox && fromy < y && y < toy
-          result |= put_or_delete_chip x, y, chip
+          result |= put_or_remove_chip x, y, chip
         end
       end
     end

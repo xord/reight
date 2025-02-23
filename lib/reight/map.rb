@@ -23,16 +23,16 @@ class Reight::Map
     end
   end
 
-  def delete(x, y)
+  def remove(x, y)
     chip           = self[x, y] or return
     cx, cy, cw, ch = chip.then {[_1.pos.x, _1.pos.y, _1.w, _1.h]}
     each_chunk cx, cy, cw, ch, create: false do |chunk|
-      each_chip_pos(cx, cy, cw, ch) {|xx, yy| chunk.delete xx, yy}
+      each_chip_pos(cx, cy, cw, ch) {|xx, yy| chunk.remove xx, yy}
     end
   end
 
-  def delete_chip(chip)
-    delete chip.pos.x, chip.pos.y
+  def remove_chip(chip)
+    remove chip.pos.x, chip.pos.y
   end
 
   def each_chip(x = nil, y = nil, w = nil, h = nil, clip_by_chunk: false, &block)
@@ -166,7 +166,7 @@ class Reight::Map::Chunk
     end
   end
 
-  def delete(x, y)
+  def remove(x, y)
     chip = self[x, y] or return
     each_chip_pos chip.pos.x, chip.pos.y, chip.w, chip.h do |xx, yy|
       index         = pos2index xx, yy

@@ -10,7 +10,7 @@ class Reight::MapEditor::Brush < Reight::MapEditor::BrushBase
 
   def brush(cursor_from, cursor_to, chip)
     x, y, = cursor_to
-    put_or_delete_chip x, y, chip
+    put_or_remove_chip x, y, chip
     false
   end
 
