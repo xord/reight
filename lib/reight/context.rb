@@ -136,7 +136,7 @@ module Reight::Context
 
   # @private
   def spriteWorld__()
-    @spriteWorld__ ||= SpriteWorld.new(pixels_per_meter: 8)
+    @spriteWorld__ ||= SpriteWorld.new(pixelsPerMeter: 8)
   end
 
   # @private
