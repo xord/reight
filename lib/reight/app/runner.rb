@@ -144,6 +144,7 @@ class Reight::Runner < Reight::App
     @context = nil
     end_wrapping_user_classes
     clear_all_timers
+    project.clear_all_sprites
     restore_global_vars
     GC.enable
     GC.start

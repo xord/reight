@@ -59,6 +59,14 @@ class Reight::Chip
     end
   end
 
+  def sprite()
+    @sprite ||= to_sprite
+  end
+
+  def clear_sprites()
+    @sprite = nil
+  end
+
   def to_hash()
     {
       id: id, x: x, y: y, w: w, h: h
@@ -111,6 +119,10 @@ class Reight::ChipList
 
   def at(x, y, w, h)
     @frame2chip[[x, y, w, h]] ||= create_chip x, y, w, h
+  end
+
+  def each(&block)
+    @id2chip.values.each(&block)
   end
 
   def to_hash()

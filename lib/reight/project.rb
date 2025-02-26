@@ -76,6 +76,11 @@ class Reight::Project
     #FF004D   #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
   ]
 
+  def clear_all_sprites()
+    chips.each(&:clear_sprites)
+    maps.each(&:clear_sprites)
+  end
+
   def save()
     File.write project_path, to_json_string(@settings)
     save_chips

@@ -16,6 +16,22 @@ class Reight::Map
     @chunks                 = {}
   end
 
+  def sprites()
+    @sprites ||= SpriteArray.new(sprites: map(&:to_sprite))
+  end
+
+  def sprites_at(x, y, w, h, world = nil, &activated)
+    @sprites   = nil if @sprites && @sprites.world != world
+    @sprites ||= SpriteArray.new(world: world) {|*a, &b| each_chunk(*a, &b)}
+    @sprites.activate(x, y, w, h, &activated)
+    @sprites
+  end
+
+  def clear_sprites()
+    @chunks.each_value {_1&.clear_sprites}
+    @sprites = nil
+  end
+
   def put(x, y, chip)
     return unless chip
     each_chunk x, y, chip.w, chip.h, create: true do |chunk|
@@ -137,8 +153,10 @@ class Reight::Map
 end# Map
 
 
+# @private
 class Reight::Map::Chunk
 
+  include Enumerable
   include Comparable
 
   def initialize(x, y, w, h, chip_size: 8)
@@ -151,6 +169,16 @@ class Reight::Map::Chunk
   end
 
   attr_reader :x, :y, :w, :h
+
+  def sprites()
+    @sprites ||= map {|chip|
+      chip.to_sprite.tap {|sp| sp.map_chunk = self}
+    }
+  end
+
+  def clear_sprites()
+    @sprites = nil
+  end
 
   def put(x, y, chip)
     x, y = align_chip_pos x, y
@@ -202,6 +230,8 @@ class Reight::Map::Chunk
       end
     end
   end
+
+  def each(&block) = each_chip {block.call _1}
 
   def frame = [@x, @y, @w, @h]
 
@@ -265,3 +295,54 @@ class Reight::Map::Chunk
   end
 
 end# Chunk
+
+
+# @private
+class Reight::Map::SpriteArray < Array
+
+  def initialize(world: nil, sprites: [], &each_chunk)
+    @world, @each_chunk = world, each_chunk
+    super(sprites)
+  end
+
+  attr_reader :world
+
+  def activate(x, y, w, h, &activated)
+    raise ArgumentError, "missing 'activated' block" if !@world && !activated
+
+    old_bounds, bounds = @bounds, [x, y, w, h]
+    return if bounds == old_bounds
+
+    old_chunks,    chunks    = @chunks || [], @each_chunk.call(x, y, w, h).to_a
+    old_chunk_ids, chunk_ids = [old_chunks, chunks].map {_1.map(&:object_id).sort}
+    #return if chunk_ids == old_chunk_ids
+
+    activateds, deactivateds = [
+      sub_chunks(    chunks.dup, old_chunk_ids),
+      sub_chunks(old_chunks.dup,     chunk_ids)
+    ].map {|chunks| chunks.map(&:sprites).flatten.compact}
+    if activated
+      activated.call activateds, deactivateds
+    elsif @world
+        activateds.each {@world   .add_sprite _1}
+      deactivateds.each {@world.remove_sprite _1}
+    end
+
+    @bounds, @chunks = bounds, chunks
+    clear.concat @chunks.map(&:sprites).flatten.compact
+    $chunks = @chunks
+    $active_rect = [x, y, w, h]
+  end
+
+  def delete(sprite)
+    sprite.map_chunk&.sprites&.delete sprite
+    super
+  end
+
+  private
+
+  def sub_chunks(chunks, chunk_ids_to_be_deleted)
+    chunks.delete_if {chunk_ids_to_be_deleted.include? _1.object_id}
+  end
+
+end# SpriteArray
