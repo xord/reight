@@ -18,14 +18,25 @@ module Reight::Context
   end
 
   # @private
-  def worldOffset(x, y)
-    cx, cy, = @canvasFrame__
-    if cx && cy
-      zoom = spriteWorld__.zoom
-      x   += cx / zoom
-      y   += cy / zoom
+  def screenOffset(*args)
+    unless args.empty?
+      args    = args.flatten
+      x, y, z =
+        case arg = args.first
+        when Vector  then [arg.x,   arg.y,        arg.z]
+        when Numeric then [args[0], args[1] || 0, args[2] || 0]
+        when nil     then [0,       0,            0]
+        else raise ArgumentError
+        end
+      cx, cy, = @canvasFrame__
+      if cx && cy
+        zoom = spriteWorld__.zoom
+        x   += cx / zoom
+        y   += cy / zoom
+      end
+      spriteWorld__.offset = [x, y, z]
     end
-    spriteWorld__.offset = [x, y]
+    spriteWorld__.offset
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#size-instance_method
