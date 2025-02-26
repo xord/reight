@@ -64,7 +64,7 @@ class Reight::Index
   end
 
   def sprite()
-    @sprite ||= Sprite.new(physics: false).tap do |sp|
+    @sprite ||= RubySketch::Sprite.new(physics: false).tap do |sp|
       sp.draw           {draw}
       sp.mouse_pressed  {pressed  sp.mouse_x, sp.mouse_y}
       sp.mouse_released {released sp.mouse_x, sp.mouse_y}

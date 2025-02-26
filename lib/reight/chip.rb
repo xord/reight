@@ -47,8 +47,9 @@ class Reight::Chip
       when :circle then [true,  RubySketch::Circle.new(0, 0, w)]
       else              [false, nil]
       end
-    Sprite.new(
-      0, 0, w, h, image: image, offset: [x, y], shape: shape, physics: physics
+    Reight::Sprite.new(
+      0, 0, w, h, chip: self,
+      image: image, offset: [x, y], shape: shape, physics: physics
     ).tap do |sp|
       sp.x, sp.y = pos.x, pos.y if pos
       if physics

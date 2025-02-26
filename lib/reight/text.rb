@@ -106,7 +106,7 @@ class Reight::Text
   end
 
   def sprite()
-    @sprite ||= Sprite.new(physics: false).tap do |sp|
+    @sprite ||= RubySketch::Sprite.new(physics: false).tap do |sp|
       sp.draw          {draw}
       sp.key_pressed   {key_pressed sp.key, sp.key_code}
       sp.mouse_clicked {clicked sp.mouse_x, sp.mouse_y}

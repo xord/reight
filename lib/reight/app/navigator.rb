@@ -159,7 +159,7 @@ class Reight::Navigator::Message
   end
 
   def sprite()
-    @sprite ||= Sprite.new.tap do |sp|
+    @sprite ||= RubySketch::Sprite.new.tap do |sp|
       sp.draw do
         next unless @text
         fill 100

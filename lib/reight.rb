@@ -4,7 +4,7 @@ require 'reight/all'
 begin
   w, c = Reight::WINDOW__, Reight::CONTEXT__
 
-  excludes = %i[Sound]
+  excludes = %i[Sound Sprite]
   c.class.constants
     .reject {_1 =~ /__$/}
     .reject {excludes.include? _1}

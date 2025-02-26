@@ -63,7 +63,7 @@ class Reight::MapEditor::Chips
   end
 
   def sprite()
-    @sprite ||= Sprite.new.tap do |sp|
+    @sprite ||= RubySketch::Sprite.new.tap do |sp|
       sp.draw           {draw}
       sp.mouse_pressed  {mouse_pressed  sp.mouse_x, sp.mouse_y}
       sp.mouse_released {mouse_released sp.mouse_x, sp.mouse_y}

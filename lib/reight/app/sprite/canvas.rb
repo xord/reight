@@ -139,7 +139,7 @@ class Reight::SpriteEditor::Canvas
   end
 
   def sprite()
-    @sprite ||= Sprite.new.tap do |sp|
+    @sprite ||= RubySketch::Sprite.new.tap do |sp|
       pos = -> {to_image sp.mouse_x, sp.mouse_y}
       sp.draw           {draw}
       sp.mouse_pressed  {tool&.canvas_pressed( *pos.call, sp.mouse_button)}
