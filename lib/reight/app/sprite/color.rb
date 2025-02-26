@@ -4,8 +4,9 @@ using Reight
 class Reight::SpriteEditor::Color < Reight::Button
 
   def initialize(color, &clicked)
-    super name: '', &clicked
+    super name: color[0, 3].map {_1.to_s(16).upcase}.join, &clicked
     @color = color
+    set_help name: "##{name}"
   end
 
   attr_reader :color
