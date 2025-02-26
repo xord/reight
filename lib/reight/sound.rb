@@ -21,16 +21,18 @@ class Reight::Sound
   end
 
   def play(&block)
-    return block.call false if empty?
+    return block&.call false if empty?
     stop
     @playing = sound = to_sound
     sound.play
 
-    id = "__sound_playing_check_#{sound.object_id}"
-    set_interval 0.1, id: id do
-      next if sound.playing? == true
-      block.call true
-      clear_interval id
+    if block
+      id = "__sound_playing_check_#{sound.object_id}"
+      set_interval 0.1, id: id do
+        next if sound.playing? == true
+        block.call true
+        clear_interval id
+      end
     end
   end
 
