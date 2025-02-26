@@ -63,7 +63,7 @@ class Reight::Chip
     @sprite ||= to_sprite
   end
 
-  def clear_sprites()
+  def clear_sprite()
     @sprite = nil
   end
 

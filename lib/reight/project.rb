@@ -77,7 +77,7 @@ class Reight::Project
   ]
 
   def clear_all_sprites()
-    chips.each(&:clear_sprites)
+    chips.each(&:clear_sprite)
     maps.each(&:clear_sprites)
   end
 
