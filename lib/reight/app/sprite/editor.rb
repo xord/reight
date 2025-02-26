@@ -60,19 +60,18 @@ class Reight::SpriteEditor < Reight::App
       sp.bottom = height - SPACE
     end
     colors.map {_1.sprite}.each.with_index do |sp, index|
-      sp.x = chips.sprite.right + SPACE + sp.w * (index % 4)
-      sp.y = height - (SPACE + sp.h * (4 - index / 4))
+      sp.h *= 0.8
+      sp.x  = chips.sprite.right + SPACE + sp.w * (index % 8)
+      sp.y  = height - (SPACE + sp.h * (4 - index / 8))
     end
     tools.map {_1.sprite}.each.with_index do |sp, index|
-      line   = index < 3 ? 0 : 1
-      index -= 3 if line == 1
-      sp.x   = colors.last.sprite.right + SPACE + (sp.w + 1) * index
-      sp.y   = colors.first.sprite.y + (sp.h + 1) * line
+      sp.x = colors.first.sprite.x + (sp.w + 1) * index
+      sp.y = colors.first.sprite.y - (SPACE / 2 + sp.h)
     end
     canvas.sprite.tap do |sp|
       sp.x      = chips.sprite.right + SPACE
       sp.y      = chips.sprite.y
-      sp.bottom = colors.first.sprite.top - SPACE
+      sp.bottom = tools.first.sprite.top - SPACE / 2
       sp.w      = sp.h
     end
     chip_sizes.map {_1.sprite}.each.with_index do |sp, index|

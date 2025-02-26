@@ -72,8 +72,10 @@ class Reight::Project
   def font_size      = 8
 
   def palette_colors = %w[
-    #00000000 #1D2B53 #7E2553 #008751 #AB5236 #5F574F #C2C3C7 #FFF1E8
-    #FF004D   #FFA300 #FFEC27 #00E436 #29ADFF #83769C #FF77A8 #FFCCAA
+    #00000000 #742f29 #ab5236 #f18459 #f7cca9 #ee044e #b8023f #7e2553
+    #452d32   #5f574f #a28879 #c2c3c7 #fdf1e8 #f6acc5 #f277a8 #e40dab
+    #1d2c53   #3363b0 #42a5a1 #56adff #64dff6 #bd9adf #83759c #644788
+    #1e5359   #2d8750 #3eb250 #4fe436 #95f041 #f8ec27 #f3a207 #e26b02
   ]
 
   def clear_all_sprites()
