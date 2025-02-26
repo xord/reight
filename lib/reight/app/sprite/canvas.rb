@@ -94,7 +94,7 @@ class Reight::SpriteEditor::Canvas
   end
 
   def pixel_at(x, y)
-    img = sub_image x, y, 1, 1
+    img = sub_image self.x + x, self.y + y, 1, 1
     img.load_pixels
     c = img.pixels[0]
     [red(c), green(c), blue(c), alpha(c)].map &:to_i
