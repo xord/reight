@@ -111,6 +111,16 @@ class Reight::SoundEditor::Canvas
     draw_note_names
   end
 
+  TONE_COLORS = {
+    sine:      5,
+    triangle:  29,
+    square:    19,
+    sawtooth:  30,
+    pulse12_5: 27,
+    pulse25:   14,
+    noise:     12
+  }.transform_values {Reight::App::PALETTE_COLORS[_1]}
+
   GRID_COLORS = [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]
     .map.with_index {|n, i| i == 0 ? 100 : (n == 1 ? 80 : 60)}
 
@@ -128,7 +138,7 @@ class Reight::SoundEditor::Canvas
     notew, noteh = sp.w / SEQUENCE_LEN, NOTE_HEIGHT
     tones, max   = Reight::Sound::Note::TONES, Reight::Sound::Note::MAX
     @sound.each_note do |note, index|
-      fill @app.project.palette_colors[8 + tones.index(note.tone)]
+      fill TONE_COLORS[note.tone]
       rect index * notew, (max - note.index) * noteh, notew, noteh
     end
   end

@@ -160,8 +160,22 @@ class Reight::SoundEditor < Reight::App
     @tones ||= group(*Reight::Sound::Note::TONES.map.with_index {|tone, index|
       name  = tone.to_s.capitalize.gsub('_', '.')
       name += ' Wave' if name !~ /noise/i
+      color = Canvas::TONE_COLORS[tone]
       Reight::Button.new name: name, icon: icon(index, 3, 8) do
         canvas.tone = tone
+      end.tap do |b|
+        b.instance_variable_set :@color, color
+        class << b
+          alias draw_ draw
+          def draw
+            draw_
+            no_fill
+            stroke @color
+            stroke_weight 1
+            w, h = sprite.width, sprite.height
+            line 3, h - 1, w - 3, h - 1
+          end
+        end
       end
     })
   end
