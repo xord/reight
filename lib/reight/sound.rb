@@ -111,19 +111,32 @@ class Reight::Sound
   end
 
   def sequencer()
-    seq  = Beeps::Sequencer.new
-    time = 0
+    seq   = Beeps::Sequencer.new
+    time  = 0
+    prevs = {}
     @sequence.each do |notes|
-      sec   = Note.seconds 4, @bpm
+      sec       = Note.seconds 4, @bpm
+      new_prevs = {}
       notes&.each do |note|
         osc       = Note.oscillator note.tone, 32
         osc.freq  = note.frequency
         osc.phase = osc.freq * time
-        seq.add osc, time, sec
+        env       = Note.envelope sec
+        seq.add osc >> env, time, sec
+
+        new_prevs[note.tone] = [note.index, env, sec]
+        pindex, penv, psec   = prevs[note.tone]
+
+        if pindex && pindex == note.index
+           env.attack  = 0
+          penv.release = 0
+          penv.note_off psec * 2# skip release phase
+        end
       end
       time += sec
+      prevs = new_prevs
     end
-    return seq >> Beeps::Gain.new(gain: 0.5), time
+    return seq >> Note.gain, time
   end
 
 end# Sound
