@@ -171,11 +171,11 @@ class Reight::Sound::Note
   end
 
   def to_sound(bpm)
-    osc  = self.class.oscillator tone, 32, freq: frequency
-    sec  = self.class.seconds 4, bpm
-    seq  = Beeps::Sequencer.new.tap {_1.add osc, 0, sec}
-    gain = Beeps::Gain.new gain: 0.5
-    RubySketch::Sound.new Beeps::Sound.new(seq >> gain, sec)
+    osc = self.class.oscillator tone, 32, freq: frequency
+    sec = self.class.seconds 4, bpm
+    seq = Beeps::Sequencer.new.tap {_1.add osc, 0, sec}
+    env = self.class.envelope sec
+    RubySketch::Sound.new Beeps::Sound.new(seq >> env >> self.class.gain, sec)
   end
 
   def self.oscillator(type, size, **kwargs)
@@ -196,6 +196,17 @@ class Reight::Sound::Note
     when :sawtooth then input.map {_1 * 2 - 1}
     else                input.map {_1 < duty ? 1 : -1}
     end
+  end
+
+  def self.envelope(seconds)
+    Beeps::Envelope.new release: seconds * 0.05 do
+      note_on
+      note_off seconds * 0.95
+    end
+  end
+
+  def self.gain()
+    Beeps::Gain.new 0.1
   end
 
   def self.seconds(length, bpm)
