@@ -87,7 +87,7 @@ class Reight::SoundEditor::Canvas
   def add_note(ti, ni, tone)
     return if @sound.at(ti, ni)&.tone == tone
     @sound.add ti, ni, tone
-    @sound.at(ti, ni)&.play @sound.bpm
+    @sound.at(ti, ni)&.play 120
     @app.history.append [:put_note, ti, ni, tone]
   end
 
