@@ -36,13 +36,13 @@ class Reight::Runner < Reight::App
 
   def key_pressed()
     super
-    return restart if ROOT_CONTEXT.key_code == F10
     call_event {@context&.key_pressed}
   end
 
   def key_released()
     super
     call_event {@context&.key_released}
+    return restart if ROOT_CONTEXT.key_code == F10
   end
 
   def key_typed()
