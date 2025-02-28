@@ -128,7 +128,7 @@ class Reight::Runner < Reight::App
   def run(force: false)
     return pause false if paused? && !force
     backup_global_vars
-    @context = create_context
+    @context = $__processing_context__ = create_context
     @paused  = false
     begin_wrapping_user_classes @context
     eval_user_script @context, project.code_paths.zip(project.codes).to_h
