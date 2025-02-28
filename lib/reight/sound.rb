@@ -193,7 +193,7 @@ class Reight::Sound::Note
 
   def self.oscillator(type, size, **kwargs)
     case type
-    when :noise then Beeps::Oscillator.new type
+    when :noise then Beeps::Oscillator.new type, **kwargs
     else
       samples = (@samples ||= {})[type] ||= create_samples type, size
       Beeps::Oscillator.new samples: samples, **kwargs
