@@ -24,7 +24,7 @@ class Reight::Runner < Reight::App
     @initial_resize ||= true.tap do
       call_event {@context.size ROOT_CONTEXT.width, ROOT_CONTEXT.height}
     end
-    @context.call_draw__ {|&b| call_event(&b)}
+    @context.call_draw__ {|push: true, &b| call_event(push: push, &b)}
     if canvasFrame = @context.canvasFrame__
       ROOT_CONTEXT.background 0
       ROOT_CONTEXT.image @context, *canvasFrame
@@ -112,12 +112,14 @@ class Reight::Runner < Reight::App
 
   private
 
-  def call_event(ignore_pause: false, &block)
+  def call_event(push: true, ignore_pause: false, &block)
     @context.beginDraw__
+    @context.push if push
     block.call unless paused?
   rescue ScriptError, StandardError => e
     puts e.full_message
   ensure
+    @context.pop  if push
     @context.endDraw__
   end
 
@@ -165,7 +167,7 @@ class Reight::Runner < Reight::App
       end
 
       def call_draw__(&caller)
-        @setup_done__         ||= true.tap {caller.call {setup}}
+        @setup_done__         ||= true.tap {caller.call(push: false) {setup}}
         @background_cleared__ ||= true.tap {caller.call {background 100}}
         caller.call {draw}
       end

@@ -123,12 +123,10 @@ module Reight::Context
   def beginDraw__()
     super
     @painter__.__send__ :begin_paint
-    push
   end
 
   # @private
   def endDraw__()
-    pop
     @painter__.__send__ :end_paint
     super
     resizeCanvas__
