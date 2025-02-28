@@ -184,11 +184,12 @@ class Reight::Sound::Note
   end
 
   def to_sound(bpm)
-    osc = self.class.oscillator tone, 32, freq: frequency
-    sec = self.class.seconds 4, bpm
-    seq = Beeps::Sequencer.new.tap {_1.add osc, 0, sec}
-    env = self.class.envelope sec
-    RubySketch::Sound.new Beeps::Sound.new(seq >> env >> self.class.gain, sec)
+    osc  = self.class.oscillator tone, 32, freq: frequency
+    sec  = self.class.seconds 4, bpm
+    seq  = Beeps::Sequencer.new.tap {_1.add osc, 0, sec}
+    env  = self.class.envelope sec
+    gain = self.class.gain
+    RubySketch::Sound.new Beeps::Sound.new(seq >> env >> gain, sec)
   end
 
   def self.oscillator(type, size, **kwargs)
