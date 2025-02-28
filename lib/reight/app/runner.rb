@@ -6,11 +6,6 @@ class Reight::Runner < Reight::App
 
   TEMPORARY_HASH = {}
 
-  def restart()
-    deactivated
-    activated
-  end
-
   def activated()
     run force: true
     @context.call_activated__ {|&b| call_event(ignore_pause: true, &b)}
@@ -47,7 +42,6 @@ class Reight::Runner < Reight::App
   def key_released()
     super
     call_event {@context&.key_released}
-    return restart if ROOT_CONTEXT.key_code == F10
   end
 
   def key_typed()
