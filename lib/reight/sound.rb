@@ -20,11 +20,11 @@ class Reight::Sound
     @bpm = bpm
   end
 
-  def play(&block)
+  def play(gain: 1.0, &block)
     return block&.call false if empty?
     stop
     @playing = sound = to_sound
-    sound.play
+    sound.play gain: gain
 
     if block
       id = "__sound_playing_check_#{sound.object_id}"
