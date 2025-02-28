@@ -218,8 +218,8 @@ class Reight::Sound::Note
     end
   end
 
-  def self.gain()
-    Beeps::Gain.new 0.1
+  def self.gain(gain = 0.2)
+    Beeps::Gain.new gain
   end
 
   def self.seconds(length, bpm)
