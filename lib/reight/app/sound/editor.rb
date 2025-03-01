@@ -163,6 +163,7 @@ class Reight::SoundEditor < Reight::App
       color = Canvas::TONE_COLORS[tone]
       Reight::Button.new name: name, icon: icon(index, 3, 8) do
         canvas.tone = tone
+        Reight::Sound::Note.new(60, tone).play 120 if active?
       end.tap do |b|
         b.instance_variable_set :@color, color
         class << b

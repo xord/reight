@@ -20,6 +20,7 @@ class Reight::App
 
   def initialize(project)
     @project = project
+    @active  = false
   end
 
   attr_reader :project
@@ -35,6 +36,10 @@ class Reight::App
       end
     end
     buttons
+  end
+
+  def active?()
+    @active
   end
 
   def pressing?(key)
@@ -65,9 +70,11 @@ class Reight::App
   def activated()
     add_world world if world
     @setup ||= true.tap {setup}
+    @active  = true
   end
 
   def deactivated()
+    @active = false
     remove_world world if world
   end
 
