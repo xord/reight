@@ -130,8 +130,9 @@ class Reight::Runner < Reight::App
   def run(force: false)
     return pause false if paused? && !force
     backup_global_vars
-    @context = $__processing_context__ = create_context
+    @context = create_context
     @paused  = false
+    Processing::Context.setContext__ @context
     begin_wrapping_user_classes @context
     eval_user_script @context, project.code_paths.zip(project.codes).to_h
   end
@@ -142,6 +143,7 @@ class Reight::Runner < Reight::App
 
   def cleanup()
     ROOT_CONTEXT.remove_world @context.spriteWorld__ if @context
+    Processing::Context.setContext__ nil
     @context = nil
     end_wrapping_user_classes
     clear_all_timers
