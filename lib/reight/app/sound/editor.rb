@@ -112,6 +112,7 @@ class Reight::SoundEditor < Reight::App
       bpm = str.to_i.clamp(0, Reight::Sound::BPM_MAX)
       next text.revert if bpm <= 0
       text.value = canvas.sound.bpm = bpm
+      canvas.save
     end.tap do |text|
       canvas.sound_changed {text.value = _1.bpm}
     end
