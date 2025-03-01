@@ -36,17 +36,17 @@ class Reight::Runner < Reight::App
 
   def key_pressed()
     super
-    call_event {@context&.key_pressed}
+    call_event {@context.key_pressed}
   end
 
   def key_released()
     super
-    call_event {@context&.key_released}
+    call_event {@context.key_released}
   end
 
   def key_typed()
     super
-    call_event {@context&.key_typed}
+    call_event {@context.key_typed}
   end
 
   def mouse_pressed()
@@ -102,17 +102,18 @@ class Reight::Runner < Reight::App
 
   def window_moved()
     super
-    call_event(ignore_pause: true) {@context.window_moved} if @context
+    call_event(ignore_pause: true) {@context.window_moved}
   end
 
   def window_resized()
     super
-    call_event(ignore_pause: true) {@context.window_resized} if @context
+    call_event(ignore_pause: true) {@context.window_resized}
   end
 
   private
 
   def call_event(push: true, ignore_pause: false, &block)
+    return unless @context
     @context.beginDraw__
     @context.push if push
     block.call unless paused?
