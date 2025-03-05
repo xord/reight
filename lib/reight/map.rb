@@ -16,8 +16,12 @@ class Reight::Map
     @chunks                 = {}
   end
 
+  def to_sprites()
+    map(&:to_sprite)
+  end
+
   def sprites()
-    @sprites ||= SpriteArray.new(sprites: map(&:to_sprite))
+    @sprites ||= SpriteArray.new(sprites: to_sprites)
   end
 
   def sprites_at(x, y, w, h, world = nil, &activated)
