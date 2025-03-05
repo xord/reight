@@ -73,8 +73,8 @@ module Reight::Context
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#createSprite-instance_method
-  def createSprite(...)
-    spriteWorld__.createSprite(...)
+  def createSprite(*args, **kwargs, &block)
+    spriteWorld__.createSprite(*args, klass: Reight::Sprite, **kwargs, &block)
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#addSprite-instance_method
