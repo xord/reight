@@ -12,7 +12,7 @@ class Reight::Map
     raise ArgumentError, "Invalid chunk_size: #{chunk_size}" if
       chunk_size.to_i != chunk_size || chunk_size % chip_size != 0
 
-    @chip_size, @chunk_size = [chip_size, chunk_size].map &:to_i
+    @chip_size, @chunk_size = [chip_size, chunk_size].map(&:to_i)
     @chunks                 = {}
   end
 
