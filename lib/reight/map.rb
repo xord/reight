@@ -16,6 +16,13 @@ class Reight::Map
     @chunks                 = {}
   end
 
+  def activate(x, y, w, h, world = nil, &activated)
+    @sprites   = nil if !activated && @sprites && @sprites.world != world
+    @sprites ||= SpriteArray.new(world: world) {|*a, &b| each_chunk(*a, &b)}
+    @sprites.activate(x, y, w, h, &activated)
+    @sprites
+  end
+
   def to_sprites()
     map(&:to_sprite)
   end
@@ -24,12 +31,7 @@ class Reight::Map
     @sprites ||= SpriteArray.new(sprites: to_sprites)
   end
 
-  def sprites_at(x, y, w, h, world = nil, &activated)
-    @sprites   = nil if @sprites && @sprites.world != world
-    @sprites ||= SpriteArray.new(world: world) {|*a, &b| each_chunk(*a, &b)}
-    @sprites.activate(x, y, w, h, &activated)
-    @sprites
-  end
+  alias sprites_at activate
 
   def clear_sprites()
     @chunks.each_value {_1&.clear_sprites}
@@ -87,6 +89,15 @@ class Reight::Map
     a =                  [@chip_size, @chunk_size, @chunks]
     b = o.instance_eval {[@chip_size, @chunk_size, @chunks]}
     a <=> b
+  end
+
+  # @private
+  def drawSprite__(context)
+    if @sprites
+      @sprites.drawSprite__ context
+    else
+      @chunks.each_value {_1.drawSprite__ context}
+    end
   end
 
   def self.restore(hash, source_chips)
@@ -197,6 +208,7 @@ class Reight::Map::Chunk
     each_chip_pos x, y, chip.w, chip.h do |xx, yy|
       @chips[pos2index xx, yy] = get_chip.call
     end
+    invalidate_cache__
   end
 
   def remove(x, y)
@@ -206,6 +218,7 @@ class Reight::Map::Chunk
       @chips[index] = nil if @chips[index]&.id == chip.id
     end
     delete_last_nils
+    invalidate_cache__
   end
 
   def each_chip(x = nil, y = nil, w = nil, h = nil, include_hidden: false, &block)
@@ -258,6 +271,30 @@ class Reight::Map::Chunk
     a =                  [@x, @y, @w, @h, @chip_size, @chips]
     b = o.instance_eval {[@x, @y, @w, @h, @chip_size, @chips]}
     a <=> b
+  end
+
+  # @private
+  def invalidate_cache__()
+    @cached = false
+  end
+
+  # @private
+  def drawSprite__(context)
+    @cached ||= true.tap do
+      @cache ||= create_graphics @w, @h
+      @cache.begin_draw do |g|
+        g.background 0, 0
+        g.translate -@x, -@y
+        sprites.each {_1.drawSprite__ g}
+      end
+    end
+    context.image @cache, @x, @y
+  end
+
+  # @private
+  def delete_sprite__(sprite)
+    @sprites.delete sprite
+    invalidate_cache__
   end
 
   def self.restore(hash, source_chips)
@@ -341,8 +378,12 @@ class Reight::Map::SpriteArray < Array
   end
 
   def delete(sprite)
-    sprite.map_chunk&.sprites&.delete sprite
+    sprite.map_chunk&.delete_sprite__ sprite
     super
+  end
+
+  def drawSprite__(context)
+    (@chunks&.each || each).each {_1.drawSprite__ context}
   end
 
   private
