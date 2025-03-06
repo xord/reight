@@ -13,3 +13,19 @@ include Xot::Test
 
 R8 = Reight
 RS = RubySketch
+
+class R8::Chip
+  alias <=> cmp__
+end
+
+class R8::ChipList
+  alias <=> cmp__
+end
+
+class R8::Map
+  alias <=> cmp__
+end
+
+class R8::Map::Chunk
+  alias <=> cmp__
+end

@@ -82,7 +82,8 @@ class Reight::Map
     chunk_at(x, y)&.[](x, y)
   end
 
-  def <=>(o)
+  # @private
+  def cmp__(o)
     a =                  [@chip_size, @chunk_size, @chunks]
     b = o.instance_eval {[@chip_size, @chunk_size, @chunks]}
     a <=> b
@@ -252,7 +253,8 @@ class Reight::Map::Chunk
     @chips[index]
   end
 
-  def <=>(o)
+  # @private
+  def cmp__(o)
     a =                  [@x, @y, @w, @h, @chip_size, @chips]
     b = o.instance_eval {[@x, @y, @w, @h, @chip_size, @chips]}
     a <=> b

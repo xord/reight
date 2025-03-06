@@ -77,7 +77,8 @@ class Reight::Chip
     end
   end
 
-  def <=>(o)
+  # @private
+  def cmp__(o)
     a =                  [@id, @image.object_id, @x, @y, @w, @h, @pos, @shape, @sensor]
     b = o.instance_eval {[@id, @image.object_id, @x, @y, @w, @h, @pos, @shape, @sensor]}
     a <=> b
@@ -133,7 +134,8 @@ class Reight::ChipList
     @id2chip[id]
   end
 
-  def <=>(o)
+  # @private
+  def cmp__(o)
     a =                  [@image, @next_id, @id2chip, @frame2chip]
     b = o.instance_eval {[@image, @next_id, @id2chip, @frame2chip]}
     a <=> b
