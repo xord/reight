@@ -353,17 +353,14 @@ class Reight::Map::SpriteArray < Array
   def activate(x, y, w, h, &activated)
     raise ArgumentError, "missing 'activated' block" if !@world && !activated
 
-    old_bounds, bounds = @bounds, [x, y, w, h]
+    bounds, old_bounds = [x, y, w, h], @bounds
     return if bounds == old_bounds
 
-    old_chunks,    chunks    = @chunks || [], @each_chunk.call(x, y, w, h).to_a
-    old_chunk_ids, chunk_ids = [old_chunks, chunks].map {_1.map(&:object_id).sort}
-    #return if chunk_ids == old_chunk_ids
+    chunks, old_chunks = @each_chunk.call(x, y, w, h).to_a, @chunks || []
+    return if chunks == old_chunks
 
-    activateds, deactivateds = [
-      sub_chunks(    chunks.dup, old_chunk_ids),
-      sub_chunks(old_chunks.dup,     chunk_ids)
-    ].map {|chunks| chunks.map(&:sprites).flatten.compact}
+    activateds, deactivateds = [chunks - old_chunks, old_chunks - chunks]
+      .map {|chunks| chunks.map(&:sprites).flatten.compact}
     if activated
       activated.call activateds, deactivateds
     elsif @world
@@ -373,8 +370,6 @@ class Reight::Map::SpriteArray < Array
 
     @bounds, @chunks = bounds, chunks
     clear.concat @chunks.map(&:sprites).flatten.compact
-    $chunks = @chunks
-    $active_rect = [x, y, w, h]
   end
 
   def delete(sprite)
@@ -384,12 +379,6 @@ class Reight::Map::SpriteArray < Array
 
   def drawSprite__(context)
     (@chunks&.each || each).each {_1.drawSprite__ context}
-  end
-
-  private
-
-  def sub_chunks(chunks, chunk_ids_to_be_deleted)
-    chunks.delete_if {chunk_ids_to_be_deleted.include? _1.object_id}
   end
 
 end# SpriteArray
