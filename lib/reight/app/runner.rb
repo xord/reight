@@ -113,15 +113,18 @@ class Reight::Runner < Reight::App
   private
 
   def call_event(push: true, ignore_pause: false, &block)
-    return unless @context
-    @context.beginDraw__
-    @context.push if push
-    block.call unless paused?
+    if @context
+      @context.beginDraw__
+      @context.push if push
+      block.call unless paused?
+    end
   rescue ScriptError, StandardError => e
     puts e.full_message
   ensure
-    @context.pop  if push
-    @context.endDraw__
+    if @context
+      @context.pop if push
+      @context.endDraw__
+    end
   end
 
   def running? = @context && !@paused
