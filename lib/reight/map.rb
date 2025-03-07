@@ -191,9 +191,7 @@ class Reight::Map::Chunk
   attr_reader :x, :y, :w, :h
 
   def sprites()
-    @sprites ||= map {|chip|
-      chip.to_sprite.tap {|sp| sp.map_chunk = self}
-    }
+    @sprites ||= map(&:sprite).each {_1.map_chunk = self}
   end
 
   def clear_sprites()
