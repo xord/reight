@@ -71,7 +71,7 @@ class Reight::Text
 
     show_old = value == ''
     text     = show_old ? @old_value : value
-    text     = label + text unless focus?
+    text     = label.to_s + text unless focus?
     fill show_old ? 200 : 50
     text_align CENTER, CENTER
     text text, 0, 0, sp.w, sp.h
