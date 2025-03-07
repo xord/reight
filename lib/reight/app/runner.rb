@@ -175,6 +175,10 @@ class Reight::Runner < Reight::App
         caller.call {draw}
       end
 
+      def inspect()
+        "#<#{self.class.name}:0x#{object_id}>"
+      end
+
       methods = (instance_methods - Object.instance_methods)
         .reject {_1.end_with? '__'}
       Processing.to_snake_case__(methods).each do |camel, snake|

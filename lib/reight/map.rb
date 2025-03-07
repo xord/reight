@@ -84,6 +84,10 @@ class Reight::Map
     chunk_at(x, y)&.[](x, y)
   end
 
+  def inspect()
+    "#<#{self.class.name}:0x#{object_id}>"
+  end
+
   # @private
   def cmp__(o)
     a =                  [@chip_size, @chunk_size, @chunks]
@@ -266,6 +270,10 @@ class Reight::Map::Chunk
     @chips[index]
   end
 
+  def inspect()
+    "#<#{self.class.name}:0x#{object_id}>"
+  end
+
   # @private
   def cmp__(o)
     a =                  [@x, @y, @w, @h, @chip_size, @chips]
@@ -375,6 +383,10 @@ class Reight::Map::SpriteArray < Array
   def delete(sprite)
     sprite.map_chunk&.delete_sprite__ sprite
     super
+  end
+
+  def inspect()
+    "#<#{self.class.name}:0x#{object_id}>"
   end
 
   def drawSprite__(context)

@@ -77,6 +77,10 @@ class Reight::Chip
     end
   end
 
+  def inspect()
+    "#<#{self.class.name}:0x#{object_id}>"
+  end
+
   # @private
   def cmp__(o)
     a =                  [@id, @image.object_id, @x, @y, @w, @h, @pos, @shape, @sensor]
@@ -132,6 +136,10 @@ class Reight::ChipList
 
   def [](id)
     @id2chip[id]
+  end
+
+  def inspect()
+    "#<#{self.class.name}:0x#{object_id}>"
   end
 
   # @private
