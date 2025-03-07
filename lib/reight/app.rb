@@ -46,10 +46,6 @@ class Reight::App
     pressing_keys.include? key
   end
 
-  def name()
-    self.class.name
-  end
-
   def history()
     @history ||= Reight::History.new
   end
