@@ -28,9 +28,12 @@ class Reight::Text
   end
 
   def focus=(bool)
+    return if bool == focus?
     sprite.capture = bool
-    revert unless valid? value
-    changed! value, self if value != @old_value
+    unless bool
+      revert unless valid? value
+      changed! value, self if value != @old_value
+    end
   end
 
   def focus?()
