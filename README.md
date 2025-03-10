@@ -52,6 +52,10 @@ $ bundle exec r8 .
 
 Comprehensive documentation and guides can be found [here](https://www.rubydoc.info/gems/reight/).
 
+## Examples
+
+You can find example projects in [xord/reight-examples](https://github.com/xord/reight-examples).
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
