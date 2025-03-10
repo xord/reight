@@ -50,7 +50,7 @@ $ bundle exec r8 .
 
 ## Documentation
 
-Comprehensive documentation and guides can be found [here](https://www.rubydoc.info/gems/reight/0.1/index).
+Comprehensive documentation and guides can be found [here](https://www.rubydoc.info/gems/reight/).
 
 ## License
 
