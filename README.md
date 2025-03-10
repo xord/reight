@@ -1,4 +1,3 @@
-
 # Reight - A Retro Game Engine for Ruby
 
 Reight is an open-source Ruby library inspired by the powerful [Processing](https://processing.org/) API, designed to make creative coding accessible and enjoyable for everyone. With support for both Mac and Windows, this library brings the joy of visual programming to Ruby developers.
