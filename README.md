@@ -1,4 +1,3 @@
-
 # Reight - A Retro Game Engine for Ruby
 
 Reight is an open-source Ruby library inspired by the powerful [Processing](https://processing.org/) API, designed to make creative coding accessible and enjoyable for everyone. With support for both Mac and Windows, this library brings the joy of visual programming to Ruby developers.
@@ -38,20 +37,22 @@ Here’s a simple example to get you started:
 # Create a window and draw something
 draw do
   background 0
-	$sprites ||= project.maps.first.map(&:to_sprite)
-	sprite $sprites
+  $sprites ||= project.maps.first.map(&:to_sprite)
+  sprite $sprites
 end
 ```
 
 Run the script and watch your window come to life!
 
-```
+```bash
 $ bundle exec r8 .
 ```
 
+You can find example projects in [xord/reight-examples](https://github.com/xord/reight-examples).
+
 ## Documentation
 
-Comprehensive documentation and guides can be found [here](https://www.rubydoc.info/gems/reight/0.1/index).
+Comprehensive documentation and guides can be found [here](https://www.rubydoc.info/gems/reight/).
 
 ## License
 
