@@ -37,8 +37,8 @@ Here’s a simple example to get you started:
 # Create a window and draw something
 draw do
   background 0
-	$sprites ||= project.maps.first.map(&:to_sprite)
-	sprite $sprites
+  $sprites ||= project.maps.first.map(&:to_sprite)
+  sprite $sprites
 end
 ```
 
