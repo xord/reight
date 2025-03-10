@@ -48,13 +48,11 @@ Run the script and watch your window come to life!
 $ bundle exec r8 .
 ```
 
+You can find example projects in [xord/reight-examples](https://github.com/xord/reight-examples).
+
 ## Documentation
 
 Comprehensive documentation and guides can be found [here](https://www.rubydoc.info/gems/reight/).
-
-## Examples
-
-You can find example projects in [xord/reight-examples](https://github.com/xord/reight-examples).
 
 ## License
 
