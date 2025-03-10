@@ -44,7 +44,7 @@ end
 
 Run the script and watch your window come to life!
 
-```
+```bash
 $ bundle exec r8 .
 ```
 
