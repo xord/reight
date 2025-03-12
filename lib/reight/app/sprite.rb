@@ -1,6 +1,5 @@
 require 'reight/app/sprite/editor'
 require 'reight/app/sprite/canvas'
-require 'reight/app/sprite/chips'
 require 'reight/app/sprite/color'
 require 'reight/app/sprite/tool'
 require 'reight/app/sprite/select'
