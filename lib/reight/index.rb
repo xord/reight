@@ -7,15 +7,24 @@ class Reight::Index
   include Reight::Hookable
   include Reight::HasHelp
 
-  def initialize(index = 0, &changed)
+  def initialize(index = 0, min: 0, max: nil, &changed)
     super()
-    @index = index
+    @min, @max = min, max
 
     hook :changed
     self.changed(&changed) if changed
+
+    self.index = index
   end
 
   attr_reader :index
+
+  def index=(index)
+    index = index.clamp(@max ? (@min..@max) : (@min..))
+    return if index == @index
+    @index = index
+    changed! @index
+  end
 
   def draw()
     sp                 = sprite
@@ -56,11 +65,8 @@ class Reight::Index
   end
 
   def clicked()
-    old     = @index
-    @index += 1 if next?
-    @index -= 1 if prev?
-    @index  = 0 if @index < 0
-    changed! @index if @index != old
+    self.index += 1 if next?
+    self.index -= 1 if prev?
   end
 
   def sprite()
