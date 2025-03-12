@@ -7,18 +7,18 @@ class Reight::Text
   include Reight::Hookable
   include Reight::HasHelp
 
-  def initialize(text = '', label: nil, regexp: nil, &changed)
+  def initialize(text = '', label: nil, regexp: nil, align: LEFT, &changed)
     hook :changed
 
     super()
-    @label, @regexp = label, regexp
-    @shake          = 0
+    @label, @regexp, @align = label, regexp, align
+    @shake                  = 0
     self.changed(&changed) if changed
 
     self.value = text
   end
 
-  attr_accessor :label
+  attr_accessor :label, :align
 
   attr_reader :value
 
@@ -72,14 +72,16 @@ class Reight::Text
     show_old = value == ''
     text     = show_old ? @old_value : value
     text     = label.to_s + text unless focus?
+    x        = 2
     fill show_old ? 200 : 50
-    text_align CENTER, CENTER
-    text text, 0, 0, sp.w, sp.h
+    text_align @align, CENTER
+    text text, x, 0, sp.w - x * 2, sp.h
 
     if focus? && (frame_count % 60) < 30
       fill 100
       bounds = text_font.text_bounds value
-      rect (sp.w + bounds.w) / 2 - 1, (sp.h - bounds.h) / 2, 2, bounds.h
+      xx     = (@align == LEFT ? x + bounds.w : (sp.w + bounds.w) / 2) - 1
+      rect xx, (sp.h - bounds.h) / 2, 2, bounds.h
     end
   end
 
