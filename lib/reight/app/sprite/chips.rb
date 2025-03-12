@@ -12,9 +12,7 @@ class Reight::SpriteEditor::Chips
     @app, @image = app, image
     @offset      = create_vector 0, 0
 
-    @app.history.disable do
-      set_frame 0, 0, size, size
-    end
+    set_frame 0, 0, size, size
   end
 
   attr_reader :x, :y, :size, :offset
@@ -31,7 +29,7 @@ class Reight::SpriteEditor::Chips
     sp      = sprite
     x       = pos.x.clamp([-(@image.width  - sp.w), 0].min..0)
     y       = pos.y.clamp([-(@image.height - sp.h), 0].min..0)
-    offset  = create_vector x, y#align_to_grid(x), align_to_grid(y)
+    offset  = create_vector x, y
     return if offset == @offset
     @offset = offset
     offset_changed! @offset
