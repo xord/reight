@@ -95,7 +95,7 @@ class Reight::Text
   def clicked(x, y)
     if focus?
       return if hit? x, y
-      self.value = @old_value if !valid?(ignore_regexp: false)
+      self.value = @old_value if value == '' && !valid?(ignore_regexp: false)
       self.focus = false
     else
       self.focus         = true
