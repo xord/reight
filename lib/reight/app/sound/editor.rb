@@ -107,7 +107,7 @@ class Reight::SoundEditor < Reight::App
 
   def bpm()
     @bpm ||= Reight::Text.new(
-      canvas.sound.bpm, label: 'BPM ', regexp: /^\-?\d+$/
+      canvas.sound.bpm, label: 'BPM ', regexp: /^\-?\d+$/, editable: true
     ) do |str, text|
       bpm = str.to_i.clamp(0, Reight::Sound::BPM_MAX)
       next text.revert if bpm <= 0

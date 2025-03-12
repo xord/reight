@@ -7,30 +7,33 @@ class Reight::Text
   include Reight::Hookable
   include Reight::HasHelp
 
-  def initialize(text = '', label: nil, regexp: nil, align: LEFT, &changed)
+  def initialize(text = '', editable: false, align: LEFT, label: nil, regexp: nil, &changed)
     hook :changed
 
     super()
-    @label, @regexp, @align = label, regexp, align
-    @shake                  = 0
+    @editable, @align, @label, @regexp = editable, align, label, regexp
+    @shake                             = 0
     self.changed(&changed) if changed
 
     self.value = text
   end
 
-  attr_accessor :label, :align
+  attr_accessor :editable, :align, :label
 
   attr_reader :value
+
+  alias editable? editable
 
   def revert()
     self.value = @old_value
     @shake     = 6
   end
 
-  def focus=(bool)
-    return if bool == focus?
-    sprite.capture = bool
-    unless bool
+  def focus=(focus)
+    return if focus && !editable?
+    return if focus == focus?
+    sprite.capture = focus
+    unless focus
       revert unless valid? value
       changed! value, self if value != @old_value
     end
@@ -99,7 +102,7 @@ class Reight::Text
       return if hit? x, y
       self.value = @old_value if value == '' && !valid?(ignore_regexp: false)
       self.focus = false
-    else
+    elsif editable?
       self.focus         = true
       @old_value, @value = @value.dup, ''
     end
