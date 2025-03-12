@@ -8,7 +8,11 @@ class Reight::MapEditor < Reight::App
   end
 
   def chips()
-    @chips ||= Chips.new self, project.chips
+    @chips ||= Chips.new(self, project.chips).tap do |chips|
+      chips.offset_changed do |offset|
+        chips_index.index = chips.offset2index offset
+      end
+    end
   end
 
   def setup()
@@ -42,11 +46,17 @@ class Reight::MapEditor < Reight::App
 
   def window_resized()
     super
+    [chip_sizes, tools].flatten.map(&:sprite)
+      .each {|sp| sp.w = sp.h = BUTTON_SIZE}
+
+    chips_index.sprite.tap do |sp|
+      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.x       = SPACE
+      sp.y       = NAVIGATOR_HEIGHT + SPACE
+    end
     chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
       sp.x = SPACE + CHIPS_WIDTH - (sp.w + (sp.w + 1) * index)
-      sp.y = NAVIGATOR_HEIGHT + SPACE
-      height - (SPACE + sp.h)
+      sp.y = chips_index.sprite.y
     end
     chips.sprite.tap do |sp|
       sp.x      = SPACE
@@ -54,19 +64,18 @@ class Reight::MapEditor < Reight::App
       sp.right  = chip_sizes.last.sprite.right
       sp.bottom = height - SPACE
     end
-    index.sprite.tap do |sp|
+    map_index.sprite.tap do |sp|
       sp.w, sp.h = 32, BUTTON_SIZE
       sp.x       = chip_sizes.last.sprite.right + SPACE
       sp.y       = chip_sizes.last.sprite.y
     end
     tools.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
       sp.x = chips.sprite.right + SPACE + (sp.w + 1) * index
       sp.y = height - (SPACE + sp.h)
     end
     canvas.sprite.tap do |sp|
-      sp.x      = chips.sprite.right + SPACE
-      sp.y      = index.sprite.bottom + SPACE
+      sp.x      = map_index.sprite.x
+      sp.y      = map_index.sprite.bottom + SPACE
       sp.right  = width - SPACE
       sp.bottom = tools.first.sprite.top - SPACE
     end
@@ -99,8 +108,14 @@ class Reight::MapEditor < Reight::App
   private
 
   def sprites()
-    [*chip_sizes, chips, index, *tools, canvas]
+    [chips_index, *chip_sizes, chips, map_index, *tools, canvas]
       .map(&:sprite) + super
+  end
+
+  def chips_index()
+    @chips_index ||= Reight::Index.new max: project.chips_npages - 1 do |index|
+      chips.offset = chips.index2offset index if index != chips.offset2index
+    end
   end
 
   def chip_sizes()
@@ -111,8 +126,8 @@ class Reight::MapEditor < Reight::App
     })
   end
 
-  def index()
-    @index ||= Reight::Index.new do |index|
+  def map_index()
+    @map_index ||= Reight::Index.new do |index|
       canvas.map = project.maps[index] ||= Reight::Map.new
     end
   end

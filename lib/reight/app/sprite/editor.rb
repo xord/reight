@@ -182,24 +182,8 @@ class Reight::SpriteEditor < Reight::App
 
   def chips_index()
     @chips_index ||= Reight::Index.new max: project.chips_npages - 1 do |index|
-      chips.offset = chips_index_to_offset index if
-        index != chips_offset_to_index(chips.offset)
+      chips.offset = chips.index2offset index if index != chips.offset2index
     end
-  end
-
-  def chips_index_to_offset(index)
-    pw, ph = project.chips_page_width, project.chips_page_height
-    size   = project.chips_image_width / pw
-    create_vector -(index % size).to_i * pw, -(index / size).to_i * ph
-  end
-
-  def chips_offset_to_index(offset)
-    iw     = project.chips_image_width
-    pw, ph = project.chips_page_width, project.chips_page_height
-    x      = (-offset.x / ph).to_i
-    y      = (-offset.y / pw).to_i
-    w      = (iw / pw).to_i
-    y * w + x
   end
 
   def chip_sizes()
@@ -211,12 +195,12 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def chips()
-    @chips ||= Chips.new(self, project.chips_image).tap do |chips|
+    @chips ||= Chips.new(self, project.chips).tap do |chips|
       chips.frame_changed do |x, y, w, h|
         chip_changed x, y, w, h
       end
       chips.offset_changed do |offset|
-        chips_index.index = chips_offset_to_index offset
+        chips_index.index = chips.offset2index offset
       end
     end
   end
