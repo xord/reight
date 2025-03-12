@@ -3,8 +3,8 @@ using Reight
 
 class Reight::MapEditor::Canvas
 
-  def initialize(app, map, path)
-    @app, @map, @path      = app, map, path
+  def initialize(app, map)
+    @app, @map             = app, map
     @x, @y, @tool, @cursor = 0, 0, nil, nil, nil
   end
 

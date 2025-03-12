@@ -4,7 +4,7 @@ using Reight
 class Reight::MapEditor < Reight::App
 
   def canvas()
-    @canvas ||= Canvas.new self, project.maps.first, project.maps_json_path
+    @canvas ||= Canvas.new self, project.maps.first
   end
 
   def chips()
