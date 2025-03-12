@@ -50,7 +50,7 @@ class Reight::MapEditor < Reight::App
       .each {|sp| sp.w = sp.h = BUTTON_SIZE}
 
     chips_index.sprite.tap do |sp|
-      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.w, sp.h = INDEX_SIZE, BUTTON_SIZE
       sp.x       = SPACE
       sp.y       = NAVIGATOR_HEIGHT + SPACE
     end
@@ -65,7 +65,7 @@ class Reight::MapEditor < Reight::App
       sp.bottom = height - SPACE
     end
     map_index.sprite.tap do |sp|
-      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.w, sp.h = INDEX_SIZE, BUTTON_SIZE
       sp.x       = chip_sizes.last.sprite.right + SPACE
       sp.y       = chip_sizes.last.sprite.y
     end

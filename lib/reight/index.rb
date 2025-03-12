@@ -27,23 +27,28 @@ class Reight::Index
   end
 
   def draw()
-    sp                 = sprite
-    button_w, button_h = sp.h, sp.h
-
     no_stroke
 
-    fill 230
-    if pressing? && prev?
-      rect 0,        0, sp.w / 2, button_h
-    elsif pressing? && next?
-      rect sp.w / 2, 0, sp.w / 2, button_h
-    end
+    sp   = sprite
+    w, h = sp.w, sp.h
+    dec  = pressing? && prev?
+    inc  = pressing? && next?
+    decy = dec ? 1 : 0
+    incy = inc ? 1 : 0
 
-    fill 50
+    fill 220
+    rect 0,     decy, h, h, 2 if dec
+    rect w - h, incy, h, h, 2 if inc
+
     text_align CENTER, CENTER
-    text '<',   0,               0, button_w, button_h
-    text '>',   sp.w - button_w, 0, button_w, button_h
-    text index, 0,               0, sp.w,     sp.h
+    fill 220
+    text '<',   0,     decy + 1, h, h
+    text '>',   w - h, incy + 1, h, h
+    text index, 0,     1,        w, h
+    fill 50
+    text '<',   0,     decy,     h, h
+    text '>',   w - h, incy,     h, h
+    text index, 0,     0,        w, h
   end
 
   def prev? = sprite.mouse_x < sprite.w / 2

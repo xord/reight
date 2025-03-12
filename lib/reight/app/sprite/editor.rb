@@ -62,7 +62,7 @@ class Reight::SpriteEditor < Reight::App
       .each {|sp| sp.w = sp.h = BUTTON_SIZE}
 
     chips_index.sprite.tap do |sp|
-      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.w, sp.h = INDEX_SIZE, BUTTON_SIZE
       sp.x       = SPACE
       sp.y       = NAVIGATOR_HEIGHT + SPACE
     end

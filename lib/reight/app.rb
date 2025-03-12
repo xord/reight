@@ -8,6 +8,7 @@ class Reight::App
 
   SPACE            = 6
   BUTTON_SIZE      = 12
+  INDEX_SIZE       = 36
   NAVIGATOR_HEIGHT = BUTTON_SIZE + 2
   CHIPS_WIDTH      = 128
 

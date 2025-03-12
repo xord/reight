@@ -25,7 +25,7 @@ class Reight::Button
 
     if @label
       fill 210
-      rect 0, pressing? ? 2 : 1, sp.w, sp.h - 1, 2
+      rect 0, pressing? ? 1 : 0, sp.w, sp.h, 2
     end
 
     if active?
@@ -44,9 +44,9 @@ class Reight::Button
       y = pressing? ? 1 : 0
       text_size r8.project.font_size - 1
       text_align CENTER, CENTER
-      fill 100, 100, 100
+      fill active? ? 250 : 230
       text @label, 0, y + 1, sp.w, sp.h
-      fill 255, 255, 255
+      fill active? ? 70  : 50
       text @label, 0, y,     sp.w, sp.h
     end
   end
