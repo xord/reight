@@ -51,6 +51,17 @@ class Reight::Project
     }.call
   end
 
+  def chips_page_width  = settings[__method__] || 256
+
+  def chips_page_height = settings[__method__] || 256
+
+  def chips_npages()
+    w = chips_image_width  / chips_page_width .to_f
+    h = chips_image_height / chips_page_height.to_f
+    raise unless w == w.to_i && h == h.to_i
+    (w * h).to_i
+  end
+
   def maps_json_name = settings[__method__] || 'maps.json'
 
   def maps_json_path = "#{project_dir}/#{maps_json_name}"

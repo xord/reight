@@ -8,12 +8,12 @@ class Reight::Index
   include Reight::HasHelp
 
   def initialize(index = 0, min: 0, max: nil, &changed)
+    hook :changed
+
     super()
     @min, @max = min, max
 
-    hook :changed
     self.changed(&changed) if changed
-
     self.index = index
   end
 
@@ -22,7 +22,7 @@ class Reight::Index
   def index=(index)
     index = index.clamp(@max ? (@min..@max) : (@min..))
     return if index == @index
-    @index = index
+    @index = index.to_i
     changed! @index
   end
 

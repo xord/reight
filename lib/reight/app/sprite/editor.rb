@@ -58,12 +58,17 @@ class Reight::SpriteEditor < Reight::App
 
   def window_resized()
     super
-    [colors, tools, chip_sizes, brush_sizes].flatten.map(&:sprite)
+    [chip_sizes, tools, colors, brush_sizes].flatten.map(&:sprite)
       .each {|sp| sp.w = sp.h = BUTTON_SIZE}
 
+    chips_index.sprite.tap do |sp|
+      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.x       = SPACE
+      sp.y       = NAVIGATOR_HEIGHT + SPACE
+    end
     chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
       sp.x = SPACE + CHIPS_WIDTH - (sp.w + (sp.w + 1) * index)
-      sp.y = NAVIGATOR_HEIGHT + SPACE
+      sp.y = chips_index.sprite.y
     end
     chips.sprite.tap do |sp|
       sp.x      = SPACE
@@ -171,8 +176,30 @@ class Reight::SpriteEditor < Reight::App
   private
 
   def sprites()
-    [*chip_sizes, chips, *tools, *colors, canvas, *brush_sizes, *shapes, *types]
+    [chips_index, *chip_sizes, chips, *tools, *colors, canvas, *brush_sizes, *shapes, *types]
       .map(&:sprite) + super
+  end
+
+  def chips_index()
+    @chips_index ||= Reight::Index.new max: project.chips_npages - 1 do |index|
+      chips.offset = chips_index_to_offset index if
+        index != chips_offset_to_index(chips.offset)
+    end
+  end
+
+  def chips_index_to_offset(index)
+    pw, ph = project.chips_page_width, project.chips_page_height
+    size   = project.chips_image_width / pw
+    create_vector -(index % size).to_i * pw, -(index / size).to_i * ph
+  end
+
+  def chips_offset_to_index(offset)
+    iw     = project.chips_image_width
+    pw, ph = project.chips_page_width, project.chips_page_height
+    x      = (-offset.x / ph).to_i
+    y      = (-offset.y / pw).to_i
+    w      = (iw / pw).to_i
+    y * w + x
   end
 
   def chip_sizes()
@@ -184,9 +211,13 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def chips()
-    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
-      canvas.set_frame x, y, w, h
-      chip_changed x, y, w, h
+    @chips ||= Chips.new(self, project.chips_image).tap do |chips|
+      chips.frame_changed do |x, y, w, h|
+        chip_changed x, y, w, h
+      end
+      chips.offset_changed do |offset|
+        chips_index.index = chips_offset_to_index offset
+      end
     end
   end
 
@@ -259,6 +290,7 @@ class Reight::SpriteEditor < Reight::App
   end
 
   def chip_changed(x, y, w, h)
+    canvas.set_frame x, y, w, h
     chip = project.chips.at x, y, w, h
     shapes[[nil, :rect, :circle].index(chip.shape)].click
     types[chip.sensor? ? 1 : 0].click
