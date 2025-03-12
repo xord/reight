@@ -59,7 +59,7 @@ class Reight::SpriteEditor < Reight::App
     end
     chips.sprite.tap do |sp|
       sp.x      = SPACE
-      sp.y      = chip_sizes.last.sprite.bottom + SPACE / 2
+      sp.y      = chip_sizes.last.sprite.bottom + SPACE
       sp.right  = chip_sizes.last.sprite.right
       sp.bottom = height - SPACE
     end
