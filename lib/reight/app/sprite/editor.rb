@@ -53,10 +53,14 @@ class Reight::SpriteEditor < Reight::App
     [colors, tools, chip_sizes, brush_sizes].flatten.map(&:sprite)
       .each {|sp| sp.w = sp.h = BUTTON_SIZE}
 
+    chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
+      sp.x = SPACE + CHIPS_WIDTH - (sp.w + (sp.w + 1) * index)
+      sp.y = NAVIGATOR_HEIGHT + SPACE
+    end
     chips.sprite.tap do |sp|
       sp.x      = SPACE
-      sp.y      = NAVIGATOR_HEIGHT + SPACE
-      sp.w      = CHIPS_WIDTH
+      sp.y      = chip_sizes.last.sprite.bottom + SPACE / 2
+      sp.right  = chip_sizes.last.sprite.right
       sp.bottom = height - SPACE
     end
     colors.map {_1.sprite}.each.with_index do |sp, index|
@@ -69,18 +73,14 @@ class Reight::SpriteEditor < Reight::App
       sp.y = colors.first.sprite.y - (SPACE / 2 + sp.h)
     end
     canvas.sprite.tap do |sp|
-      sp.x      = chips.sprite.right + SPACE
-      sp.y      = chips.sprite.y
+      sp.x      = chip_sizes.last.sprite.right + SPACE
+      sp.y      = chip_sizes.last.sprite.y
       sp.bottom = tools.first.sprite.top - SPACE / 2
       sp.w      = sp.h
     end
-    chip_sizes.map {_1.sprite}.each.with_index do |sp, index|
+    brush_sizes.map {_1.sprite}.each.with_index do |sp, index|
       sp.x = canvas.sprite.right + SPACE + (sp.w + 1) * index
       sp.y = canvas.sprite.y
-    end
-    brush_sizes.map {_1.sprite}.each.with_index do |sp, index|
-      sp.x = chip_sizes.first.sprite.x + (sp.w + 1) * index
-      sp.y = chip_sizes.last.sprite.bottom + SPACE
     end
     shapes.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = 30
@@ -163,15 +163,8 @@ class Reight::SpriteEditor < Reight::App
   private
 
   def sprites()
-    [canvas, chips, *chip_sizes, *colors, *tools, *brush_sizes, *shapes, *types]
+    [*chip_sizes, chips, *tools, *colors, canvas, *brush_sizes, *shapes, *types]
       .map(&:sprite) + super
-  end
-
-  def chips()
-    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
-      canvas.set_frame x, y, w, h
-      chip_changed x, y, w, h
-    end
   end
 
   def chip_sizes()
@@ -180,6 +173,13 @@ class Reight::SpriteEditor < Reight::App
         chips.set_frame chips.x, chips.y, size, size
       end
     })
+  end
+
+  def chips()
+    @chips ||= Chips.new self, project.chips_image do |x, y, w, h|
+      canvas.set_frame x, y, w, h
+      chip_changed x, y, w, h
+    end
   end
 
   def tools()
@@ -204,15 +204,6 @@ class Reight::SpriteEditor < Reight::App
   def stroke_ellipse = @stroke_ellipse ||= Shape.new(self, :ellipse, false) {canvas.tool = _1}
   def   fill_ellipse =   @fill_ellipse ||= Shape.new(self, :ellipse, true)  {canvas.tool = _1}
 
-  def brush_sizes()
-    @brush_sizes ||= group(*[1, 2, 3, 5, 10].map {|size|
-      Reight::Button.new name: "Button Size #{size}", label: size do
-        brush.size = size
-        flash "Brush Size #{size}"
-      end
-    })
-  end
-
   def colors()
     @colors ||= project.palette_colors.map {|color|
       rgb = self.color(color)
@@ -223,6 +214,15 @@ class Reight::SpriteEditor < Reight::App
         canvas.color_changed {c.active = _1 == rgb}
       end
     }
+  end
+
+  def brush_sizes()
+    @brush_sizes ||= group(*[1, 2, 3, 5, 10].map {|size|
+      Reight::Button.new name: "Button Size #{size}", label: size do
+        brush.size = size
+        flash "Brush Size #{size}"
+      end
+    })
   end
 
   def shapes()

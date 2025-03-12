@@ -42,20 +42,21 @@ class Reight::MapEditor < Reight::App
 
   def window_resized()
     super
+    chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
+      sp.w = sp.h = BUTTON_SIZE
+      sp.x = SPACE + CHIPS_WIDTH - (sp.w + (sp.w + 1) * index)
+      sp.y = NAVIGATOR_HEIGHT + SPACE
+      height - (SPACE + sp.h)
+    end
     chips.sprite.tap do |sp|
       sp.x      = SPACE
-      sp.y      = NAVIGATOR_HEIGHT + SPACE
-      sp.w      = CHIPS_WIDTH
+      sp.y      = chip_sizes.last.sprite.bottom + SPACE / 2
+      sp.right  = chip_sizes.last.sprite.right
       sp.bottom = height - SPACE
     end
     tools.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
       sp.x = chips.sprite.right + SPACE + (sp.w + 1) * index
-      sp.y = height - (SPACE + sp.h)
-    end
-    chip_sizes.reverse.map {_1.sprite}.each.with_index do |sp, index|
-      sp.w = sp.h = BUTTON_SIZE
-      sp.x = width - (SPACE + sp.w * (index + 1) + index)
       sp.y = height - (SPACE + sp.h)
     end
     canvas.sprite.tap do |sp|
@@ -93,7 +94,7 @@ class Reight::MapEditor < Reight::App
   private
 
   def sprites()
-    [canvas, chips, *chip_sizes, *tools]
+    [*chip_sizes, chips, *tools, canvas]
       .map(&:sprite) + super
   end
 
