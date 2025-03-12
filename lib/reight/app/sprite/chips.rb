@@ -20,7 +20,7 @@ class Reight::SpriteEditor::Chips
 
   attr_reader :x, :y, :size
 
-  def set_frame(x, y, w, h)
+  def set_frame(x, y, w = size, h = size)
     raise 'Chips: width != height' if w != h
     @x    = align_to_grid(x).clamp(0..@image.width)
     @y    = align_to_grid(y).clamp(0..@image.height)
@@ -62,9 +62,7 @@ class Reight::SpriteEditor::Chips
   def mouse_clicked(x, y)
     set_frame(
       -@offset.x + align_to_grid(x),
-      -@offset.y + align_to_grid(y),
-      size,
-      size)
+      -@offset.y + align_to_grid(y))
   end
 
   def sprite()
