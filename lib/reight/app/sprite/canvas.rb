@@ -6,6 +6,8 @@ class Reight::SpriteEditor::Canvas
   include Reight::Hookable
 
   def initialize(app, image, path)
+    hook :frame_changed
+    hook :selection_changed
     hook :color_changed
 
     @app, @image, @path       = app, image, path
@@ -34,7 +36,7 @@ class Reight::SpriteEditor::Canvas
     new            = correct_bounds x, y, w, h
     return if new == old
     @x, @y, @w, @h = new
-    @app.history.append [:frame, old, new]
+    frame_changed! old, new
   end
 
   def frame = [x, y, w, h]
@@ -50,7 +52,7 @@ class Reight::SpriteEditor::Canvas
     new        = correct_bounds x, y, w, h
     return if new == old
     @selection = new
-    @app.history.append [:select, old, new]
+    selection_changed! old, new
   end
 
   def selection()
@@ -65,7 +67,7 @@ class Reight::SpriteEditor::Canvas
   def deselect()
     return if @selection == nil
     old, @selection = @selection, nil
-    @app.history.append [:deselect, old]
+    selection_changed! old, nil
   end
 
   def paint(&block)

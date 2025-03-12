@@ -7,7 +7,15 @@ class Reight::SpriteEditor < Reight::App
     @canvas ||= Canvas.new(
       self,
       project.chips_image,
-      project.chips_image_path)
+      project.chips_image_path
+    ).tap do |canvas|
+      canvas.frame_changed do |old, new|
+        history.append [:frame, old, new]
+      end
+      canvas.selection_changed do |old, new|
+        history.append [new ? :select : :deselect, old, new]
+      end
+    end
   end
 
   def setup()
