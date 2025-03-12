@@ -54,6 +54,11 @@ class Reight::MapEditor < Reight::App
       sp.right  = chip_sizes.last.sprite.right
       sp.bottom = height - SPACE
     end
+    index.sprite.tap do |sp|
+      sp.w, sp.h = 32, BUTTON_SIZE
+      sp.x       = chip_sizes.last.sprite.right + SPACE
+      sp.y       = chip_sizes.last.sprite.y
+    end
     tools.map {_1.sprite}.each.with_index do |sp, index|
       sp.w = sp.h = BUTTON_SIZE
       sp.x = chips.sprite.right + SPACE + (sp.w + 1) * index
@@ -61,7 +66,7 @@ class Reight::MapEditor < Reight::App
     end
     canvas.sprite.tap do |sp|
       sp.x      = chips.sprite.right + SPACE
-      sp.y      = chips.sprite.y
+      sp.y      = index.sprite.bottom + SPACE
       sp.right  = width - SPACE
       sp.bottom = tools.first.sprite.top - SPACE
     end
@@ -94,7 +99,7 @@ class Reight::MapEditor < Reight::App
   private
 
   def sprites()
-    [*chip_sizes, chips, *tools, canvas]
+    [*chip_sizes, chips, index, *tools, canvas]
       .map(&:sprite) + super
   end
 
@@ -104,6 +109,12 @@ class Reight::MapEditor < Reight::App
         chips.set_frame chips.x, chips.y, size, size
       end
     })
+  end
+
+  def index()
+    @index ||= Reight::Index.new do |index|
+      canvas.map = project.maps[index] ||= Reight::Map.new
+    end
   end
 
   def tools()

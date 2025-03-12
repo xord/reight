@@ -12,6 +12,10 @@ class Reight::MapEditor::Canvas
 
   attr_reader :map, :cursor
 
+  def map=(map)
+    @map = map
+  end
+
   def save()
     @app.project.save
   end
