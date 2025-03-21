@@ -8,6 +8,10 @@ class Reight::Runner < Reight::App
 
   def label = 'Run'
 
+  def setup()
+    navigator.visible = false
+  end
+
   def activated()
     run force: true
     @context.call_activated__ {|&b| call_event(ignore_pause: true, &b)}
@@ -63,7 +67,7 @@ class Reight::Runner < Reight::App
 
   def mouse_moved()
     super
-    navigator.visible = ROOT_CONTEXT.mouse_y < NAVIGATOR_HEIGHT
+    navigator.visible = ROOT_CONTEXT.mouse_y < NAVIGATOR_HEIGHT if r8.edit?
     call_event {@context.mouse_moved}
   end
 

@@ -4,13 +4,12 @@ using Reight
 class Reight::Navigator
 
   def initialize(app)
-    @app, @visible = app, false
+    @app, @visible = app, true
   end
 
   def flash(...) = message.flash(...)
 
   def visible=(visible)
-    visible = false unless r8.edit?
     return if visible == @visible
     @visible = visible
     sprites.each {|sp| visible ? sp.show : sp.hide}
