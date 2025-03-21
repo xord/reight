@@ -48,7 +48,7 @@ class Reight::R8
       self.class.name.split('::').first,
       Reight::Extension.version,
       '|',
-      current.class.name.split('::').last
+      current.label
     ].join ' '
   end
 
