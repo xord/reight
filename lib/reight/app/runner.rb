@@ -264,23 +264,17 @@ class Reight::Runner < Reight::App
     TEMPORARY_HASH.delete :params
   end
 
+  EXCLUDE_GLOBAL_VARS = [:$FILENAME]
+
   def backup_global_vars()
-    @global_vars = global_variables
+    @global_vars = (global_variables - EXCLUDE_GLOBAL_VARS)
       .each.with_object({}) {|name, hash| hash[name] = eval name.to_s}
       .freeze
   end
 
-  def clear_all_timers()
-    prefix = Reight::Context::TIMER_PREFIX__
-    ROOT_CONTEXT.instance_eval do
-      @timers__      .delete_if {|id| id in [prefix, _]}
-      @firingTimers__.delete_if {|id| id in [prefix, _]}
-    end
-  end
-
   def restore_global_vars()
     return unless @global_vars
-    global_variables
+    (global_variables - EXCLUDE_GLOBAL_VARS)
       .map    {|name| [name, eval(name.to_s)]}
       .select {|name, value| value != nil && @global_vars[name] == nil}
       .each   {|name, value| global_var_set name, nil}
@@ -296,6 +290,14 @@ class Reight::Runner < Reight::App
     eval "#{name} = ::Reight::Runner::TEMPORARY_HASH[:value]"
   ensure
     TEMPORARY_HASH.delete :value
+  end
+
+  def clear_all_timers()
+    prefix = Reight::Context::TIMER_PREFIX__
+    ROOT_CONTEXT.instance_eval do
+      @timers__      .delete_if {|id| id in [prefix, _]}
+      @firingTimers__.delete_if {|id| id in [prefix, _]}
+    end
   end
 
 end# Runner
