@@ -26,6 +26,10 @@ class Reight::App
 
   attr_reader :project
 
+  def label()
+    self.class.name.split('::').last.gsub(/([a-z])([A-Z])/) {"#{$1} #{$2}"}
+  end
+
   def flash(...)
     navigator.flash(...) if history.enabled?
   end

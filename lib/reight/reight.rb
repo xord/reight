@@ -3,31 +3,29 @@ using Reight
 
 class Reight::R8
 
-  def initialize(path)
+  def initialize(path, edit: false)
     raise if $r8__
     $r8__ = self
 
-    @path        = path
+    @path, @edit = path, edit
     self.current = apps.first
   end
 
   attr_reader :current
 
-  def version()
-    '0.1'
-  end
+  def edit? = @edit
 
   def project()
     @project ||= Reight::Project.new @path
   end
 
   def apps()
-    @apps ||= [
-      Reight::Runner.new(project),
-      Reight::SpriteEditor.new(project),
-      Reight::MapEditor.new(project),
-      Reight::SoundEditor.new(project)
-    ]
+    @apps ||= [].tap {|a|
+      a << Reight::Runner      .new(project)
+      a << Reight::SpriteEditor.new(project) if edit?
+      a << Reight::MapEditor   .new(project) if edit?
+      a << Reight::SoundEditor .new(project) if edit?
+    }
   end
 
   def flash(...) = current.flash(...)
@@ -48,7 +46,7 @@ class Reight::R8
 
     set_title [
       self.class.name.split('::').first,
-      version,
+      Reight::Extension.version,
       '|',
       current.class.name.split('::').last
     ].join ' '

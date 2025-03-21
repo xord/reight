@@ -6,6 +6,8 @@ class Reight::Runner < Reight::App
 
   TEMPORARY_HASH = {}
 
+  def label = 'Run'
+
   def activated()
     run force: true
     @context.call_activated__ {|&b| call_event(ignore_pause: true, &b)}

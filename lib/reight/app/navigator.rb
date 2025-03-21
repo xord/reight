@@ -4,12 +4,13 @@ using Reight
 class Reight::Navigator
 
   def initialize(app)
-    @app, @visible = app, true
+    @app, @visible = app, false
   end
 
   def flash(...) = message.flash(...)
 
   def visible=(visible)
+    visible = false unless r8.edit?
     return if visible == @visible
     @visible = visible
     sprites.each {|sp| visible ? sp.show : sp.hide}
@@ -32,7 +33,7 @@ class Reight::Navigator
 
   def key_pressed()
     index = [F1, F2, F3, F4, F5].index(key_code)
-    app_buttons[index].click if index
+    app_buttons[index]&.click if index
   end
 
   def window_resized()
@@ -77,20 +78,11 @@ class Reight::Navigator
   private
 
   def app_buttons()
-    @app_buttons ||= [
-      Reight::Button.new(name: 'Run',           icon: @app.icon(0, 0, 8)) {
-        switch_app Reight::Runner
-      },
-      Reight::Button.new(name: 'Sprite Editor', icon: @app.icon(1, 0, 8)) {
-        switch_app Reight::SpriteEditor
-      },
-      Reight::Button.new(name: 'Map Editor',    icon: @app.icon(2, 0, 8)) {
-        switch_app Reight::MapEditor
-      },
-      Reight::Button.new(name: 'Sound Editor',  icon: @app.icon(3, 0, 8)) {
-        switch_app Reight::SoundEditor
-      },
-    ]
+    @app_buttons ||= r8.apps.map.with_index {|app, index|
+      Reight::Button.new(name: app.label, icon: app.icon(index, 0, 8)) {
+        r8.current = app
+      }
+    }
   end
 
   def history_buttons()
@@ -132,11 +124,6 @@ class Reight::Navigator
 
   def message()
     @message ||= Message.new
-  end
-
-  def switch_app(klass)
-    app        = r8.apps.find {_1.class == klass}
-    r8.current = app if app
   end
 
 end# Navigator

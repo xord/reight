@@ -1,21 +1,31 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require 'reight'
-using Reight
+
+
+opt         = OptionParser.new
+opt.banner  = "Usage: r8 [options] [DIR]"
+opt.version = Reight::Extension.version
+
+opt.on      '-e', '--edit', "edit mode"
+opt.on_tail '-h', '--help'
+
+params = {}
+argv   = opt.parse! ARGV, into: params
+
+if params.key? :help
+  puts opt.help
+  exit
+end
 
 
 def r8 = $r8__
 
-def usage()
-  <<~END
-    USAGE: r8 [path]
-  END
-end
-
 Reight::CONTEXT__.tap do |c|
-  path = ARGV.shift or return puts usage
+  path = argv.shift || '.'
   path = File.expand_path path, Dir.pwd unless path.start_with?('/')
-  c.setup          {Reight::R8.new(path).setup}
+  c.setup          {Reight::R8.new(path, edit: params[:edit]).setup}
   c.draw           {r8.draw}
   c.key_pressed    {r8.key_pressed}
   c.key_released   {r8.key_released}

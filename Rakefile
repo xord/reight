@@ -29,5 +29,5 @@ build_ruby_gem
 task :run do
   libs = %w[xot rucy beeps rays reflex processing rubysketch]
     .map {|lib| "-I#{ENV['ALL']}/#{lib}/lib"}
-  sh %( ruby #{libs.join ' '} -Ilib bin/r8 '#{ENV["dir"] || "."}' )
+  sh %( ruby #{libs.join ' '} -Ilib bin/r8 --edit '#{ENV["dir"] || "demo/hello"}' )
 end
