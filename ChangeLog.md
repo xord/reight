@@ -1,6 +1,30 @@
 # reight ChangeLog
 
 
+## [v0.1.8] - 2025-03-24
+
+- Add '--edit' command-line option to enable edit mode
+- Add Text#editable?
+- Add SpriteEditor::chips_index
+- Add frame_changed and selection_changed to Sprite::Canvas
+- Add Index control for maps
+- Add PULL_REQUEST_TEMPLATE.md
+- Add CONTRIBUTING.md
+- Update layout
+- Share the chips.rb
+- Move chip_sizes above chips
+- Refine visuals of button and index
+- Index has min and max
+- Text::initialize can take 'align:' keyword parameter
+- The text input area will not be shaked if the value determined by the click is empty
+- Fix the text value if not reverted on exiting edit mode with invalid value
+- Delete App#name
+- Simplify inspect() text
+- Update readme: Add link to examples (by @kaibadash)
+
+- Fix some crashes
+
+
 ## [v0.1.7] - 2025-03-07
 
 - Add Reight::Context
