@@ -45,7 +45,7 @@ end
 Run the script and watch your window come to life!
 
 ```bash
-$ bundle exec r8 .
+$ bundle exec r8 --edit .
 ```
 
 You can find example projects in [xord/reight-examples](https://github.com/xord/reight-examples).
