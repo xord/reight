@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.9] - 2025-04-08
+
+- Update README
+
+
 ## [v0.1.8] - 2025-03-24
 
 - Add '--edit' command-line option to enable edit mode
