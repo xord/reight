@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.10] - 2025-05-11
+
+- Update dependencies
+
+
 ## [v0.1.9] - 2025-04-08
 
 - Update README
