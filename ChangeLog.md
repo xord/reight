@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.10.1] - 2025-05-12
+
+- Fix crash duaring launch
+
+
 ## [v0.1.10] - 2025-05-11
 
 - Update dependencies
