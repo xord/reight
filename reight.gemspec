@@ -29,9 +29,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'rucy',       '~> 0.3.7', '>= 0.3.7'
   s.add_dependency 'beeps',      '~> 0.3.7', '>= 0.3.7'
   s.add_dependency 'rays',       '~> 0.3.7', '>= 0.3.7'
-  s.add_dependency 'reflexion',  '~> 0.3.8', '>= 0.3.8'
-  s.add_dependency 'processing', '~> 1.1',   '>= 1.1.10'
-  s.add_dependency 'rubysketch', '~> 0.7.11', '>= 0.7.11'
+  s.add_dependency 'reflexion',  '~> 0.3.8', '>= 0.3.8.1'
+  s.add_dependency 'processing', '~> 1.1',   '>= 1.1.11'
+  s.add_dependency 'rubysketch', '~> 0.7.12', '>= 0.7.12'
 
   s.files            = `git ls-files`.split $/
   s.executables      = s.files.grep(%r{^bin/}) {|f| File.basename f}
