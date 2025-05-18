@@ -95,14 +95,14 @@ module Reight::Context
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#setTimeout-instance_method
   def setTimeout( *a, id: @rootContext__.nextTimerID__, **k, &b)
-    id = [TIMER_PREFIX__, id]
-    @rootContext__.setTimeout(*a, id: id, **k, &b)
+    @rootContext__.setTimeout(*a, id: [TIMER_PREFIX__, id], **k, &b)
+    id
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#setInterval-instance_method
   def setInterval(*a, id: @rootContext__.nextTimerID__, **k, &b)
-    id = [TIMER_PREFIX__, id]
-    @rootContext__.setInterval(*a, id: id, **k, &b)
+    @rootContext__.setInterval(*a, id: [TIMER_PREFIX__, id], **k, &b)
+    id
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#clearTimer-instance_method
