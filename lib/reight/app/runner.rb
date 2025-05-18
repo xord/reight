@@ -106,6 +106,21 @@ class Reight::Runner < Reight::App
     call_event {@context.touch_moved}
   end
 
+  def note_pressed()
+    super
+    call_event {@context.note_pressed}
+  end
+
+  def note_released()
+    super
+    call_event {@context.note_released}
+  end
+
+  def control_change()
+    super
+    call_event {@context.control_change}
+  end
+
   def window_moved()
     super
     call_event(ignore_pause: true) {@context.window_moved}

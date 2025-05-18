@@ -73,6 +73,9 @@ class Reight::R8
   def touch_started()  = current.touch_started
   def touch_ended()    = current.touch_ended
   def touch_moved()    = current.touch_moved
+  def note_pressed()   = current.note_pressed
+  def note_released()  = current.note_released
+  def control_change() = current.control_change
   def window_moved()   = apps.each {_1.window_moved}
   def window_resized() = apps.each {_1.window_resized}
 

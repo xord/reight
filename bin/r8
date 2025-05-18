@@ -40,6 +40,9 @@ Reight::CONTEXT__.tap do |c|
   c.touch_started  {r8.touch_started}
   c.touch_ended    {r8.touch_ended}
   c.touch_moved    {r8.touch_moved}
+  c.note_pressed   {r8.note_pressed}
+  c.note_released  {r8.note_released}
+  c.control_change {r8.control_change}
   c.window_moved   {r8.window_moved}
   c.window_resized {r8.window_resized}
 end

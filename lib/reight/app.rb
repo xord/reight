@@ -110,6 +110,9 @@ class Reight::App
   def touch_started()  = nil
   def touch_ended()    = nil
   def touch_moved()    = nil
+  def note_pressed()   = nil
+  def note_released()  = nil
+  def control_change() = nil
   def window_moved()   = nil
 
   #def undo(flash: true) = nil
