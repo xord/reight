@@ -1,6 +1,12 @@
 # reight ChangeLog
 
 
+## [v0.1.12] - 2025-05-22
+
+- Add note_pressed, note_released, and control_change event handlers
+- setTimeout() and setInterval() returns id without prefix
+
+
 ## [v0.1.11] - 2025-05-13
 
 - Update dependencies
