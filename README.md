@@ -1,5 +1,10 @@
 # Reight - A Retro Game Engine for Ruby
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/xord/reight)
+![License](https://img.shields.io/github/license/xord/reight)
+![Build Status](https://github.com/xord/reight/actions/workflows/test.yml/badge.svg)
+![Gem Version](https://badge.fury.io/rb/reight.svg)
+
 Reight is an open-source Ruby library inspired by the powerful [Processing](https://processing.org/) API, designed to make creative coding accessible and enjoyable for everyone. With support for both Mac and Windows, this library brings the joy of visual programming to Ruby developers.
 
 ## Features
