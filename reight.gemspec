@@ -25,13 +25,13 @@ Gem::Specification.new do |s|
   s.platform              = Gem::Platform::RUBY
   s.required_ruby_version = '>= 3.0.0'
 
-  s.add_dependency 'xot',        '~> 0.3.8', '>= 0.3.8'
-  s.add_dependency 'rucy',       '~> 0.3.8', '>= 0.3.8'
-  s.add_dependency 'beeps',      '~> 0.3.8', '>= 0.3.8'
-  s.add_dependency 'rays',       '~> 0.3.8', '>= 0.3.8'
-  s.add_dependency 'reflexion',  '~> 0.3.9', '>= 0.3.9'
-  s.add_dependency 'processing', '~> 1.1',   '>= 1.1.12'
-  s.add_dependency 'rubysketch', '~> 0.7.13', '>= 0.7.13'
+  s.add_dependency 'xot',        '~> 0.3.9', '>= 0.3.9'
+  s.add_dependency 'rucy',       '~> 0.3.9', '>= 0.3.9'
+  s.add_dependency 'beeps',      '~> 0.3.9', '>= 0.3.9'
+  s.add_dependency 'rays',       '~> 0.3.9', '>= 0.3.9'
+  s.add_dependency 'reflexion',  '~> 0.3.10', '>= 0.3.10'
+  s.add_dependency 'processing', '~> 1.1',   '>= 1.1.13'
+  s.add_dependency 'rubysketch', '~> 0.7.14', '>= 0.7.14'
 
   s.files            = `git ls-files`.split $/
   s.executables      = s.files.grep(%r{^bin/}) {|f| File.basename f}

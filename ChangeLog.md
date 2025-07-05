@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.13] - 2025-07-06
+
+- Add deepwiki badge
+
+
 ## [v0.1.12] - 2025-05-22
 
 - Add note_pressed, note_released, and control_change event handlers
