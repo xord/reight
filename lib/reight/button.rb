@@ -42,7 +42,6 @@ class Reight::Button
 
     if @label
       y = pressing? ? 1 : 0
-      text_size r8.project.font_size - 1
       text_align CENTER, CENTER
       fill active? ? 250 : 230
       text @label, 0, y + 1, sp.w, sp.h
