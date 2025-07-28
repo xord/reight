@@ -4,7 +4,6 @@ using Reight
 class Reight::Map
 
   include Enumerable
-  include Comparable
 
   def initialize(chip_size: 8, chunk_size: 128)
     raise ArgumentError, "Invalid chip_size: #{chip_size}" if
@@ -177,7 +176,6 @@ end# Map
 class Reight::Map::Chunk
 
   include Enumerable
-  include Comparable
 
   def initialize(x, y, w, h, chip_size: 8)
     raise ArgumentError, "Invalid chip_size: #{chip_size}" if chip_size.to_i != chip_size

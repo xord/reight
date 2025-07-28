@@ -3,8 +3,6 @@ using Reight
 
 class Reight::Chip
 
-  include Comparable
-
   def initialize(id, image, x, y, w, h, pos: nil, shape: nil, sensor: nil)
     @id, @image, @x, @y, @w, @h, @pos, @shape, @sensor =
      id,  image,  x,  y,  w,  h,  pos,  shape, (sensor || false)
@@ -112,8 +110,6 @@ end# Chip
 
 
 class Reight::ChipList
-
-  include Comparable
 
   def initialize(image)
     @image = image

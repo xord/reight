@@ -15,17 +15,21 @@ R8 = Reight
 RS = RubySketch
 
 class R8::Chip
+  include Comparable
   alias <=> cmp__
 end
 
 class R8::ChipList
+  include Comparable
   alias <=> cmp__
 end
 
 class R8::Map
+  include Comparable
   alias <=> cmp__
 end
 
 class R8::Map::Chunk
+  include Comparable
   alias <=> cmp__
 end
