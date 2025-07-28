@@ -98,8 +98,8 @@ class Reight::Chip
   private
 
   def pixels()
-    g = createGraphics w, h
-    g.beginDraw do
+    g = create_graphics w, h
+    g.begin_draw do
       g.copy image, x, y, w, h, 0, 0, w, h
     end
     g.load_pixels
