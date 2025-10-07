@@ -1,0 +1,10 @@
+source 'https://rubygems.org'
+
+gem 'xot',        path: '../../xot'
+gem 'rucy',       path: '../../rucy'
+gem 'beeps',      path: '../../beeps'
+gem 'rays',       path: '../../rays'
+gem 'reflexion',  path: '../../reflex'
+gem 'processing', path: '../../processing'
+gem 'rubysketch', path: '../../rubysketch'
+gem 'reight',     path: '../../reight'

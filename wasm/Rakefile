@@ -1,0 +1,96 @@
+%w[xot]
+  .map  {|s| File.expand_path "../../#{s}/lib", __dir__}
+  .each {|s| $:.unshift s if !$:.include?(s) && File.directory?(s)}
+
+require 'xot/rake/util'
+
+include Xot::Rake
+
+
+def envs()
+  {
+    CC:       'emcc',
+    CXX:      'em++',
+    AR:       'emar',
+    RANLIB:   'emranlib',
+    CPPFLAGS: '-sUSE_SDL=2',
+  }.map {|k, v| "#{k}=#{v}"}.join ' '
+end
+
+
+NAME = 'reight'
+
+ROOT_DIR   = File.expand_path '../..', __dir__
+BUNDLE_DIR = 'vendor/bundle'
+DATA_DIR   = '.data'
+OUT_DIR    = 'output'
+
+GEMS     = Dir.glob("#{ROOT_DIR}/*/*.gemspec").map {File.basename File.dirname _1}
+GEM_SRCS = GEMS.map {Dir.glob "#{ROOT_DIR}/#{_1}/**/*.{h,hpp,c,cpp,m,mm,rb}"}.flatten
+
+OUT_WASM   = "#{OUT_DIR}/ruby.wasm"
+OUT_JS     = "#{OUT_DIR}/#{NAME}.js"
+OUT_DATA   = "#{OUT_DIR}/#{NAME}.data"
+OUT_LIB_JS = "#{OUT_DIR}/#{NAME}lib.js"
+
+
+task :default => :build
+
+task :clean do
+  Dir.chdir ROOT_DIR do
+    sh %( rake clean )
+  end
+  sh %( rm -rf build rubies #{OUT_DIR} #{BUNDLE_DIR} #{DATA_DIR} )
+end
+
+task :clobber => :clean do
+  Dir.chdir ROOT_DIR do
+    sh %( rake clobber )
+  end
+end
+
+task :build => [OUT_WASM, OUT_DATA]
+
+file OUT_DATA => OUT_WASM do
+  packager = "#{File.dirname `which emcc`}/tools/file_packager"
+  opts     = [
+    "--preload '#{DATA_DIR}@/'",
+    "--export-name=globalThis.__ruby_module"
+  ]
+  loader   = `#{packager} #{OUT_DATA} #{opts.join ' '}`
+  File.write OUT_LIB_JS, "export function loadReightLib() {#{loader}};"
+end
+
+file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
+  sh %( rm -rf #{DATA_DIR} )
+
+  GEMS.each do |gem|
+    filter_file "#{ROOT_DIR}/#{gem}/#{gem}.gemspec" do |s|
+      s.sub(/^(.*\.\s*extensions.*)$/) {$1.sub 'Rakefile', "ext/#{gem}/extconf.rb"}
+    end
+  end
+
+  ldflags = %W[
+    -sASYNCIFY_STACK_SIZE=#{1024 * 1024 * 4}
+    -sNO_DISABLE_EXCEPTION_CATCHING
+    -sFORCE_FILESYSTEM
+    -sUSE_SDL=2
+    #-sASSERTIONS
+  ].reject {_1 =~ /^\s*#/}
+  envs    = "RUBY_WASM_EMCC_LDFLAGS=' #{ldflags.join ' '}'"
+  sysopts = '--log-level debug'
+  opts    = "--target wasm32-unknown-emscripten --dest_dir #{DATA_DIR} --remake -o #{OUT_JS}"
+  sh %( #{envs} rbwasm #{sysopts} build #{opts} )
+
+  roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-full*')
+    .select {File.directory? _1}
+  raise 'multiple roots' if roots.size != 1
+  sh %( cp -f #{roots.first}/usr/local/bin/ruby.wasm #{OUT_WASM} )
+end
+
+file BUNDLE_DIR do
+  sh %( bundle install )
+end
+
+directory OUT_DIR
+
