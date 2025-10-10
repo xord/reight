@@ -1,0 +1,86 @@
+PATH
+  remote: ../../beeps
+  specs:
+    beeps (0.3.9)
+      rucy (~> 0.3.9, >= 0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+PATH
+  remote: ../../processing
+  specs:
+    processing (1.1.13)
+      rays (~> 0.3.9, >= 0.3.9)
+      reflexion (~> 0.3.10, >= 0.3.10)
+      rexml
+      rucy (~> 0.3.9, >= 0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+PATH
+  remote: ../../rays
+  specs:
+    rays (0.3.9)
+      rucy (~> 0.3.9, >= 0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+PATH
+  remote: ../../reflex
+  specs:
+    reflexion (0.3.10)
+      rays (~> 0.3.9, >= 0.3.9)
+      rucy (~> 0.3.9, >= 0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+PATH
+  remote: ../../rubysketch
+  specs:
+    rubysketch (0.7.14)
+      beeps (~> 0.3.9, >= 0.3.9)
+      processing (~> 1.1, >= 1.1.13)
+      rays (~> 0.3.9, >= 0.3.9)
+      reflexion (~> 0.3.10, >= 0.3.10)
+      rucy (~> 0.3.9, >= 0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+PATH
+  remote: ../../rucy
+  specs:
+    rucy (0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+PATH
+  remote: ../../xot
+  specs:
+    xot (0.3.9)
+
+PATH
+  remote: ..
+  specs:
+    reight (0.1.13)
+      beeps (~> 0.3.9, >= 0.3.9)
+      processing (~> 1.1, >= 1.1.13)
+      rays (~> 0.3.9, >= 0.3.9)
+      reflexion (~> 0.3.10, >= 0.3.10)
+      rubysketch (~> 0.7.14, >= 0.7.14)
+      rucy (~> 0.3.9, >= 0.3.9)
+      xot (~> 0.3.9, >= 0.3.9)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rexml (3.4.4)
+
+PLATFORMS
+  aarch64-linux-gnu
+
+DEPENDENCIES
+  beeps!
+  processing!
+  rays!
+  reflexion!
+  reight!
+  rubysketch!
+  rucy!
+  xot!
+
+BUNDLED WITH
+   2.4.20
