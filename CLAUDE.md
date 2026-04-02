@@ -1,31 +1,31 @@
 # Reight
 
-レトロゲームエンジン。組み込み IDE によるスプライト・マップ・サウンドの編集が可能。
+Retro game engine with a built-in IDE for editing sprites, maps, and sounds.
 
 ## CLI
 
 ```bash
-r8 --edit .   # エディタを起動
+r8 --edit .   # Launch the editor
 ```
 
-## 組み込みエディタ
+## Built-in Editors
 
-- **SpriteEditor** (`app/sprite/`) — ピクセルアートエディタ。ブラシ、塗りつぶし、選択、図形ツール
-- **MapEditor** (`app/map/`) — チャンクベースのタイルマップエディタ
-- **SoundEditor** (`app/sound/`) — 波形ベースのサウンドエディタ
+- **SpriteEditor** (`app/sprite/`) — Pixel art editor with brush, fill, select, and shape tools
+- **MapEditor** (`app/map/`) — Chunk-based tile map editor
+- **SoundEditor** (`app/sound/`) — Waveform-based sound editor
 
-各エディタは `App` 基底クラスを継承し、Tool パターンで描画ツールを切り替える。
+Each editor inherits from the `App` base class and uses the Tool pattern to switch drawing tools.
 
-## プロジェクトデータ
+## Project Data
 
-JSON ファイルで管理:
-- `project.json` — プロジェクト設定
-- `chips.json` — タイルセット
-- `maps.json` — マップデータ
-- `sounds.json` — サウンドデータ
+Managed as JSON files:
+- `project.json` — Project settings
+- `chips.json` — Tileset
+- `maps.json` — Map data
+- `sounds.json` — Sound data
 
-## 定数
+## Constants
 
-- 画面解像度: 400x224
-- パレット: 32 色（`PALETTE_COLORS`）
-- スプライトサイズ: 8x8 ピクセル単位
+- Screen resolution: 400x224
+- Palette: 32 colors (`PALETTE_COLORS`)
+- Sprite size: 8x8 pixel units
