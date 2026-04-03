@@ -25,6 +25,7 @@ require 'reight/history'
 require 'reight/button'
 require 'reight/text'
 require 'reight/index'
+require 'reight/mml'
 
 require 'reight/reight'
 require 'reight/context'
