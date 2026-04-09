@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'beeps',      '~> 0.3.9'
   s.add_dependency 'rays',       '~> 0.3.9'
   s.add_dependency 'reflexion',  '~> 0.3.10'
-  s.add_dependency 'processing', '~> 1.1'
+  s.add_dependency 'processing', '~> 1.1.13'
   s.add_dependency 'rubysketch', '~> 0.7.14'
 
   s.files            = `git ls-files`.split $/
