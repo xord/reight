@@ -1,6 +1,12 @@
 # reight ChangeLog
 
 
+## [v0.1.14] - 2026-04-09
+
+- Increase button text size
+- Update dependencies
+
+
 ## [v0.1.13] - 2025-07-06
 
 - Add deepwiki badge
