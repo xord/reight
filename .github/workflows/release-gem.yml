@@ -24,7 +24,7 @@ jobs:
         run: "ruby -I.github/workflows -rutils -e 'setup_dependencies'"
 
       - name: test
-        run: bundle exec rake quiet packages test
+        run: bundle exec rake packages test
 
       - name: create gem
         id: gem
