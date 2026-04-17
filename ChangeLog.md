@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.1.17] - 2026-04-17
+
+- Update dependencies
+
+
 ## [v0.1.16] - 2026-04-10
 
 - Update dependencies
