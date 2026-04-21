@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   end
 
   ext   = Reight::Extension
-  name  = ext.name.downcase
+  name  = ext.name true
   rdocs = glob.call *%w[README]
 
   s.name        = name
