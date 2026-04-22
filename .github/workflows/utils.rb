@@ -13,14 +13,14 @@ def setup_dependencies(build: true, only: nil)
   name    = File.basename gemspec_path, '.gemspec'
 
   exts = File.readlines('Rakefile')
-    .map {|l| l[%r|^\s*require\W+(\w+)/extension\W+$|, 1]}
+    .map {|l| l[%r|^\s*require\W+([\w\-\_]+)/extension\W+$|, 1]}
     .compact
     .reject {|ext| ext == name}
   exts = exts & [only].flatten.map(&:to_s) if only
 
   exts.each do |ext|
     gem   = RENAMES[ext.to_sym].then {|s| s || ext}
-    ver   = gemspec[/add_dependency.*['"]#{gem}['"].*['"]\s*>=\s*([\d\.]+)\s*['"]/, 1]
+    ver   = gemspec[/add_dependency.*['"]#{gem}['"].*['"]\s*~>\s*([\d\.]+)\s*['"]/, 1]
     opts  = '-c advice.detachedHead=false --depth 1'
     clone = "git clone #{opts} https://github.com/xord/#{ext}.git ../#{ext}"
 
