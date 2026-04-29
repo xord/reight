@@ -52,12 +52,17 @@ end
 task :build => [OUT_WASM, OUT_DATA]
 
 file OUT_DATA => OUT_WASM do
-  packager = "#{File.dirname `which emcc`}/tools/file_packager"
+  emroot   = `em-config EMSCRIPTEN_ROOT`.strip
+  raise 'emscripten not found' if emroot.empty?
+
+  packager = "#{emroot}/tools/file_packager"
   opts     = [
     "--preload '#{DATA_DIR}@/'",
     "--export-name=globalThis.__ruby_module"
   ]
   loader   = `#{packager} #{OUT_DATA} #{opts.join ' '}`
+  raise 'file_packager failed' if !$?.success? || loader.empty?
+
   File.write OUT_LIB_JS, "export function loadReightLib() {#{loader}};"
 end
 
