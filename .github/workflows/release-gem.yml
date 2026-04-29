@@ -4,6 +4,9 @@ on:
   push:
     tags: ['v[0-9]*']
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: macos-latest
