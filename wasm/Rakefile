@@ -80,7 +80,11 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
     -sNO_DISABLE_EXCEPTION_CATCHING
     -sFORCE_FILESYSTEM
     -sUSE_SDL=2
-    #-sASSERTIONS
+    -sALLOW_MEMORY_GROWTH=1
+    -sINITIAL_MEMORY=#{1024 * 1024 * 64}
+    -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8
+    -sASSERTIONS=1
+    -fexceptions
   ].reject {_1 =~ /^\s*#/}
   envs    = "RUBY_WASM_EMCC_LDFLAGS=' #{ldflags.join ' '}'"
   sysopts = '--log-level debug'
