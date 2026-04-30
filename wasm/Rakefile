@@ -85,11 +85,11 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
   envs    = "RUBY_WASM_EMCC_LDFLAGS=' #{ldflags.join ' '}'"
   sysopts = '--log-level debug'
   opts    = "--target wasm32-unknown-emscripten --dest_dir #{DATA_DIR} --remake -o #{OUT_JS}"
-  sh %( #{envs} rbwasm #{sysopts} build #{opts} )
+  sh %( #{envs} bundle exec rbwasm #{sysopts} build #{opts} )
 
-  roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-full*')
+  roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-full-*')
     .select {File.directory? _1}
-  raise 'multiple roots' if roots.size != 1
+  raise "expected 1 root, got #{roots.size}" if roots.size != 1
   sh %( cp -f #{roots.first}/usr/local/bin/ruby.wasm #{OUT_WASM} )
 end
 

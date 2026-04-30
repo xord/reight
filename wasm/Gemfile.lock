@@ -1,83 +1,92 @@
 PATH
   remote: ../../beeps
   specs:
-    beeps (0.3.9)
-      rucy (~> 0.3.9, >= 0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+    beeps (0.3.11)
+      rucy (~> 0.3.11)
+      xot (~> 0.3.11)
 
 PATH
   remote: ../../processing
   specs:
-    processing (1.1.13)
-      rays (~> 0.3.9, >= 0.3.9)
-      reflexion (~> 0.3.10, >= 0.3.10)
+    processing (1.1.17)
+      rays (~> 0.3.11)
+      reflexion (~> 0.3.14)
       rexml
-      rucy (~> 0.3.9, >= 0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+      rucy (~> 0.3.11)
+      xot (~> 0.3.11)
 
 PATH
   remote: ../../rays
   specs:
-    rays (0.3.9)
-      rucy (~> 0.3.9, >= 0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+    rays (0.3.11)
+      rucy (~> 0.3.11)
+      xot (~> 0.3.11)
 
 PATH
   remote: ../../reflex
   specs:
-    reflexion (0.3.10)
-      rays (~> 0.3.9, >= 0.3.9)
-      rucy (~> 0.3.9, >= 0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+    reflexion (0.3.14)
+      rays (~> 0.3.11)
+      rucy (~> 0.3.11)
+      xot (~> 0.3.11)
 
 PATH
   remote: ../../rubysketch
   specs:
-    rubysketch (0.7.14)
-      beeps (~> 0.3.9, >= 0.3.9)
-      processing (~> 1.1, >= 1.1.13)
-      rays (~> 0.3.9, >= 0.3.9)
-      reflexion (~> 0.3.10, >= 0.3.10)
-      rucy (~> 0.3.9, >= 0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+    rubysketch (0.7.18)
+      beeps (~> 0.3.11)
+      processing (~> 1.1.17)
+      rays (~> 0.3.11)
+      reflexion (~> 0.3.14)
+      rucy (~> 0.3.11)
+      xot (~> 0.3.11)
 
 PATH
   remote: ../../rucy
   specs:
-    rucy (0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+    rucy (0.3.11)
+      xot (~> 0.3.11)
 
 PATH
   remote: ../../xot
   specs:
-    xot (0.3.9)
+    xot (0.3.11)
 
 PATH
   remote: ..
   specs:
-    reight (0.1.13)
-      beeps (~> 0.3.9, >= 0.3.9)
-      processing (~> 1.1, >= 1.1.13)
-      rays (~> 0.3.9, >= 0.3.9)
-      reflexion (~> 0.3.10, >= 0.3.10)
-      rubysketch (~> 0.7.14, >= 0.7.14)
-      rucy (~> 0.3.9, >= 0.3.9)
-      xot (~> 0.3.9, >= 0.3.9)
+    reight (0.1.17)
+      beeps (~> 0.3.11)
+      processing (~> 1.1.17)
+      rays (~> 0.3.11)
+      reflexion (~> 0.3.14)
+      rubysketch (~> 0.7.18)
+      rucy (~> 0.3.11)
+      xot (~> 0.3.11)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    logger (1.7.0)
+    rake (13.4.2)
     rexml (3.4.4)
+    ruby_wasm (2.9.4-aarch64-linux)
+      logger
+    ruby_wasm (2.9.4-arm64-darwin)
+      logger
 
 PLATFORMS
   aarch64-linux-gnu
+  arm64-darwin-23
 
 DEPENDENCIES
   beeps!
   processing!
+  rake
   rays!
   reflexion!
   reight!
+  ruby_wasm (~> 2.9.4)
   rubysketch!
   rucy!
   xot!
