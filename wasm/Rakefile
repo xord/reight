@@ -83,7 +83,7 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
     -sUSE_SDL_TTF=2
     -sALLOW_MEMORY_GROWTH=1
     -sINITIAL_MEMORY=#{1024 * 1024 * 64}
-    -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8
+    -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,FS
     -sASSERTIONS=1
     -fexceptions
   ].reject {_1 =~ /^\s*#/}
