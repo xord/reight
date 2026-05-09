@@ -1,0 +1,37 @@
+name: Release WASM
+
+on:
+  push:
+    tags: ['v[0-9]*']
+
+permissions:
+  contents: write
+
+jobs:
+  wasm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ruby 3.2
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: checkout monorepo
+        run: ruby -I.github/workflows -rutils -e 'abort unless checkout_monorepo'
+
+      - name: install emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 5.0.7
+
+      - name: build
+        run: cd ../all/reight/wasm && rake build
+
+      - name: upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ruby -I.github/workflows -rutils -e 'release(*Dir.glob("../all/reight/wasm/output/*"))'
