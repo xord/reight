@@ -1,6 +1,12 @@
 # reight ChangeLog
 
 
+## [v0.1.18] - 2026-05-10
+
+- Support WebAssembly
+- Add reight WASM release workflow
+
+
 ## [v0.1.17] - 2026-04-17
 
 - Update dependencies
