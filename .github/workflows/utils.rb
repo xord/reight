@@ -1,3 +1,5 @@
+require 'shellwords'
+
 ALL_REPO        = 'xord/all'
 ALL_DIR         = '../all'
 ALL_FETCH_DEPTH = 100
@@ -31,6 +33,12 @@ def setup_dependencies(only: nil)
 end
 
 def setup_dependencies_via_monorepo(exts)
+  return false unless checkout_monorepo
+  exts.each {|ext| sh %( ln -snf all/#{ext} ../#{ext} )}
+  true
+end
+
+def checkout_monorepo()
   uuid = `git log -1 --format=%B`[/^\[\[([0-9a-fA-F-]+)\]\]$/, 1]
   return false unless uuid
 
@@ -38,8 +46,6 @@ def setup_dependencies_via_monorepo(exts)
   return false unless commit
 
   Dir.chdir(ALL_DIR) {sh %( git checkout -q #{commit} )}
-
-  exts.each {|ext| sh %( ln -snf all/#{ext} ../#{ext} )}
   true
 end
 
@@ -82,25 +88,40 @@ def setup_dependencies_via_each_repo_by_version(gemspec, exts)
 end
 
 def tag_versions()
-  tags = `git tag`.lines chomp: true
-  vers = `git log --oneline ./VERSION`
+  changes = changelogs
+  tags    = `git tag`.lines chomp: true
+  vers    = `git log --oneline ./VERSION`
     .lines(chomp: true)
     .map {|line| line.split.first[/^\w+$/]}
-    .map {|hash| [`git cat-file -p #{hash}:./VERSION 2>/dev/null`[/[\d\.]+/], hash]}
-    .select {|ver, hash| ver && hash}
+    .map {|sha| [`git cat-file -p #{sha}:./VERSION 2>/dev/null`[/[\d\.]+/], sha]}
+    .select {|ver, sha| ver && sha}
     .reverse
     .to_h
 
-  changes = File.read('ChangeLog.md')
-    .split(/^\s*##\s*\[\s*v([\d\.]+)\s*\].*$/)
-    .slice(1..-1)
+  vers.to_a.reverse.each do |ver, sha|
+    tag = "v#{ver}"
+    break if tags.include?(tag)
+    sh %( git tag -a -m \"#{changes[tag]&.gsub '"', '\\"'}\" #{tag} #{sha} )
+  end
+end
+
+def release(*paths)
+  tag   = ENV['GITHUB_REF']&.sub(%r|^refs/tags/|, '') || raise('GITHUB_REF tag not set')
+  notes = (changelogs[tag] || '').shellescape
+  paths = paths.flatten.join ' '
+
+  sh(%( gh release create #{tag} #{paths} --notes #{notes} )) ||
+    sh(%( gh release upload #{tag} #{paths} --clobber )) ||
+    raise('failed to upload to releases')
+end
+
+def changelogs()
+  File.read('ChangeLog.md')
+    .split(/^\s*##\s*\[\s*(v[\d\.]+)\s*\].*$/)
+    .slice(1..)
     .each_slice(2)
     .to_h
     .transform_values(&:strip!)
-
-  vers.to_a.reverse.each do |ver, hash|
-    tag = "v#{ver}"
-    break if tags.include?(tag)
-    sh %( git tag -a -m \"#{changes[ver]&.gsub '"', '\\"'}\" #{tag} #{hash} )
-  end
+rescue Errno::ENOENT
+  raise 'failed to get changelogs'
 end
