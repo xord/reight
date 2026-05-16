@@ -36,23 +36,9 @@ jobs:
           echo path=$(ruby -e 'print Dir.glob("*.gem").first') >> $GITHUB_OUTPUT
 
       - name: create github release
-        id: release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-
-      - name: upload to github release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: ./${{ steps.gem.outputs.path }}
-          asset_name:   ${{ steps.gem.outputs.path }}
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ruby -I.github/workflows -rutils -e 'release(*ARGV)' ./${{ steps.gem.outputs.path }}
 
       - name: upload to rubygems
         env:
