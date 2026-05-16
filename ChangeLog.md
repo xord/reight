@@ -1,6 +1,14 @@
 # reight ChangeLog
 
 
+## [v0.2.0] - 2026-05-17
+
+- [BREAKING] Wheel Y delta now follows top-left origin convention (from reflex)
+
+- Rewrite README.md
+- CI: Migrate release-gem.yml from actions/create-release to gh release create
+
+
 ## [v0.1.18] - 2026-05-10
 
 - Support WebAssembly
