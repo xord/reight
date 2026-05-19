@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   wasm:
@@ -23,6 +24,12 @@ jobs:
       - name: checkout monorepo
         run: ruby -I.github/workflows -rutils -e 'abort unless checkout_monorepo'
 
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
       - name: install emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -35,3 +42,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ruby -I.github/workflows -rutils -e 'release(*Dir.glob("../all/reight/wasm/output/*"))'
+
+      - name: publish to npm
+        run: cd ../all/reight/wasm && rake publish

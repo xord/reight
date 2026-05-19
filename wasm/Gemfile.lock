@@ -1,68 +1,68 @@
 PATH
   remote: ../../beeps
   specs:
-    beeps (0.3.11)
-      rucy (~> 0.3.11)
-      xot (~> 0.3.11)
+    beeps (0.3.13)
+      rucy (~> 0.3.13)
+      xot (~> 0.3.13)
 
 PATH
   remote: ../../processing
   specs:
-    processing (1.1.17)
-      rays (~> 0.3.11)
-      reflexion (~> 0.3.14)
+    processing (1.2.0)
+      rays (~> 0.3.13)
+      reflexion (~> 0.4.0)
       rexml
-      rucy (~> 0.3.11)
-      xot (~> 0.3.11)
+      rucy (~> 0.3.13)
+      xot (~> 0.3.13)
 
 PATH
   remote: ../../rays
   specs:
-    rays (0.3.11)
-      rucy (~> 0.3.11)
-      xot (~> 0.3.11)
+    rays (0.3.13)
+      rucy (~> 0.3.13)
+      xot (~> 0.3.13)
 
 PATH
   remote: ../../reflex
   specs:
-    reflexion (0.3.14)
-      rays (~> 0.3.11)
-      rucy (~> 0.3.11)
-      xot (~> 0.3.11)
+    reflexion (0.4.0)
+      rays (~> 0.3.13)
+      rucy (~> 0.3.13)
+      xot (~> 0.3.13)
 
 PATH
   remote: ../../rubysketch
   specs:
-    rubysketch (0.7.18)
-      beeps (~> 0.3.11)
-      processing (~> 1.1.17)
-      rays (~> 0.3.11)
-      reflexion (~> 0.3.14)
-      rucy (~> 0.3.11)
-      xot (~> 0.3.11)
+    rubysketch (0.8.0)
+      beeps (~> 0.3.13)
+      processing (~> 1.2.0)
+      rays (~> 0.3.13)
+      reflexion (~> 0.4.0)
+      rucy (~> 0.3.13)
+      xot (~> 0.3.13)
 
 PATH
   remote: ../../rucy
   specs:
-    rucy (0.3.11)
-      xot (~> 0.3.11)
+    rucy (0.3.13)
+      xot (~> 0.3.13)
 
 PATH
   remote: ../../xot
   specs:
-    xot (0.3.11)
+    xot (0.3.13)
 
 PATH
   remote: ..
   specs:
-    reight (0.1.17)
-      beeps (~> 0.3.11)
-      processing (~> 1.1.17)
-      rays (~> 0.3.11)
-      reflexion (~> 0.3.14)
-      rubysketch (~> 0.7.18)
-      rucy (~> 0.3.11)
-      xot (~> 0.3.11)
+    reight (0.2.0)
+      beeps (~> 0.3.13)
+      processing (~> 1.2.0)
+      rays (~> 0.3.13)
+      reflexion (~> 0.4.0)
+      rubysketch (~> 0.8.0)
+      rucy (~> 0.3.13)
+      xot (~> 0.3.13)
 
 GEM
   remote: https://rubygems.org/
@@ -78,6 +78,7 @@ GEM
 PLATFORMS
   aarch64-linux-gnu
   arm64-darwin-23
+  arm64-darwin-24
 
 DEPENDENCIES
   beeps!
