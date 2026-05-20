@@ -1,6 +1,13 @@
 # reight ChangeLog
 
 
+## [v0.2.1] - 2026-05-20
+
+- Add npm publish to WASM release workflow
+- Add test server task for local WASM development
+- Rename wasm.yml to release-wasm.yml
+
+
 ## [v0.2.0] - 2026-05-17
 
 - [BREAKING] Wheel Y delta now follows top-left origin convention (from reflex)
