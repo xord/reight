@@ -74,28 +74,35 @@ end
 file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
   sh %( rm -rf #{DATA_DIR} )
 
-  GEMS.each do |gem|
-    filter_file "#{ROOT_DIR}/#{gem}/#{gem}.gemspec" do |s|
-      s.sub(/^(.*\.\s*extensions.*)$/) {$1.sub 'Rakefile', "ext/#{gem}/extconf.rb"}
+  backups = {}
+  begin
+    GEMS.each do |gem|
+      path = "#{ROOT_DIR}/#{gem}/#{gem}.gemspec"
+      filter_file path do |s|
+        backups[path] = s
+        s.sub(/^(.*\.\s*extensions.*)$/) {$1.sub 'Rakefile', "ext/#{gem}/extconf.rb"}
+      end
     end
-  end
 
-  ldflags = %W[
-    -sASYNCIFY_STACK_SIZE=#{1024 * 1024 * 4}
-    -sNO_DISABLE_EXCEPTION_CATCHING
-    -sFORCE_FILESYSTEM
-    -sUSE_SDL=2
-    -sUSE_SDL_TTF=2
-    -sALLOW_MEMORY_GROWTH=1
-    -sINITIAL_MEMORY=#{1024 * 1024 * 64}
-    -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,FS
-    -sASSERTIONS=1
-    -fexceptions
-  ].reject {_1 =~ /^\s*#/}
-  envs    = "RUBY_WASM_EMCC_LDFLAGS=' #{ldflags.join ' '}'"
-  sysopts = '--log-level debug'
-  opts    = "--target wasm32-unknown-emscripten --dest_dir #{DATA_DIR} --remake -o #{OUT_JS}"
-  sh %( #{envs} bundle exec rbwasm #{sysopts} build #{opts} )
+    ldflags = %W[
+      -sASYNCIFY_STACK_SIZE=#{1024 * 1024 * 4}
+      -sNO_DISABLE_EXCEPTION_CATCHING
+      -sFORCE_FILESYSTEM
+      -sUSE_SDL=2
+      -sUSE_SDL_TTF=2
+      -sALLOW_MEMORY_GROWTH=1
+      -sINITIAL_MEMORY=#{1024 * 1024 * 64}
+      -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,FS
+      -sASSERTIONS=1
+      -fexceptions
+    ].reject {_1 =~ /^\s*#/}
+    envs    = "RUBY_WASM_EMCC_LDFLAGS=' #{ldflags.join ' '}'"
+    sysopts = '--log-level debug'
+    opts    = "--target wasm32-unknown-emscripten --dest_dir #{DATA_DIR} --remake -o #{OUT_JS}"
+    sh %( #{envs} bundle exec rbwasm #{sysopts} build #{opts} )
+  ensure
+    backups.each {|path, s| File.write path, s}
+  end
 
   roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-full-*')
     .select {File.directory? _1}
