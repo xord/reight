@@ -2,5 +2,3 @@ build/
 rubies/
 .data/
 output/
-dist/
-package.json
