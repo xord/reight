@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Reight</title>
+  <style>
+    body {margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh;}
+    canvas {background: #000;}
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    window.addEventListener('error', (e) => {
+      console.error('[window error]', e.message, e.error);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      console.error('[unhandled rejection]', e.reason);
+    });
+  </script>
+  <script src="<%= base %>/reight.js"></script>
+  <script type="module">
+    const BASE    = '<%= base %>';
+    const libRes  = await fetch(`${BASE}/reightlib.js`);
+    const libBlob = new Blob([await libRes.text()], {type: 'application/javascript'});
+    const libUrl  = URL.createObjectURL(libBlob);
+    const {loadReightLib} = await import(libUrl);
+
+    const srcRes  = await fetch('<%= main_rb %>');
+    const srcText = await srcRes.text();
+
+    const RubyModule = {
+      canvas: document.getElementById('canvas'),
+      print:      (s) => console.log('[ruby]', s),
+      printErr:   (s) => console.error('[ruby err]', s),
+      onAbort:    (s) => console.error('[abort]', s),
+      locateFile: (path) => `${BASE}/${path}`,
+      preRun:     [(mod) => {
+        mod.FS.writeFile('/main.rb', new TextEncoder().encode(srcText));
+      }],
+      arguments:  ['-e', 'load "/bundle/setup.rb"; load "/main.rb"'],
+    };
+    globalThis.__ruby_module = RubyModule;
+    loadReightLib();
+    Module(RubyModule);
+  </script>
+</body>
+</html>

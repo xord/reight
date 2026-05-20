@@ -29,7 +29,7 @@ OUT_FILES  = [OUT_WASM, OUT_JS, OUT_DATA, OUT_LIB_JS]
 
 task :default => :build
 
-task :clean do
+task :clean => 'test:clean' do
   Dir.chdir ROOT_DIR do
     sh %( rake clean )
   end
@@ -115,3 +115,77 @@ file BUNDLE_DIR do
 end
 
 directory OUT_DIR
+
+
+namespace :test do
+  template_dir = 'template'
+  test_dir     = 'test'
+  main         = "#{test_dir}/test.rb"
+  erbs         = {
+    "#{test_dir}/index.html" => "#{template_dir}/index.html.erb"
+  }
+  wasm_files   = OUT_FILES.each.with_object({}) {|out, hash|
+    hash["#{test_dir}/#{File.basename out}"] = out
+  }
+
+  task :clean do
+    sh %( rm -rf #{test_dir} )
+  end
+
+  task :serve => [main] + erbs.keys + wasm_files.keys do
+    require 'webrick'
+    WEBrick::HTTPServer.new(Port: 8080, DocumentRoot: test_dir).start
+  end
+
+  erbs.each do |out, erb|
+    base    = '.'
+    main_rb = File.basename main
+    task out => [test_dir, erb] do
+      File.write out, ERB.new(File.read erb).result(binding)
+    end
+  end
+
+  wasm_files.each do |to, from|
+    task to => [test_dir, from] do
+      File.symlink "../#{from}", to unless File.symlink? to
+    end
+  end
+
+  file main => test_dir do
+    File.write main, <<~'END'
+    require 'rubysketch'
+    using RubySketch
+
+    setup do
+      size 640, 480
+      gravity 0, 1000
+      @grounds = [
+        createSprite(0, height - 30, width, 30),
+        createSprite(0,          0, 10, height),
+        createSprite(width - 10, 0, 10, height)
+      ]
+      @sprites = []
+    end
+
+    draw do
+      background 20
+      fill 100
+      sprite @grounds
+      fill 0, 200, 100
+      sprite @sprites
+      fill 255
+      textSize 24
+      textAlign RIGHT
+      text "#{frameRate.round} FPS", width - 100, 30
+    end
+
+    mousePressed do
+      s = createSprite mouseX, mouseY, 30, 30
+      s.dynamic = true
+      @sprites << s
+    end
+    END
+  end
+
+  directory test_dir
+end
