@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.2.2] - 2026-05-20
+
+- Use Node 24 in WASM release workflow for npm Trusted Publishing
+
+
 ## [v0.2.1] - 2026-05-20
 
 - Add npm publish to WASM release workflow
