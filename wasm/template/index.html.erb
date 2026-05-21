@@ -19,27 +19,42 @@
       console.error('[unhandled rejection]', e.reason);
     });
   </script>
-  <script src="<%= base %>/reight.js"></script>
   <script type="module">
-    const BASE    = '<%= base %>';
-    const libRes  = await fetch(`${BASE}/reightlib.js`);
+    const isLocal       = ['localhost', '127.0.0.1'].includes(location.hostname)
+    const WASM_URL_BASE = isLocal ? '.' : '<%= wasm_url_base %>';
+
+    await new Promise((resolve, reject) => {
+      const s   = document.createElement('script');
+      s.src     = `${WASM_URL_BASE}/reight.js`;
+      s.onload  = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+    const libRes  = await fetch(`${WASM_URL_BASE}/reightlib.js`);
     const libBlob = new Blob([await libRes.text()], {type: 'application/javascript'});
     const libUrl  = URL.createObjectURL(libBlob);
     const {loadReightLib} = await import(libUrl);
 
-    const srcRes  = await fetch('<%= main_rb %>');
-    const srcText = await srcRes.text();
-
+    async function writeFile(mod, path, url) {
+      const res  = await fetch(url);
+      const data = new Uint8Array(await res.arrayBuffer());
+      mod.FS.writeFile(path, data);
+    }
     const RubyModule = {
-      canvas: document.getElementById('canvas'),
+      canvas:     document.getElementById('canvas'),
       print:      (s) => console.log('[ruby]', s),
       printErr:   (s) => console.error('[ruby err]', s),
       onAbort:    (s) => console.error('[abort]', s),
-      locateFile: (path) => `${BASE}/${path}`,
-      preRun:     [(mod) => {
-        mod.FS.writeFile('/main.rb', new TextEncoder().encode(srcText));
+      locateFile: (path) => `${WASM_URL_BASE}/${path}`,
+      preRun:     [async (mod) => {
+        mod.addRunDependency('assets')
+        <% assets.each do |asset| %>
+          await writeFile(mod, '<%= asset %>', '<%= asset %>');
+        <% end %>
+        mod.removeRunDependency('assets')
       }],
-      arguments:  ['-e', 'load "/bundle/setup.rb"; load "/main.rb"'],
+      arguments:  ['-e', 'load "/bundle/setup.rb"; load "<%= main %>"'],
     };
     globalThis.__ruby_module = RubyModule;
     loadReightLib();
