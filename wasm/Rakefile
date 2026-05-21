@@ -150,8 +150,12 @@ namespace :test do
     WEBrick::HTTPServer.new(Port: 8080, DocumentRoot: test_dir).start
   end
 
-  task :deploy => template_files.values + wasm_files.values + assets.values do
-    sh %( wrangler pages deploy #{test_dir} )
+  task :deploy => template_files.values + assets.values do
+    wasm_files.values.each {File.unlink _1 if File.symlink? _1}
+    Dir.glob("#{test_dir}/**/*").each {puts _1}
+    print "Deploy? [y/n]: "
+    next unless $stdin.gets =~ /^(y|yes)$/i
+    sh %( npx wrangler pages deploy #{test_dir} --branch master )
   end
 
   template_files.each do |from, to|
