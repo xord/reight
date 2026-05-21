@@ -18,7 +18,9 @@ DATA_DIR   = '.data'
 OUT_DIR    = 'output'
 
 GEMS     = Dir.glob("#{ROOT_DIR}/*/*.gemspec").map {File.basename File.dirname _1}
-GEM_SRCS = GEMS.map {Dir.glob "#{ROOT_DIR}/#{_1}/**/*.{h,hpp,c,cpp,m,mm,rb}"}.flatten
+GEM_SRCS = GEMS.flat_map {|gem|
+  Dir.glob "#{ROOT_DIR}/#{gem}/{include,src,ext,lib}/**/*.{h,hpp,c,cpp,m,mm,rb}"
+}
 
 OUT_WASM   = "#{OUT_DIR}/ruby.wasm"
 OUT_JS     = "#{OUT_DIR}/#{NAME}.js"
