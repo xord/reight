@@ -35,13 +35,14 @@ task :clean => 'test:clean' do
   Dir.chdir ROOT_DIR do
     sh %( rake clean )
   end
-  sh %( rm -rf build rubies #{BUNDLE_DIR} #{DATA_DIR} #{OUT_DIR} )
+  sh %( rm -rf build rubies #{DATA_DIR} #{OUT_DIR} )
 end
 
 task :clobber => :clean do
   Dir.chdir ROOT_DIR do
     sh %( rake clobber )
   end
+  sh %( rm -rf #{BUNDLE_DIR} )
 end
 
 task :build => OUT_DATA
@@ -87,26 +88,33 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
     end
 
     ldflags = %W[
+      -sALLOW_MEMORY_GROWTH=1
+      -sINITIAL_MEMORY=#{1024 * 1024 * 64}
       -sASYNCIFY_STACK_SIZE=#{1024 * 1024 * 4}
+      -fexceptions
       -sNO_DISABLE_EXCEPTION_CATCHING
       -sFORCE_FILESYSTEM
       -sUSE_SDL=2
       -sUSE_SDL_TTF=2
-      -sALLOW_MEMORY_GROWTH=1
-      -sINITIAL_MEMORY=#{1024 * 1024 * 64}
       -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,FS
-      -sASSERTIONS=1
-      -fexceptions
-    ].reject {_1 =~ /^\s*#/}
-    envs    = "RUBY_WASM_EMCC_LDFLAGS=' #{ldflags.join ' '}'"
-    sysopts = '--log-level debug'
-    opts    = "--target wasm32-unknown-emscripten --dest_dir #{DATA_DIR} --remake -o #{OUT_JS}"
-    sh %( #{envs} bundle exec rbwasm #{sysopts} build #{opts} )
+    ].reject {_1 =~ /^\s*#/}.join ' '
+    envs    = [
+      "RUBY_WASM_EMCC_LDFLAGS='#{ldflags}'",
+      # avoid host's libyaml (e.g. Homebrew) being picked up by psych extconf
+      "PKG_CONFIG_LIBDIR=''"
+    ].join ' '
+    opts    = %W[
+      --target wasm32-unknown-emscripten
+      --dest_dir #{DATA_DIR}
+      --remake
+      -o #{OUT_JS}
+    ].join ' '
+    sh %( #{envs} bundle exec rbwasm build #{opts} )
   ensure
     backups.each {|path, s| File.write path, s}
   end
 
-  roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-full-*')
+  roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-*-*')
     .select {File.directory? _1}
   raise "expected 1 root, got #{roots.size}" if roots.size != 1
   sh %( cp -f #{roots.first}/usr/local/bin/ruby.wasm #{OUT_WASM} )
