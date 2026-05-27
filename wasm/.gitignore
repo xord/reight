@@ -3,3 +3,4 @@ rubies/
 .data/
 output/
 test/
+Gemfile.lock
