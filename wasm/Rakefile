@@ -104,6 +104,7 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
       "PKG_CONFIG_LIBDIR=''"
     ].join ' '
     opts    = %W[
+      --ruby-version 4.0
       --target wasm32-unknown-emscripten
       --dest_dir #{DATA_DIR}
       --remake

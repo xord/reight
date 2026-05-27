@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ruby 3.2
+      - name: ruby 4.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
+          ruby-version: 4.0
 
       - name: checkout
         uses: actions/checkout@v4
