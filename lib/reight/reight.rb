@@ -54,7 +54,7 @@ class Reight::R8
 
   def setup()
     w, h = Reight::App::SCREEN_WIDTH, Reight::App::SCREEN_HEIGHT
-    createCanvas w, h
+    createCanvas w, h, pixelDensity: AUTO
     window_resize(*[w, h].map {_1 * 3})
     text_font r8.project.font, r8.project.font_size
   end

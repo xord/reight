@@ -6,9 +6,12 @@ module Reight::Context
   TIMER_PREFIX__ = '__r8__'
 
   # @private
-  def initialize(rootContext, project)
-    @rootContext__, @project__ = rootContext, project
-    init__ Rays::Image.new(@rootContext__.width, @rootContext__.height)
+  def initialize(rootContext, project, pixelDensity: 1)
+    @rootContext__, @project__, @pixelDensity__ = rootContext, project, pixelDensity
+    init__ Rays::Image.new(
+      @rootContext__.width,
+      @rootContext__.height,
+      pixel_density: @pixelDensity__)
   end
 
   # Returns the project object.
@@ -40,13 +43,18 @@ module Reight::Context
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#size-instance_method
-  def size(width, height, **)
-    return if width == self.width || height == self.height
-    @resizeCanvas__ = [width, height]
+  def size(width, height, pixelDensity: nil)
+    @resizeCanvas__ = [width, height, pixelDensity]
   end
 
   # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#createCanvas-instance_method
   alias createCanvas size
+
+  # @see https://rubydoc.info/gems/rubysketch/RubySketch/Context#pixelDensity-instance_method
+  def pixelDensity(density = nil)
+    size width, height, pixelDensity: density if density
+    super()
+  end
 
   # @see https://www.rubydoc.info/gems/processing/Processing/Context#mouseX-instance_method
   def mouseX()
@@ -140,9 +148,15 @@ module Reight::Context
 
   # @private
   def resizeCanvas__()
-    w, h            = @resizeCanvas__ || return
+    w, h, pd        = @resizeCanvas__ || return
     @resizeCanvas__ = nil
-    updateCanvas__ Rays::Image.new(w.to_i, h.to_i)
+
+    @pixelDensity__ = pd if pd
+    pd              = @pixelDensity__ == :auto ? nil : @pixelDensity__
+    pd            ||= @rootContext__.pixelDensity
+    return if w == width && h == height && pd == pixelDensity
+
+    updateCanvas__ Rays::Image.new(w.to_i, h.to_i, pixel_density: pd)
 
     rootw, rooth = @rootContext__.width, @rootContext__.height
     if w == rootw && h == rooth
