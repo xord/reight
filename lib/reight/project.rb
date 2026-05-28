@@ -46,7 +46,7 @@ class Reight::Project
         g.begin_draw {g.background 0, 0, 0, 0}
         img = load_image chips_image_path
         g.begin_draw {g.image img, 0, 0}
-      rescue Rays::RaysError
+      rescue Errno::ENOENT
       end
     }.call
   end
