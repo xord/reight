@@ -22,7 +22,7 @@ end
 
 def r8 = $r8__
 
-Reight::CONTEXT__.tap do |c|
+Reight::WINDOW__.context.tap do |c|
   path = argv.shift || '.'
   path = File.expand_path path, Dir.pwd unless path.start_with?('/')
   c.setup          {Reight::R8.new(path, edit: params[:edit]).setup}

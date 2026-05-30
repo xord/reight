@@ -2,7 +2,7 @@ class Reight::Runner < Reight::App
 
   include Xot::Inspectable
 
-  ROOT_CONTEXT   = Reight::CONTEXT__
+  ROOT_CONTEXT   = Reight::WINDOW__.context
 
   TEMPORARY_HASH = {}
 
