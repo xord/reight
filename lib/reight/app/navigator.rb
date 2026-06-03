@@ -150,7 +150,7 @@ class Reight::Navigator::Message
         next unless @text
         fill 100
         text_align LEFT, CENTER
-        draw_text @text, 0, 0, sp.w, sp.h
+        Processing.context.text @text, 0, 0, sp.w, sp.h
       end
     end
   end
