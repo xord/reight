@@ -6,7 +6,7 @@ module Reight
   Processing.alias_snake_case_methods__ Processing
   Processing.alias_snake_case_methods__ RubySketch
 
-  WINDOW__              = Processing.setup__ RubySketch
+  WINDOW__              = Processing.setup__ RubySketch::Window, RubySketch::Context
   $processing_context__ = WINDOW__.context
 
   refine Object do
