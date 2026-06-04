@@ -224,7 +224,7 @@ class Reight::Runner < Reight::App
         alias_method snake, camel if snake != camel
       end
 
-      Processing.funcs__(ROOT_CONTEXT).each do |func|
+      Processing.funcs__(ROOT_CONTEXT.class).each do |func|
         next if method_defined? func
         define_method(func) {|*a, **k, &b| ROOT_CONTEXT.__send__ func, *a, **k, &b}
       end

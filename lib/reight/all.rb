@@ -10,8 +10,8 @@ module Reight
   $processing_context__ = WINDOW__.context
 
   refine Object do
-    context = WINDOW__.context
-    (Processing.funcs__(context) - Processing.events__(context)).each do |func|
+    klass = RubySketch::Context
+    (Processing.funcs__(klass) - Processing.events__(klass)).each do |func|
       define_method func do |*args, **kwargs, &block|
         $processing_context__.__send__ func, *args, **kwargs, &block
       end
