@@ -18,12 +18,16 @@ class Reight::History
     true
   end
 
-  def begin_grouping(&block)
+  def begin_grouping(*args, **kwargs, &block)
     raise "Grouping cannot be nested" if @group
     @group = []
-    block.call if block
-  ensure
-    end_grouping if block
+    if block
+      begin
+        block.call(*args, **kwargs)
+      ensure
+        end_grouping
+      end
+    end
   end
 
   alias group begin_grouping
@@ -58,12 +62,12 @@ class Reight::History
     @enabled ? enabled : disabled
   end
 
-  def disable(&block)
+  def disable(*args, **kwargs, &block)
     old = enabled?
     enable false
     if block
       begin
-        block.call
+        block.call(*args, **kwargs)
       ensure
         enable old
       end
