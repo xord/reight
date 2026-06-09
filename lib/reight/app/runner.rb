@@ -135,6 +135,7 @@ class Reight::Runner < Reight::App
 
   def call_event(push: true, ignore_pause: false, &block)
     if @context
+      prev, $processing_context__ = $processing_context__, @context
       @context.beginDraw__
       @context.push if push
       block.call unless paused?
@@ -143,6 +144,7 @@ class Reight::Runner < Reight::App
     puts e.full_message
   ensure
     if @context
+      $processing_context__       = prev
       @context.pop if push
       @context.endDraw__
     end
@@ -157,7 +159,6 @@ class Reight::Runner < Reight::App
     backup_global_vars
     @context = create_context
     @paused  = false
-    Processing::Context.setCurrent__ @context
     begin_wrapping_user_classes @context
     eval_user_script @context, project.code_paths.zip(project.codes).to_h
   end
@@ -168,7 +169,6 @@ class Reight::Runner < Reight::App
 
   def cleanup()
     ROOT_CONTEXT.remove_world @context.spriteWorld__ if @context
-    Processing::Context.setCurrent__ nil
     @context = nil
     end_wrapping_user_classes
     clear_all_timers
@@ -272,7 +272,8 @@ class Reight::Runner < Reight::App
   end
 
   def eval_user_script(context, codes)
-    TEMPORARY_HASH[:params] = {context: context, codes: codes}
+    prev, $processing_context__ = $processing_context__, context
+    TEMPORARY_HASH[:params]     = {context: context, codes: codes}
     context.class.class_eval <<~END
       ::Reight::Runner::TEMPORARY_HASH[:params] => {context:, codes:}
       codes.each {|path, code| context.instance_eval code, path if code}
@@ -280,6 +281,7 @@ class Reight::Runner < Reight::App
   rescue ScriptError, StandardError => e
     puts e.full_message
   ensure
+    $processing_context__       = prev
     TEMPORARY_HASH.delete :params
   end
 
