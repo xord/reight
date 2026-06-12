@@ -1,6 +1,23 @@
 # reight ChangeLog
 
 
+## [v0.3.0] - 2026-06-12
+
+- [BREAKING] Drop redundant drawXxx aliases from GraphicsContext (from processing)
+- [BREAKING] Make pixelDensity a keyword arg in createGraphics (from processing)
+
+- Adopt the per-window Context model from Processing
+- Support AUTO pixel density for sharp text in editor and game
+- Make r8 command executable
+- Bump wasm build to Ruby 4.0
+- Untrack Gemfile.lock in wasm subproject
+- Scope WASM build sources to gem src/ext/include/lib
+- Switch test page to CDN-based asset loading
+- Guard test:deploy with file preview and confirmation prompt
+
+- Fix launch failure when chips image is missing
+
+
 ## [v0.2.2] - 2026-05-20
 
 - Use Node 24 in WASM release workflow for npm Trusted Publishing
