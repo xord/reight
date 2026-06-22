@@ -1,6 +1,11 @@
 # reight ChangeLog
 
 
+## [v0.3.1] - 2026-06-23
+
+- Update dependencies
+
+
 ## [v0.3.0] - 2026-06-12
 
 - [BREAKING] Drop redundant drawXxx aliases from GraphicsContext (from processing)
