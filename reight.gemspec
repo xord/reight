@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'rays',       '~> 0.3.16'
   s.add_dependency 'reflexion',  '~> 0.5.3'
   s.add_dependency 'processing', '~> 1.3.4'
-  s.add_dependency 'rubysketch', '~> 0.9.4'
+  s.add_dependency 'rubysketch', '~> 0.9.5'
 
   s.files            = `git ls-files`.split $/
   s.executables      = s.files.grep(%r{^bin/}) {|f| File.basename f}
