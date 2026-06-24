@@ -1,6 +1,9 @@
 using Reight
 
 
+def r8() = $r8__
+
+
 class Reight::R8
 
   def initialize(path, edit: false)

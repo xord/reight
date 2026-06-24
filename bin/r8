@@ -1,48 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
-require 'reight'
+require 'reight/cli'
 
-
-opt         = OptionParser.new
-opt.banner  = "Usage: r8 [options] [DIR]"
-opt.version = Reight::Extension.version
-
-opt.on      '-e', '--edit', "edit mode"
-opt.on_tail '-h', '--help'
-
-params = {}
-argv   = opt.parse! ARGV, into: params
-
-if params.key? :help
-  puts opt.help
-  exit
-end
-
-
-def r8 = $r8__
-
-Reight::WINDOW__.context.tap do |c|
-  path = argv.shift || '.'
-  path = File.expand_path path, Dir.pwd unless path.start_with?('/')
-  c.setup          {Reight::R8.new(path, edit: params[:edit]).setup}
-  c.draw           {r8.draw}
-  c.key_pressed    {r8.key_pressed}
-  c.key_released   {r8.key_released}
-  c.key_typed      {r8.key_typed}
-  c.mouse_pressed  {r8.mouse_pressed}
-  c.mouse_released {r8.mouse_released}
-  c.mouse_moved    {r8.mouse_moved}
-  c.mouse_dragged  {r8.mouse_dragged}
-  c.mouse_clicked  {r8.mouse_clicked}
-  c.double_clicked {r8.double_clicked}
-  c.mouse_wheel    {r8.mouse_wheel}
-  c.touch_started  {r8.touch_started}
-  c.touch_ended    {r8.touch_ended}
-  c.touch_moved    {r8.touch_moved}
-  c.note_pressed   {r8.note_pressed}
-  c.note_released  {r8.note_released}
-  c.control_change {r8.control_change}
-  c.window_moved   {r8.window_moved}
-  c.window_resized {r8.window_resized}
-end
+Reight::CLI.new.run ARGV
