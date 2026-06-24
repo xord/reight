@@ -95,17 +95,22 @@ class Reight::CLI
         require 'reight/cli'
         Reight::CLI.new.run %w[run .]
       BOOT
-      template:     <<~RUBY)
+      templates: {'game.rb': <<~GAME, 'reight.yml': <<~CONFIG})
         setup do
           setTitle '{{name}}'
         end
 
         draw do
           background 100
-          fill 255, 200, 200
-          ellipse width / 2, height / 2, 100, 100
+          text 'hello, world!', 100, 100
         end
-      RUBY
+      GAME
+        name: {{name}}
+        version: 1.0.0
+        #bundle_id: org.xord.reight.example.{{name_id}}
+        #icon: icon.png
+      CONFIG
+
     cli.run [command] + argv.dup
   end
 
