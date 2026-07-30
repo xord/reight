@@ -27,6 +27,12 @@ jobs:
       - name: packages
         run: bundle exec rake verbose packages
 
+      - name: setup zig
+        if: github.event.repository.name == 'reflex-terminal'
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
       - name: lib
         run: bundle exec rake verbose lib
 

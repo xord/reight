@@ -26,8 +26,17 @@ jobs:
       - name: setup dependencies
         run: "ruby -I.github/workflows -rutils -e 'setup_dependencies'"
 
+      - name: packages
+        run: bundle exec rake packages
+
+      - name: setup zig
+        if: github.event.repository.name == 'reflex-terminal'
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
       - name: test
-        run: bundle exec rake packages test
+        run: bundle exec rake test
 
       - name: create gem
         id: gem
