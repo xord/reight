@@ -1,6 +1,13 @@
 # reight ChangeLog
 
 
+## [v0.4.0] - 2026-08-04
+
+- Add packager support with subcommand CLI
+
+- Fix History#begin_grouping and #disable to forward block arguments
+
+
 ## [v0.3.5] - 2026-06-23
 
 - Update dependencies
