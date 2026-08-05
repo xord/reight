@@ -193,6 +193,7 @@ class Reight::Map::Chunk
   end
 
   def clear_sprites()
+    each {_1.clear_sprite}
     @sprites = nil
   end
 
