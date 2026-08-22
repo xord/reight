@@ -72,6 +72,8 @@ class Reight::R8
   def mouse_dragged()  = current.mouse_dragged
   def mouse_clicked()  = current.mouse_clicked
   def double_clicked() = current.double_clicked
+  def mouse_over()     = current.mouse_over
+  def mouse_out()      = current.mouse_out
   def mouse_wheel()    = current.mouse_wheel
   def touch_started()  = current.touch_started
   def touch_ended()    = current.touch_ended

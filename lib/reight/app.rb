@@ -106,6 +106,8 @@ class Reight::App
   def mouse_dragged()  = nil
   def mouse_clicked()  = nil
   def double_clicked() = nil
+  def mouse_over()     = nil
+  def mouse_out()      = nil
   def mouse_wheel()    = nil
   def touch_started()  = nil
   def touch_ended()    = nil

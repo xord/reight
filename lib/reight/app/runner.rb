@@ -86,6 +86,16 @@ class Reight::Runner < Reight::App
     call_event {@context.double_clicked}
   end
 
+  def mouse_over()
+    super
+    call_event {@context.mouse_over}
+  end
+
+  def mouse_out()
+    super
+    call_event {@context.mouse_out}
+  end
+
   def mouse_wheel()
     super
     call_event {@context.mouse_wheel}

@@ -69,6 +69,8 @@ class Reight::CLI
       c.mouse_dragged  {r8.mouse_dragged}
       c.mouse_clicked  {r8.mouse_clicked}
       c.double_clicked {r8.double_clicked}
+      c.mouse_over     {r8.mouse_over}
+      c.mouse_out      {r8.mouse_out}
       c.mouse_wheel    {r8.mouse_wheel}
       c.touch_started  {r8.touch_started}
       c.touch_ended    {r8.touch_ended}
