@@ -86,11 +86,7 @@ class Reight::CLI
   def package(command, argv)
     require 'reflex/packager'
     cli = Reflex::Packager::CLI.new Reflex::Packager::Profile.new(
-      pod:          'Reight',
-      git:          'https://github.com/xord/reight',
-      version:      Reight::Extension.version,
-      libraries:    %w[Xot Rucy Beeps Rays Reflex Processing RubySketch Reight],
-      extensions:   %w[beeps_ext rays_ext reflex_ext],
+      extension:    Reight::Extension,
       config_files: %w[reight.yml reight.yaml r8.yml r8.yaml],
       command:      'r8',
       boot:         <<~BOOT,
