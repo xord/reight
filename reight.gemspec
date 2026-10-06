@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 
   ext   = Reight::Extension
   name  = ext.name true
-  rdocs = glob.call *%w[README]
+  rdocs = glob.call(*%w[README])
 
   s.name        = name
   s.version     = ext.version
