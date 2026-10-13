@@ -13,16 +13,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ruby 4.0
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 4.0
 
-      - name: checkout
-        uses: actions/checkout@v4
+      - name: setup xot
+        run: git clone -q --depth 1 https://github.com/xord/xot.git "${{ runner.temp }}/xot"
 
       - name: checkout monorepo
-        run: ruby -I.github/workflows -rutils -e 'abort unless checkout_monorepo'
+        env:
+          RUBYLIB: ${{ runner.temp }}/xot/lib
+        run: ruby -rxot/rake -e 'checkout_monorepo'
 
       - name: setup node
         uses: actions/setup-node@v4
@@ -41,7 +46,8 @@ jobs:
       - name: upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ruby -I.github/workflows -rutils -e 'release(*Dir.glob("../all/reight/wasm/output/*"))'
+          RUBYLIB: ../all/xot/lib
+        run: ruby -rxot/rake -e 'release_on_github(*Dir.glob("../all/reight/wasm/output/*"))'
 
       - name: publish to npm
         run: cd ../all/reight/wasm && rake publish
