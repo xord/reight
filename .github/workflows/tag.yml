@@ -8,34 +8,5 @@ on:
 
 jobs:
   tag:
-    runs-on: ubuntu-latest
-
-    if: github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' # a fork must not run this
-
-    steps:
-      - name: ruby 3.2
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.2
-
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha }}
-          token: ${{ secrets.PAT }}
-
-      - name: setup dependencies
-        run: "ruby -I.github/workflows -rutils -e 'setup_dependencies only: :xot'"
-
-      - name: setup user name and email
-        run: |
-          git config --global user.email "xordog@gmail.com"
-          git config --global user.name "xord"
-
-      - name: tag versions
-        run: "ruby -I.github/workflows -rutils -e 'tag_versions'"
-
-      - name: push tags
-        run: git push origin --tags
+    uses: xord/xot/.github/workflows/tag.yml@master
+    secrets: inherit

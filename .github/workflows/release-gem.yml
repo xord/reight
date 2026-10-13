@@ -9,52 +9,5 @@ permissions:
 
 jobs:
   release:
-    runs-on: macos-latest
-
-    steps:
-      - name: ruby 3.2
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.2
-
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: setup gems
-        run: bundle install
-
-      - name: setup dependencies
-        run: "ruby -I.github/workflows -rutils -e 'setup_dependencies'"
-
-      - name: packages
-        run: bundle exec rake packages
-
-      - name: setup zig
-        if: github.event.repository.name == 'reflex-terminal'
-        uses: mlugg/setup-zig@v2
-        with:
-          version: 0.16.0
-
-      - name: test
-        run: bundle exec rake test
-
-      - name: create gem
-        id: gem
-        run: |
-          bundle exec rake gem
-          echo path=$(ruby -e 'print Dir.glob("*.gem").first') >> $GITHUB_OUTPUT
-
-      - name: create github release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ruby -I.github/workflows -rutils -e 'release(*ARGV)' ./${{ steps.gem.outputs.path }}
-
-      - name: upload to rubygems
-        env:
-          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          bundle exec rake upload
+    uses: xord/xot/.github/workflows/release-gem.yml@master
+    secrets: inherit

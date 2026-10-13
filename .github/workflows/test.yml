@@ -7,40 +7,4 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
-
-    steps:
-      - name: ruby 3.2
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.2
-
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: setup gems
-        run: bundle install
-
-      - name: setup dependencies
-        run: "ruby -I.github/workflows -rutils -e 'setup_dependencies'"
-
-      - name: packages
-        run: bundle exec rake verbose packages
-
-      - name: setup zig
-        if: github.event.repository.name == 'reflex-terminal'
-        uses: mlugg/setup-zig@v2
-        with:
-          version: 0.16.0
-
-      - name: vendor
-        run: bundle exec rake vendor
-
-      - name: lib
-        run: bundle exec rake verbose lib
-
-      - name: ext
-        run: bundle exec rake verbose ext
-
-      - name: test
-        run: bundle exec rake verbose test
+    uses: xord/xot/.github/workflows/test.yml@master
