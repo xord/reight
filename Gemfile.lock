@@ -1,0 +1,28 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    power_assert (3.1.0)
+    rake (13.4.2)
+    rexml (3.4.4)
+    test-unit (3.7.8)
+      power_assert
+    yard (0.9.45)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rake
+  rexml
+  test-unit
+  yard
+
+CHECKSUMS
+  power_assert (3.1.0) sha256=fefe98ed5d3140628138f3f9f9194d6ece01f1320e69700d3c928adca7518251
+  rake (13.4.2) sha256=cb825b2bd5f1f8e91ca37bddb4b9aaf345551b4731da62949be002fa89283701
+  rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
+  test-unit (3.7.8) sha256=689d1ca53f4d46f678b4e5d68d8e4294f87fc5e8b9238cc4de7c5727e8d65943
+  yard (0.9.45) sha256=52e211493f7cb8a3ebf7e104a25a1e73937a3103092545d34cb88fafebb3dc51
+
+BUNDLED WITH
+  4.0.20
