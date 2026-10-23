@@ -56,6 +56,11 @@ class Reight::R8
   end
 
   def setup()
+    begin
+      Reflex::Gamepad.enable
+    rescue Rucy::NativeError
+      # gamepads are not available
+    end
     w, h = Reight::App::SCREEN_WIDTH, Reight::App::SCREEN_HEIGHT
     createCanvas w, h, pixelDensity: AUTO
     window_resize(*[w, h].map {_1 * 3})
