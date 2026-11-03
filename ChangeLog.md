@@ -1,6 +1,19 @@
 # reight ChangeLog
 
 
+## [v0.5.0] - 2026-11-04
+
+- [BREAKING] Raise the deployment targets to macOS 11.0 and iOS 14.0
+- [BREAKING] loadPixels and updatePixels exchange straight alpha, not premultiplied (from processing)
+- [BREAKING] A shader from createShader sees premultiplied samples from texMap and must emit premultiplied color (from processing)
+- [BREAKING] Report wheel deltas in pixels, in the same direction, on every platform (from reflex)
+- Package a macOS app without CocoaPods
+
+- Fix ArgumentError on switching back to the runner
+- Fix mouseOver and mouseOut never reaching a script
+- Fix the run task still passing the old --edit option
+
+
 ## [v0.4.0] - 2026-08-04
 
 - Add packager support with subcommand CLI
