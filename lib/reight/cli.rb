@@ -85,31 +85,8 @@ class Reight::CLI
 
   def package(command, argv)
     require 'reflex/packager'
-    cli = Reflex::Packager::CLI.new Reflex::Packager::Profile.new(
-      extension:    Reight::Extension,
-      config_files: %w[reight.yml reight.yaml r8.yml r8.yaml],
-      command:      'r8',
-      boot:         <<~BOOT,
-        require 'reight/cli'
-        Reight::CLI.new.run %w[run .]
-      BOOT
-      templates: {'game.rb': <<~GAME, 'reight.yml': <<~CONFIG})
-        setup do
-          setTitle '{{name}}'
-        end
-
-        draw do
-          background 100
-          text 'hello, world!', 100, 100
-        end
-      GAME
-        name: {{name}}
-        version: 1.0.0
-        #bundle_id: org.xord.reight.example.{{name_id}}
-        #icon: icon.png
-      CONFIG
-
-    cli.run [command] + argv.dup
+    require 'reight/packager/profile'
+    Reflex::Packager::CLI.new(Reight::Packager::PROFILE).run [command] + argv.dup
   end
 
 end# CLI
