@@ -1,14 +1,15 @@
 name: <%= name.to_json %>
 <%- if developer -%>
 developer: <%= developer.to_json %>
+copyright: <%= "© #{Time.now.year} #{developer}".to_json %>
 <%- else -%>
 #developer: Your Name
+#copyright: © <%= Time.now.year %> Your Name
 <%- end -%>
-bundle_id: org.xord.reight.<%= developer_id %>.<%= name_id %>
-#copyright: © <%= Time.now.year %> <%= copyright_holder %>
 #icon: icon.png
-#macos:
-#  category: public.app-category.games
+macos:
+  bundle_id: <%= app_id_prefix %>.<%= developer_id %>.<%= name_id %>
+  #category: public.app-category.games
 #upload:
 #  itchio:
 #    project: user/game
