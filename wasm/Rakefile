@@ -29,6 +29,22 @@ OUT_LIB_JS = "#{OUT_DIR}/#{NAME}lib.js"
 OUT_FILES  = [OUT_WASM, OUT_JS, OUT_DATA, OUT_LIB_JS]
 
 
+def with_wasm_gemspecs(&block)
+  backups = {}
+  GEMS.each do |gem|
+    path = "#{ROOT_DIR}/#{gem}/#{gem}.gemspec"
+    filter_file path do |s|
+      backups[path] = s
+      s.sub(/^(.*\.\s*extensions.*)$/) {$1.sub 'Rakefile', "ext/#{gem}/extconf.rb"}
+        .gsub(/^\s*s\.add_dependency\s+'reflex-packager'.*\n/, '')
+    end
+  end
+  block.call
+ensure
+  backups.each {|path, s| File.write path, s}
+end
+
+
 task :default => :build
 
 task :clean => 'test:clean' do
@@ -77,16 +93,7 @@ end
 file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
   sh %( rm -rf #{DATA_DIR} )
 
-  backups = {}
-  begin
-    GEMS.each do |gem|
-      path = "#{ROOT_DIR}/#{gem}/#{gem}.gemspec"
-      filter_file path do |s|
-        backups[path] = s
-        s.sub(/^(.*\.\s*extensions.*)$/) {$1.sub 'Rakefile', "ext/#{gem}/extconf.rb"}
-      end
-    end
-
+  with_wasm_gemspecs do
     ldflags = %W[
       -sALLOW_MEMORY_GROWTH=1
       -sINITIAL_MEMORY=#{1024 * 1024 * 64}
@@ -111,8 +118,6 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
       -o #{OUT_JS}
     ].join ' '
     sh %( #{envs} bundle exec rbwasm build #{opts} )
-  ensure
-    backups.each {|path, s| File.write path, s}
   end
 
   roots = Dir.glob('rubies/ruby-*-wasm*-*-emscripten-*-*')
@@ -122,7 +127,7 @@ file OUT_WASM => [BUNDLE_DIR, OUT_DIR] + GEM_SRCS do
 end
 
 file BUNDLE_DIR do
-  sh %( bundle install )
+  with_wasm_gemspecs {sh %( bundle install )}
 end
 
 directory OUT_DIR
